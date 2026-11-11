@@ -49,7 +49,7 @@ class UsageError(ClickException):
             echo(self.ctx.get_usage(), file=file, color=self.ctx.color)
             names = self.ctx.command.get_help_option_names(self.ctx)
             if names and self.ctx.command.get_help_option(self.ctx) is not None:
-                echo(f"Try '{self.ctx.command_path} {names[0]}' for help.", file=file, color=self.ctx.color)
+                echo(f"Try '{self.ctx.command_path} {max(names, key=len)}' for help.", file=file, color=self.ctx.color)
             echo(file=file)
         super().show(file)
 

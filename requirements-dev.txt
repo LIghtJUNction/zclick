@@ -1,0 +1,9 @@
+# Build and comparison tools only. The wheel has no Python runtime dependencies.
+maturin==1.16.0
+pytest==9.2.0
+click==8.5.1
+hypothesis==6.170.15
+build==1.6.1
+twine==7.0.0
+mypy==1.20.2
+PyYAML==6.0.3

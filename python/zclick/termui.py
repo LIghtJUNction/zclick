@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import contextlib
-import getpass
 import os
 import re
 import sys
@@ -19,6 +18,7 @@ _getchar: t.Callable[..., str] | None = None
 
 
 def hidden_prompt_func(prompt: str) -> str:
+    import getpass
     return getpass.getpass(prompt)
 
 
@@ -92,7 +92,7 @@ def confirm(text: str, default: bool | None = False, abort: bool = False, prompt
         elif response in ("n", "no"):
             result = False
         elif not response and default is not None:
-            result = default
+            result = bool(default)
         else:
             echo("Error: invalid input", err=err)
             continue

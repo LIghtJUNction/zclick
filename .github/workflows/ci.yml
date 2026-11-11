@@ -1,0 +1,156 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_call:
+    inputs:
+      ref:
+        type: string
+        default: ''
+      full:
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}-${{ inputs.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  rust:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.ref || github.sha }}
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec
+        with:
+          toolchain: '1.99.1'
+          components: rustfmt, clippy
+          targets: wasm32-unknown-unknown
+      - run: cargo fmt --all -- --check
+      - run: cargo test --locked -p zclick-core --release
+      - run: cargo check --locked -p zclick-core --target wasm32-unknown-unknown
+      - run: cargo clippy --locked --workspace --all-targets -- -D warnings
+      - run: python scripts/audit_dependencies.py
+
+  python:
+    name: ${{ matrix.os }} / Python ${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {os: ubuntu-latest, python: '3.10'}
+          - {os: ubuntu-latest, python: '3.11'}
+          - {os: ubuntu-latest, python: '3.12'}
+          - {os: ubuntu-latest, python: '3.13'}
+          - {os: ubuntu-latest, python: '3.14'}
+          - {os: ubuntu-latest, python: '3.14t', build_args: '--no-default-features'}
+          - {os: ubuntu-latest, python: '3.15'}
+          - {os: ubuntu-latest, python: 'pypy-3.11'}
+          - {os: macos-latest, python: '3.14'}
+          - {os: windows-latest, python: '3.14'}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.ref || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: ${{ matrix.python }}
+      - uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec
+        with:
+          toolchain: '1.99.1'
+      - run: python -m pip install -r requirements-dev.txt
+      - name: Build native wheel
+        env:
+          BUILD_ARGS: ${{ matrix.build_args }}
+        run: maturin build --release --locked --out dist $BUILD_ARGS
+      - name: Install and inspect wheel
+        id: install
+        run: |
+          python -m pip install --no-deps --force-reinstall dist/*.whl
+          python scripts/check_wheel.py dist/*.whl
+      - run: python -m pytest tests -q
+      - name: Upstream compatibility
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: python scripts/run_compatibility.py --output reports/normal -- -m 'not stress'
+      - name: Public API contracts
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: python scripts/api_inventory.py --compare compatibility/api-reference.json --output reports/api.json
+      - name: Target typing examples
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: python -m mypy .cache/click-migrated/tests/typing --no-incremental
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: evidence-${{ matrix.os }}-${{ matrix.python }}
+          path: reports/
+          if-no-files-found: warn
+
+  stress:
+    if: ${{ inputs.full }}
+    name: Stress / ${{ matrix.os }} / ${{ matrix.case }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        case: [thread_pool_with_exit, logging_sequential_invocations, gc_between_invocations, echo_via_pager_exception_cleanup]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.ref || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.14'
+      - uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec
+        with:
+          toolchain: '1.99.1'
+      - run: python -m pip install -r requirements-dev.txt
+      - run: maturin build --release --locked --out dist
+      - run: python -m pip install --no-deps --force-reinstall dist/*.whl
+      - name: Run every case in one upstream stress function
+        env:
+          STRESS_CASE: ${{ matrix.case }}
+        run: |
+          if [[ "$STRESS_CASE" == "echo_via_pager_exception_cleanup" ]]; then
+            TEST_PATH="tests/test_utils/test_echo_via_pager.py::test_stress_$STRESS_CASE"
+          else
+            TEST_PATH="tests/test_stream_lifecycle.py::test_stress_$STRESS_CASE"
+          fi
+          python scripts/run_compatibility.py --test "$TEST_PATH" --output reports/stress
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: evidence-stress-${{ matrix.os }}-${{ matrix.case }}
+          path: reports/
+          if-no-files-found: error
+
+  release-evidence:
+    if: ${{ inputs.full }}
+    needs: [rust, python, stress]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.ref || github.sha }}
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: evidence-*
+          path: evidence
+      - run: python scripts/release_gate.py --reports evidence/*/*/summary.json --api evidence/*/api.json

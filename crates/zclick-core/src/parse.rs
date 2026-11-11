@@ -98,7 +98,9 @@ impl Kernel<'_> {
         for command in &self.commands {
             let mut parser = command.parse(&argv);
             if let Ok(Some(Event::Flag { arg })) = parser.next()
-                && parser.next().ok().flatten().is_none() && parser.finish().is_ok() {
+                && parser.next().ok().flatten().is_none()
+                && parser.finish().is_ok()
+            {
                 let index: usize = arg.parse().ok()?;
                 return self.targets.get(index).copied();
             }
@@ -429,9 +431,35 @@ fn assign_positionals<'a>(
 pub fn processing_order(eager: &[bool], encounters: &[usize]) -> Vec<usize> {
     let mut first = vec![usize::MAX; eager.len()];
     for (position, &id) in encounters.iter().enumerate() {
-        if let Some(slot) = first.get_mut(id) && *slot == usize::MAX { *slot = position; }
+        if let Some(slot) = first.get_mut(id)
+            && *slot == usize::MAX
+        {
+            *slot = position;
+        }
     }
     let mut indices: Vec<_> = (0..eager.len()).collect();
     indices.sort_by_key(|&i| (!eager[i], first[i], i));
     indices
+}
+
+/// Resolve a shared destination without discarding higher-priority sources or
+/// callback-injected values. Source ranks are Click 8.5.1 ParameterSource values.
+/// An explicit default wins over an implicit default at the same rank.
+pub fn select_parameter_value(
+    existing_missing: bool,
+    existing_source: Option<u8>,
+    incoming_source: u8,
+    existing_explicit: bool,
+    incoming_explicit: bool,
+) -> bool {
+    if existing_missing {
+        return true;
+    }
+    let Some(existing) = existing_source else {
+        return false;
+    };
+    if incoming_source != existing {
+        return incoming_source < existing;
+    }
+    !(existing == 5 && existing_explicit && !incoming_explicit)
 }

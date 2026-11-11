@@ -3,17 +3,16 @@ from __future__ import annotations
 
 import errno
 import functools
-import glob
 import io
 import os
 import re
 import stat
 import sys
-import tempfile
 import typing as t
-import warnings
 
 from . import _compat
+
+R = t.TypeVar("R")
 
 _default_text_stdin = _compat.get_text_stdin
 _default_text_stdout = _compat.get_text_stdout
@@ -130,7 +129,7 @@ class _AtomicFile:
         return self
 
     def __exit__(self, *args: t.Any) -> None:
-        self.close(delete=args[0] is not None)
+        self.close()
 
     def __iter__(self) -> t.Iterator[t.Any]:
         return iter(self._file)
@@ -151,6 +150,7 @@ def _open_stream(filename: t.Any, mode: str = "r", encoding: str | None = None, 
         raise ValueError("Use the `overwrite`-parameter instead.")
     if "w" not in mode:
         raise ValueError("Atomic writes only make sense with `w`-mode.")
+    import tempfile
     target = os.path.realpath(os.fsdecode(filename))
     fd, temporary = tempfile.mkstemp(prefix=".__atomic-write", dir=os.path.dirname(target))
     try:
@@ -178,7 +178,7 @@ class _LazyFile:
         self.name, self.mode, self.encoding, self.errors, self.atomic = os.fspath(filename), mode, encoding, errors, atomic
         self._f: t.Any = None
         self.should_close = True
-        if self.name in ("-", b"-"):
+        if self.name == (b"-" if isinstance(self.name, bytes) else "-"):
             self._f, self.should_close = _open_stream(filename, mode, encoding, errors, atomic)
         elif "r" in mode:
             with open(filename, "rb"):
@@ -275,6 +275,7 @@ def _detect_program_name(path: str | None = None, _main: t.Any = None) -> str:
 
 
 def _expand_args(args: t.Iterable[str], *, user: bool = True, env: bool = True, glob_recursive: bool = True) -> list[str]:
+    import glob
     result: list[str] = []
     for value in args:
         if user:
@@ -289,6 +290,7 @@ def _expand_args(args: t.Iterable[str], *, user: bool = True, env: bool = True, 
 def __getattr__(name: str) -> t.Any:
     names = {"LazyFile", "KeepOpenFile", "PacifyFlushWrapper", "safecall", "make_default_short_help", "get_binary_stream", "get_text_stream"}
     if name in names:
+        import warnings
         warnings.warn(f"'{name}' is deprecated and will be removed in Click 9.0.", DeprecationWarning, stacklevel=2)
         return globals()["_" + name]
     raise AttributeError(name)

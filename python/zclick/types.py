@@ -5,6 +5,8 @@ converters remain virtual, and file ownership follows the context lifetime.
 """
 from __future__ import annotations
 
+import abc
+
 import enum
 import os
 import stat
@@ -18,6 +20,57 @@ from .exceptions import BadParameter
 V = t.TypeVar("V", covariant=True)
 I = t.TypeVar("I", contravariant=True)
 P = t.TypeVar("P", covariant=True)
+
+
+class ParamTypeInfoDict(t.TypedDict):
+    param_type: str
+    name: str
+
+
+class FuncParamTypeInfoDict(ParamTypeInfoDict, t.Generic[I, V]):
+    func: t.Callable[[I], V]
+
+
+class ChoiceInfoDict(ParamTypeInfoDict, t.Generic[V]):
+    choices: tuple[V, ...]
+    case_sensitive: bool
+
+
+class DateTimeInfoDict(ParamTypeInfoDict):
+    formats: t.Sequence[str]
+
+
+class NumberRangeInfoDict(ParamTypeInfoDict, t.Generic[V]):
+    min: V | None
+    max: V | None
+    min_open: bool
+    max_open: bool
+    clamp: bool
+
+
+class FileInfoDict(ParamTypeInfoDict):
+    mode: str
+    encoding: str | None
+
+
+class PathInfoDict(ParamTypeInfoDict):
+    exists: bool
+    file_okay: bool
+    dir_okay: bool
+    writable: bool
+    readable: bool
+    allow_dash: bool
+
+
+class TupleInfoDict(ParamTypeInfoDict):
+    types: t.Sequence[ParamTypeInfoDict]
+
+
+class OptionHelpExtra(t.TypedDict, total=False):
+    envvars: tuple[str, ...]
+    default: str
+    range: str
+    required: str
 
 
 class ParamType(t.Generic[V, I]):
@@ -45,7 +98,7 @@ class ParamType(t.Generic[V, I]):
     def get_metavar(self, param: t.Any, ctx: t.Any) -> str | None:
         return None
 
-    def get_missing_message(self, param: t.Any, ctx: t.Any = None) -> str | None:
+    def get_missing_message(self, param: t.Any, ctx: t.Any) -> str | None:
         return None
 
     def split_envvar_value(self, rv: str) -> list[str]:
@@ -60,6 +113,12 @@ class ParamType(t.Generic[V, I]):
 
 class CompositeParamType(ParamType[V, I]):
     is_composite = True
+
+    @property
+    @abc.abstractmethod
+    def arity(self) -> int:
+        """The number of input values consumed by this composite type."""
+        return t.cast(int, None)
 
 
 class FuncParamType(ParamType[V, I]):
@@ -123,11 +182,12 @@ class Choice(ParamType[V, t.Any]):
 
     def get_metavar(self, param: t.Any, ctx: t.Any) -> str:
         if getattr(param, "param_type_name", None) == "option" and not getattr(param, "show_choices", True):
-            return "[CHOICE]"
+            names = list(dict.fromkeys(type(value).__name__.upper() if isinstance(value, enum.Enum) else convert_type(type(value)).name.upper() for value in self.choices))
+            return "[" + "|".join(names) + "]"
         values = "|".join(self.normalize_choice(v, ctx) for v in self.choices)
         return f"{{{values}}}" if getattr(param, "required", False) and getattr(param, "param_type_name", None) == "argument" else f"[{values}]"
 
-    def get_missing_message(self, param: t.Any, ctx: t.Any = None) -> str:
+    def get_missing_message(self, param: t.Any, ctx: t.Any) -> str:
         return "Choose from:\n\t" + ",\n\t".join(self.normalize_choice(v, ctx) for v in self.choices)
 
     def get_invalid_choice_message(self, value: t.Any, ctx: t.Any) -> str:
@@ -254,17 +314,14 @@ class FloatRange(_NumberRange, FloatParamType):
 
 class BoolParamType(ParamType[bool, t.Any]):
     name = "boolean"
+    bool_states = {value: True for value in ("1", "true", "t", "yes", "y", "on")} | {value: False for value in ("", "0", "false", "f", "no", "n", "off")}
 
     @staticmethod
     def str_to_bool(value: str | bool) -> bool | None:
         if isinstance(value, bool):
             return value
         lowered = str(value).strip().casefold()
-        if lowered in ("1", "true", "t", "yes", "y", "on"):
-            return True
-        if lowered in ("0", "false", "f", "no", "n", "off"):
-            return False
-        return None
+        return BoolParamType.bool_states.get(lowered)
 
     def convert(self, value: t.Any, param: t.Any, ctx: t.Any) -> bool:
         result = self.str_to_bool(value)
@@ -304,7 +361,8 @@ class File(ParamType[t.IO[t.Any], t.Any]):
     def resolve_lazy_flag(self, value: t.Any) -> bool:
         if self.lazy is not None:
             return self.lazy
-        return os.fspath(value) not in ("-", b"-") and "w" in self.mode
+        path = os.fspath(value)
+        return path != (b"-" if isinstance(path, bytes) else "-") and "w" in self.mode
 
     def convert(self, value: t.Any, param: t.Any, ctx: t.Any) -> t.Any:
         if hasattr(value, "read") or hasattr(value, "write"):

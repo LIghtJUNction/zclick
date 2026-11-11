@@ -7,16 +7,15 @@ mutable parser state.
 from __future__ import annotations
 
 import abc
-import difflib
 import inspect
 import os
 import sys
-import warnings
 from collections import Counter
 from collections.abc import Callable, Iterable, Mapping, MutableMapping, Sequence
 from contextlib import ExitStack, contextmanager
-from enum import Enum
+from enum import Enum, IntEnum
 from functools import update_wrapper
+from gettext import gettext as _
 from itertools import islice
 from typing import Any, TypeVar
 
@@ -30,6 +29,7 @@ from .parser import _OptionParser, _split_opt, _flag_needs_value
 from .utils import echo
 
 V = TypeVar("V")
+F = TypeVar("F", bound=Callable[..., Any])
 
 
 def batch(iterable: Iterable[V], batch_size: int) -> list[tuple[V, ...]]:
@@ -61,19 +61,26 @@ def iter_params_for_processing(invocation_order: Sequence[Parameter], declaratio
 
 
 def _format_deprecated_label(value: bool | str) -> str:
-    return f"(DEPRECATED: {value})" if isinstance(value, str) else "(DEPRECATED)" if value else ""
+    return f"({_('DEPRECATED')}: {value})" if isinstance(value, str) else _("(DEPRECATED)") if value else ""
 
 
 def _format_deprecated_suffix(value: bool | str) -> str:
     return f" {value}" if isinstance(value, str) else ""
 
 
-class ParameterSource(Enum):
-    COMMANDLINE = 1
-    ENVIRONMENT = 2
-    DEFAULT_MAP = 3
-    DEFAULT = 4
-    PROMPT = 5
+def _invoke_context(ctx: Context, callback: Callable[[], Any]) -> tuple[bool, Any]:
+    """Keep Python's handled-exception state while Rust drives dispatch."""
+    with ctx:
+        return True, callback()
+    return False, None
+
+
+class ParameterSource(IntEnum):
+    PROMPT = 1
+    COMMANDLINE = 2
+    ENVIRONMENT = 3
+    DEFAULT_MAP = 4
+    DEFAULT = 5
 
 
 class Context:
@@ -93,7 +100,7 @@ class Context:
         self.params: dict[str, Any] = {}
         self.args: list[str] = []
         self._protected_args: list[str] = []
-        self._opt_prefixes: set[str] = set()
+        self._opt_prefixes: set[str] = set(parent._opt_prefixes) if parent else set()
         self.obj = parent.obj if obj is None and parent else obj
         self._meta = parent.meta if parent else {}
         self.default_map = (parent.default_map.get(info_name) if default_map is None and parent and parent.default_map is not None and info_name else default_map)
@@ -113,10 +120,12 @@ class Context:
         self.auto_envvar_prefix = auto_envvar_prefix.upper().replace("-", "_") if auto_envvar_prefix else None
         self._depth = 0
         self._parameter_source: dict[str, ParameterSource] = {}
+        self._param_default_explicit: dict[str, bool] = {}
         self._exit_stack = ExitStack()
 
     @property
     def protected_args(self) -> list[str]:
+        import warnings
         warnings.warn("'protected_args' is deprecated and will be removed in Click 9.0. 'args' will contain remaining unparsed tokens.", DeprecationWarning, stacklevel=2)
         return self._protected_args
 
@@ -131,11 +140,11 @@ class Context:
         push_context(self)
         return self
 
-    def __exit__(self, exc_type, exc_value, tb) -> None:
+    def __exit__(self, exc_type, exc_value, tb) -> bool | None:
         self._depth -= 1
         try:
             if self._depth == 0:
-                self._close_with_exception_info(exc_type, exc_value, tb)
+                return self._close_with_exception_info(exc_type, exc_value, tb)
         finally:
             pop_context()
 
@@ -166,9 +175,9 @@ class Context:
     def close(self) -> None:
         self._close_with_exception_info(None, None, None)
 
-    def _close_with_exception_info(self, exc_type, exc_value, tb) -> None:
+    def _close_with_exception_info(self, exc_type, exc_value, tb) -> bool:
         try:
-            self._exit_stack.__exit__(exc_type, exc_value, tb)
+            return self._exit_stack.__exit__(exc_type, exc_value, tb)
         finally:
             self._exit_stack = ExitStack()
 
@@ -203,10 +212,12 @@ class Context:
         return obj
 
     def _default_map_has(self, name: str | None) -> bool:
-        return self.default_map is not None and name in self.default_map
+        return name is not None and self.default_map is not None and self.default_map.get(name, UNSET) is not UNSET
 
     def lookup_default(self, name: str, call: bool = True) -> Any:
         value = self.default_map.get(name) if self.default_map is not None else None
+        if value is UNSET:
+            return None
         return value() if call and callable(value) else value
 
     def fail(self, message: str):
@@ -291,11 +302,12 @@ class Command:
         return formatter.getvalue().rstrip("\n")
 
     def get_params(self, ctx: Context) -> list[Parameter]:
+        import warnings
         params = self.params[:]
         help_option = self.get_help_option(ctx)
         if help_option is not None:
             params.append(help_option)
-        counts = Counter(o for p in params for o in p.opts + p.secondary_opts if isinstance(p, Option))
+        counts = Counter(o for p in params for o in p.opts + p.secondary_opts)
         for name, count in counts.items():
             if count > 1:
                 warnings.warn(f"The parameter {name} is used more than once. Remove its duplicate as parameters should be unique.", UserWarning, stacklevel=3)
@@ -319,7 +331,7 @@ class Command:
 
     def get_help_option_names(self, ctx: Context) -> list[str]:
         claimed = {s for p in self.params for s in p.opts + p.secondary_opts}
-        return [s for s in ctx.help_option_names if s not in claimed]
+        return list(dict.fromkeys(s for s in ctx.help_option_names if s not in claimed))
 
     def get_help_option(self, ctx: Context) -> Option | None:
         names = self.get_help_option_names(ctx)
@@ -360,7 +372,7 @@ class Command:
         text = inspect.cleandoc(self.help).partition("\f")[0] if self.help else ""
         label = _format_deprecated_label(self.deprecated)
         if label:
-            text = f"{text}\n\n{label}".strip()
+            text = f"{text} {label}".strip()
         if text:
             formatter.write_paragraph()
             with formatter.indentation():
@@ -373,10 +385,10 @@ class Command:
                 formatter.write_dl(records)
 
     def format_arguments(self, ctx: Context, formatter: HelpFormatter) -> None:
-        records = [r for p in self.get_params(ctx) if isinstance(p, Argument) and (r := p.get_help_record(ctx)) is not None]
-        if records:
-            with formatter.section("Arguments"):
-                formatter.write_dl(records)
+        arguments = [p for p in self.get_params(ctx) if isinstance(p, Argument)]
+        if any(p.help is not None for p in arguments):
+            with formatter.section(_("Positional arguments")):
+                formatter.write_dl([p.get_help_record(ctx) for p in arguments])
 
     def format_epilog(self, ctx: Context, formatter: HelpFormatter) -> None:
         if self.epilog:
@@ -426,11 +438,14 @@ class Command:
                     for name in param.opts + param.secondary_opts:
                         if name.startswith(incomplete):
                             result.append(CompletionItem(name, help=param.help))
-        if ctx.parent and isinstance(ctx.parent.command, Group) and ctx.parent.command.chain:
-            for name in ctx.parent.command.list_commands(ctx.parent):
-                command = ctx.parent.command.get_command(ctx.parent, name)
-                if command and not command.hidden and name.startswith(incomplete):
-                    result.append(CompletionItem(name, help=command.get_short_help_str()))
+        parent = ctx.parent
+        while parent is not None:
+            if isinstance(parent.command, Group) and parent.command.chain:
+                for name in parent.command.list_commands(parent):
+                    command = parent.command.get_command(parent, name)
+                    if command and not command.hidden and name.startswith(incomplete):
+                        result.append(CompletionItem(name, help=command.get_short_help_str()))
+            parent = parent.parent
         return result
 
     def main(self, args: Sequence[str] | None = None, prog_name: str | None = None,
@@ -521,7 +536,10 @@ class Group(Command):
         super().__init__(name, no_args_is_help=not invoke_without_command if no_args_is_help is None else no_args_is_help, **kwargs)
         self.commands = dict(commands) if isinstance(commands, Mapping) else {}
         self.invoke_without_command, self.chain = invoke_without_command, chain
-        self.subcommand_metavar = subcommand_metavar or ("COMMAND1 [ARGS]... [COMMAND2 [ARGS]...]..." if chain else "COMMAND [ARGS]...")
+        leading = "COMMAND1" if chain else "COMMAND"
+        if invoke_without_command:
+            leading = f"[{leading}]"
+        self.subcommand_metavar = subcommand_metavar if subcommand_metavar is not None else leading + " [ARGS]..." + (" [COMMAND2 [ARGS]...]..." if chain else "")
         self._result_callback = result_callback
         if commands is not None and not isinstance(commands, Mapping):
             for command in commands:
@@ -646,6 +664,7 @@ class Group(Command):
             return finish(results)
 
     def resolve_command(self, ctx: Context, args: list[str]) -> tuple[str | None, Command | None, list[str]]:
+        import difflib
         name = args[0]
         command = self.get_command(ctx, name)
         if command is None and ctx.token_normalize_func is not None:
@@ -715,7 +734,10 @@ class Parameter(abc.ABC):
         self.default, self._default_explicit = default, default is not UNSET
         self.is_eager, self.metavar, self.envvar = is_eager, metavar, envvar
         self._custom_shell_complete = shell_complete
-        self.deprecated, self.help = deprecated, help
+        self.deprecated = deprecated
+        self.help = inspect.cleandoc(help) if help is not None else None
+        if deprecated:
+            self.help = " ".join(filter(None, (self.help, _format_deprecated_label(deprecated))))
         if self.type.is_composite and self.nargs != self.type.arity:
             raise ValueError(f"'nargs' must be {self.type.arity} (or None) for type {self.type!r}, but it was {self.nargs}.")
         if deprecated and required:
@@ -749,7 +771,9 @@ class Parameter(abc.ABC):
         return value + ("..." if self.nargs != 1 else "")
 
     def get_default(self, ctx: Context, call: bool = True) -> Any:
-        value = ctx.lookup_default(self.name, call=False) if ctx._default_map_has(self.name) else self.default
+        value = ctx.lookup_default(self.name, call=False)
+        if (value is None and not ctx._default_map_has(self.name)) or value is UNSET:
+            value = self.default
         return value() if call and callable(value) else value
 
     @abc.abstractmethod
@@ -762,8 +786,11 @@ class Parameter(abc.ABC):
         value = self.value_from_envvar(ctx)
         if value is not None:
             return value, ParameterSource.ENVIRONMENT
-        if ctx._default_map_has(self.name):
-            return ctx.lookup_default(self.name), ParameterSource.DEFAULT_MAP
+        value = ctx.lookup_default(self.name)
+        if value is not UNSET and (value is not None or ctx._default_map_has(self.name)):
+            if isinstance(value, str) and self.nargs != 1:
+                value = self.type.split_envvar_value(value)
+            return value, ParameterSource.DEFAULT_MAP
         return self.get_default(ctx), ParameterSource.DEFAULT
 
     def type_cast_value(self, ctx: Context, value: Any) -> Any:
@@ -825,21 +852,28 @@ class Parameter(abc.ABC):
         return value
 
     def handle_parse_result(self, ctx: Context, opts: Mapping[str, Any], args: list[str]) -> tuple[Any, list[str]]:
+        from ._native import select_parameter_value
+        old_value = ctx.params.get(self.name, UNSET)
+        old_source = ctx.get_parameter_source(self.name)
+        old_explicit = ctx._param_default_explicit.get(self.name, False)
         with augment_usage_errors(ctx, self):
             value, source = self.consume_value(ctx, opts)
             ctx.set_parameter_source(self.name, source)
             if self.deprecated and value is not UNSET and source not in (ParameterSource.DEFAULT, ParameterSource.DEFAULT_MAP):
                 from .termui import secho
-                secho(f"DeprecationWarning: The {self.param_type_name} {self.name!r} is deprecated.{_format_deprecated_suffix(self.deprecated)}", err=True, fg="red")
+                secho(f"DeprecationWarning: The {self.param_type_name} {self.human_readable_name!r} is deprecated.{_format_deprecated_suffix(self.deprecated)}", err=True, fg="red")
             try:
                 value = self.process_value(ctx, value)
             except Exception:
                 if not ctx.resilient_parsing:
                     raise
                 value = UNSET
-            if self.expose_value and self.name is not None:
-                if self.name not in ctx.params or ctx.params[self.name] is UNSET:
-                    ctx.params[self.name] = value
+            selected = select_parameter_value(old_value is UNSET, old_source, source, old_explicit, self._default_explicit)
+            if selected and self.expose_value and self.name is not None:
+                ctx.params[self.name] = value
+                ctx._param_default_explicit[self.name] = self._default_explicit
+            elif not selected and old_source is not None:
+                ctx.set_parameter_source(self.name, old_source)
         return value, args
 
     def get_help_record(self, ctx: Context) -> tuple[str, str] | None:
@@ -874,15 +908,17 @@ class Option(Parameter):
         self.confirmation_prompt, self.prompt_required, self.hide_input = confirmation_prompt, prompt_required, hide_input
         self.hidden = hidden
         self.is_flag = bool(self.secondary_opts or flag_value is not UNSET) if is_flag is None else is_flag
-        if self.prompt and not prompt_required and is_flag is None:
+        if self.prompt and not prompt_required and is_flag is None and flag_value is UNSET:
             self.is_flag = False
-        self._flag_needs_value = bool((self.prompt and not prompt_required) or (is_flag is False and flag_value is not UNSET))
+        self._flag_needs_value = bool((self.prompt and not prompt_required) or (is_flag is False and (flag_value is not UNSET or self.default is UNSET)))
         self.flag_value, self.count = flag_value, count
         self.allow_from_autoenv, self.show_default = allow_from_autoenv, show_default
         self.show_choices, self.show_envvar = show_choices, show_envvar
         if type is None:
             if self.is_flag:
                 self.type = types.BOOL if flag_value is UNSET or isinstance(flag_value, bool) else types.convert_type(None, flag_value)
+                if isinstance(self.type, types.StringParamType) and not isinstance(flag_value, str) and flag_value is not None:
+                    self.type = types.UNPROCESSED
             elif count:
                 self.type = types.IntRange(min=0)
         if count and self.default is UNSET:
@@ -902,6 +938,8 @@ class Option(Parameter):
             raise TypeError("nargs=-1 is not supported for options.")
         if self.secondary_opts and not self.is_bool_flag:
             raise TypeError("Secondary flag is not valid for non-boolean flag.")
+        if self.is_bool_flag and self.hide_input and self.prompt is not None:
+            raise TypeError("'prompt' with 'hide_input' is not valid for boolean flag.")
         if self.count and self.multiple:
             raise TypeError("'count' is not valid with 'multiple'.")
         if self.count and self.is_flag:
@@ -946,7 +984,7 @@ class Option(Parameter):
 
     def _resolve_lazy_default(self, value: Any) -> Any:
         if value is UNSET:
-            if self.multiple:
+            if self.is_flag and self.multiple and not self.required and not self.prompt:
                 return ()
             return False if self.is_bool_flag and not self.required else UNSET
         if self.is_flag and not self.is_bool_flag and value is True:
@@ -954,20 +992,9 @@ class Option(Parameter):
         return value
 
     def get_default(self, ctx: Context, call: bool = True) -> Any:
-        if ctx._default_map_has(self.name):
-            value = ctx.lookup_default(self.name, call=False)
-        else:
-            value = self.default
-            if self.is_flag and not self.is_bool_flag:
-                for param in ctx.command.params:
-                    if isinstance(param, Option) and param.name == self.name and param.default is not UNSET:
-                        value = param.default
-                        if value is True:
-                            value = param.flag_activation_value
-                        break
-        if call and callable(value):
-            value = value()
-        return self._resolve_lazy_default(value) if call or not callable(value) else value
+        original = super().get_default(ctx, call=False)
+        resolved = self._resolve_lazy_default(original)
+        return resolved() if resolved is original and call and callable(resolved) else resolved
 
     def to_info_dict(self) -> dict[str, Any]:
         result = super().to_info_dict()
@@ -1032,6 +1059,8 @@ class Option(Parameter):
                 text = ""
             elif isinstance(value, (tuple, list)):
                 text = ", ".join(str(x) for x in value)
+            elif isinstance(value, Enum):
+                text = value.name
             elif isinstance(value, str) and value == "":
                 text = '""'
             else:
@@ -1048,8 +1077,6 @@ class Option(Parameter):
         if self.hidden:
             return None
         text = inspect.cleandoc(self.help).partition("\f")[0] if self.help else ""
-        if self.deprecated:
-            text = f"{text} {_format_deprecated_label(self.deprecated)}".strip()
         extras = self.get_help_extra(ctx)
         notes = []
         if "envvars" in extras:
@@ -1087,9 +1114,10 @@ class Option(Parameter):
         if self.is_bool_flag and not value.strip():
             return False
         if self.is_flag and not self.is_bool_flag:
-            if value == str(self.flag_activation_value):
+            if value == self.flag_activation_value:
                 return self.flag_activation_value
-            return self.flag_activation_value if types.BOOL(value, self, ctx) else UNSET
+            parsed = types.BoolParamType.str_to_bool(value)
+            return None if parsed is None else self.flag_activation_value if parsed else False
         if self.multiple or self.nargs != 1:
             split = self.type.split_envvar_value(value)
             return batch(split, self.nargs) if self.multiple and self.nargs != 1 else split
@@ -1121,8 +1149,6 @@ class Argument(Parameter):
         if required is None:
             required = attrs.get("default", UNSET) is UNSET and attrs.get("nargs", 1) > 0
         super().__init__(param_decls, required=required, help=help, **attrs)
-        if self.nargs == -1 and self.default is not UNSET and self.default is not None:
-            raise TypeError("'default' is not supported for nargs=-1.")
 
     @property
     def human_readable_name(self) -> str:
@@ -1148,10 +1174,8 @@ class Argument(Parameter):
     def get_usage_pieces(self, ctx: Context) -> list[str]:
         return [self.make_metavar(ctx)]
 
-    def get_help_record(self, ctx: Context) -> tuple[str, str] | None:
-        if self.help is None:
-            return None
-        return self.make_metavar(ctx), inspect.cleandoc(self.help)
+    def get_help_record(self, ctx: Context) -> tuple[str, str]:
+        return self.make_metavar(ctx), self.help or ""
 
     def get_error_hint(self, ctx: Context | None) -> str:
         return repr(self.make_metavar(ctx))
@@ -1177,6 +1201,7 @@ class _MultiCommand(Group, metaclass=_CommandAlias):
 
 
 def __getattr__(name: str):
+    import warnings
     if name not in ("BaseCommand", "MultiCommand"):
         raise AttributeError(name)
     target = _BaseCommand if name == "BaseCommand" else _MultiCommand

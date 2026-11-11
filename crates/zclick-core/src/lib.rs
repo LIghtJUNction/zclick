@@ -5,5 +5,5 @@
 extern crate alloc;
 mod parse;
 mod text;
-pub use parse::{ParseError, ParseResult, Spec, parse, processing_order};
+pub use parse::{ParseError, ParseResult, Spec, parse, processing_order, select_parameter_value};
 pub use text::{join_options, strip_ansi, text_width, truncate_visible, wrap_text};

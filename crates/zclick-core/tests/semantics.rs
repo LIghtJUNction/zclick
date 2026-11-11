@@ -188,3 +188,17 @@ fn wrapped_ansi_layout_matches_plain_and_raw_paragraphs() {
     let raw = wrap_text(b"One paragraph.\n\n\x08\n  A\n   B", 20, b"  ", b"  ", true).unwrap();
     assert_eq!(raw, b"  One paragraph.\n\n    A\n     B");
 }
+#[test]
+fn source_arbitration_preserves_priority_and_user_injections() {
+    use zclick_core::select_parameter_value as select;
+    assert!(select(true, None, 5, false, false));
+    assert!(!select(false, None, 1, false, true));
+    for old in 1..=5 {
+        for new in 1..=5 {
+            assert_eq!(select(false, Some(old), new, true, true), new <= old);
+        }
+    }
+    assert!(!select(false, Some(5), 5, true, false));
+    assert!(select(false, Some(5), 5, false, true));
+    assert!(select(false, Some(5), 2, true, false));
+}

@@ -133,7 +133,11 @@ class ShellComplete:
         self.cli, self.ctx_args, self.prog_name, self.complete_var = cli, ctx_args, prog_name, complete_var
 
     def source_vars(self) -> dict[str, str]:
-        return {"complete_func": "_" + re.sub(r"\W", "_", self.prog_name) + "_completion", "prog_name": self.prog_name, "complete_var": self.complete_var}
+        return {"complete_func": self.func_name, "prog_name": self.prog_name, "complete_var": self.complete_var}
+
+    @property
+    def func_name(self) -> str:
+        return "_" + re.sub(r"[^a-zA-Z0-9_]", "", self.prog_name.replace("-", "_")) + "_completion"
 
     def source(self) -> str:
         return self.source_template % self.source_vars()
@@ -165,12 +169,22 @@ class ShellComplete:
 class BashComplete(ShellComplete):
     name = "bash"
     source_template = r'''%(complete_func)s() {
-    local type value
+    local type value completion
     COMPREPLY=()
     while IFS=, read -r type value; do
         case "$type" in
-            dir) COMPREPLY+=( $(compgen -d -- "$value") ) ;;
-            file) COMPREPLY+=( $(compgen -f -- "$value") ) ;;
+            dir)
+                compopt -o filenames
+                while IFS= read -r completion; do
+                    COMPREPLY+=( "$completion" )
+                done < <(compgen -d -- "$value")
+                ;;
+            file)
+                compopt -o filenames
+                while IFS= read -r completion; do
+                    COMPREPLY+=( "$completion" )
+                done < <(compgen -f -- "$value")
+                ;;
             plain) COMPREPLY+=( "$value" ) ;;
         esac
     done < <(env COMP_WORDS="${COMP_WORDS[*]}" COMP_CWORD="$COMP_CWORD" %(complete_var)s=bash_complete %(prog_name)s)

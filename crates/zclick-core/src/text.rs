@@ -410,7 +410,9 @@ pub fn join_options(options: &[Vec<u8>]) -> (Vec<u8>, bool) {
             return 0;
         }
         let (first, n) = cp(s, 0);
-        if char::from_u32(first).is_some_and(char::is_alphanumeric) { return 0; }
+        if char::from_u32(first).is_some_and(char::is_alphanumeric) {
+            return 0;
+        }
         if n == s.len() {
             0
         } else if cp(s, n).0 == first {
@@ -420,7 +422,9 @@ pub fn join_options(options: &[Vec<u8>]) -> (Vec<u8>, bool) {
         }
     });
     // sort_by_key may not call the key closure for an empty or one-item slice.
-    slash |= options.iter().any(|s| s.first() == Some(&b'/') && s.get(1) != Some(&b'/'));
+    slash |= options
+        .iter()
+        .any(|s| s.first() == Some(&b'/') && s.get(1) != Some(&b'/'));
     let mut out = Vec::new();
     for (i, s) in ordered.iter().enumerate() {
         if i > 0 {

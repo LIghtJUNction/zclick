@@ -2,16 +2,31 @@
 use pyo3::{
     exceptions::{PyTypeError, PyValueError},
     prelude::*,
-    types::{PyBytes, PyDict, PyList, PyTuple},
+    types::{PyBytes, PyDict, PyList, PyString, PyTuple},
 };
 use zclick_core::{self as core, Spec};
 
 fn encode(value: &Bound<'_, PyAny>) -> PyResult<Vec<u8>> {
-    let bytes = value.call_method1("encode", ("utf-8", "surrogatepass"))?;
+    let text = value.cast::<PyString>()?;
+    if let Ok(valid) = text.to_str() {
+        return Ok(valid.as_bytes().to_vec());
+    }
+    let bytes = value
+        .py()
+        .get_type::<PyString>()
+        .call_method1("encode", (value, "utf-8", "surrogatepass"))?;
     Ok(bytes.cast::<PyBytes>()?.as_bytes().to_vec())
 }
 fn decode<'py>(py: Python<'py>, bytes: &[u8]) -> PyResult<Bound<'py, PyAny>> {
-    PyBytes::new(py, bytes).call_method1("decode", ("utf-8", "surrogatepass"))
+    if let Ok(text) = std::str::from_utf8(bytes) {
+        return Ok(PyString::new(py, text).into_any());
+    }
+    Ok(PyString::from_encoded_object(
+        &PyBytes::new(py, bytes),
+        Some(c"utf-8"),
+        Some(c"surrogatepass"),
+    )?
+    .into_any())
 }
 fn strings(values: &Bound<'_, PyAny>) -> PyResult<Vec<Vec<u8>>> {
     values.try_iter()?.map(|v| encode(&v?)).collect()
@@ -49,7 +64,20 @@ fn parse<'py>(
             })
         })
         .collect::<PyResult<_>>()?;
-    let args = strings(argv)?;
+    let originals = argv.try_iter()?.collect::<PyResult<Vec<_>>>()?;
+    let args = originals.iter().map(encode).collect::<PyResult<Vec<_>>>()?;
+    let original_index: std::collections::HashMap<_, _> = args
+        .iter()
+        .enumerate()
+        .map(|(i, s)| ((s.as_ptr() as usize, s.len()), i))
+        .collect();
+    let restore = |bytes: &[u8]| -> PyResult<Bound<'py, PyAny>> {
+        if let Some(&index) = original_index.get(&(bytes.as_ptr() as usize, bytes.len())) {
+            Ok(originals[index].clone())
+        } else {
+            decode(py, bytes)
+        }
+    };
     let parsed = core::parse(
         &definitions,
         &args,
@@ -62,7 +90,7 @@ fn parse<'py>(
         for occurrence in occurrences {
             let items = occurrence
                 .iter()
-                .map(|v| decode(py, v))
+                .map(|v| restore(v))
                 .collect::<PyResult<Vec<_>>>()?;
             rows.append(PyTuple::new(py, items)?)?;
         }
@@ -70,7 +98,7 @@ fn parse<'py>(
     }
     let leftovers = PyList::empty(py);
     for value in parsed.leftovers {
-        leftovers.append(decode(py, &value)?)?;
+        leftovers.append(restore(&value)?)?;
     }
     let order = PyList::new(py, parsed.order)?;
     let error = if let Some(error) = parsed.error {
@@ -107,6 +135,22 @@ fn parse<'py>(
 #[pyfunction]
 fn processing_order(eager: Vec<bool>, encounter_indices: Vec<usize>) -> Vec<usize> {
     core::processing_order(&eager, &encounter_indices)
+}
+#[pyfunction]
+fn select_parameter_value(
+    existing_missing: bool,
+    existing_source: Option<u8>,
+    incoming_source: u8,
+    existing_explicit: bool,
+    incoming_explicit: bool,
+) -> bool {
+    core::select_parameter_value(
+        existing_missing,
+        existing_source,
+        incoming_source,
+        existing_explicit,
+        incoming_explicit,
+    )
 }
 #[pyfunction]
 fn strip_ansi<'py>(py: Python<'py>, text: &Bound<'py, PyAny>) -> PyResult<Bound<'py, PyAny>> {
@@ -175,6 +219,7 @@ fn join_options<'py>(
 fn _native(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(parse, m)?)?;
     m.add_function(wrap_pyfunction!(processing_order, m)?)?;
+    m.add_function(wrap_pyfunction!(select_parameter_value, m)?)?;
     m.add_function(wrap_pyfunction!(strip_ansi, m)?)?;
     m.add_function(wrap_pyfunction!(text_width, m)?)?;
     m.add_function(wrap_pyfunction!(truncate_visible, m)?)?;

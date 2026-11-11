@@ -5,9 +5,7 @@ observable. No Click implementation is loaded by this module.
 """
 from __future__ import annotations
 
-import difflib
-import warnings
-from typing import Any, TYPE_CHECKING
+from typing import Any, TYPE_CHECKING, TypeVar
 
 from .exceptions import BadArgumentUsage, BadOptionUsage, NoSuchOption
 from ._utils import FLAG_NEEDS_VALUE
@@ -16,6 +14,7 @@ if TYPE_CHECKING:
     from .core import Context
 
 _flag_needs_value = FLAG_NEEDS_VALUE
+V = TypeVar("V")
 
 
 def _split_opt(opt: str) -> tuple[str, str]:
@@ -71,11 +70,11 @@ class _Argument:
 
     def process(self, value: Any, state: _ParsingState) -> None:
         from ._utils import UNSET
-        if self.nargs > 1 and value and any(v is UNSET for v in value):
+        if self.nargs > 1 and value is not UNSET and value and any(v is UNSET for v in value):
             if not all(v is UNSET for v in value):
                 raise BadArgumentUsage(f"Argument {self.dest!r} takes {self.nargs} values.")
             value = UNSET
-        state.opts[self.dest] = value
+        state.opts[self.dest] = UNSET if self.nargs == -1 and value == () else value
         state.order.append(self.obj)
 
 
@@ -150,17 +149,19 @@ class _OptionParser:
         if error and not (self.ctx and self.ctx.resilient_parsing):
             kind, spelling = error["kind"], error.get("option", "")
             if kind == "unknown_option":
+                import difflib
                 raise NoSuchOption(spelling, possibilities=difflib.get_close_matches(spelling, self._long_opt), ctx=self.ctx)
             if kind in ("missing_argument", "argument_arity"):
                 p = definitions[error["id"]]
-                raise BadArgumentUsage(f"Argument {p.dest!r} takes {p.nargs} values.", self.ctx)
+                raise BadArgumentUsage(f"Argument {p.dest!r} takes {p.nargs} values.")
             if kind == "definition":
                 raise TypeError(error["message"])
-            raise BadOptionUsage(spelling, error["message"], self.ctx)
+            raise BadOptionUsage(spelling, error["message"])
         return state.opts, leftovers, state.order
 
 
 def __getattr__(name: str) -> Any:
+    import warnings
     aliases = {"OptionParser": _OptionParser, "Option": _Option,
                "Argument": _Argument, "ParsingState": _ParsingState,
                "split_opt": _split_opt, "normalize_opt": _normalize_opt}

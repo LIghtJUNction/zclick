@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import contextlib
-import shutil
 import typing as t
 
 from ._compat import term_len
@@ -37,6 +36,7 @@ def join_options(options: t.Iterable[str]) -> tuple[str, bool]:
 
 class HelpFormatter:
     def __init__(self, indent_increment: int = 2, width: int | None = None, max_width: int | None = None) -> None:
+        import shutil
         self.indent_increment = indent_increment
         self.width = width if width is not None else FORCED_WIDTH if FORCED_WIDTH is not None else max(50, min(shutil.get_terminal_size().columns, max_width or 80) - 2)
         self.current_indent = 0
