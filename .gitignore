@@ -1,0 +1,13 @@
+/target/
+/dist/
+/.venv/
+/.upstream/
+/.pytest_cache/
+/.mypy_cache/
+/.ruff_cache/
+__pycache__/
+*.py[cod]
+*.so
+*.pyd
+*.egg-info/
+/benchmark-results/
