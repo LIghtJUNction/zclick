@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "verified_date": "2026-11-11",
+  "platform": "Linux x86_64",
+  "runtimes": [
+    {"name": "bash", "version": "5.2.37(1)-release", "source": "system executable /usr/bin/bash"},
+    {"name": "zsh", "version": "5.9", "source": "system executable /usr/bin/zsh"},
+    {
+      "name": "fish", "version": "4.9.3",
+      "source": "https://github.com/fish-shell/fish-shell/releases/download/4.9.3/fish-4.9.3-linux-x86_64.tar.xz",
+      "sha256": "8f643d10ad1abb0ef7072764c01ceb5cf61b2d373fda400cf60f0bad69b7e095"
+    },
+    {
+      "name": "pwsh", "version": "7.7.0",
+      "source": "https://github.com/PowerShell/PowerShell/releases/download/v7.7.0/powershell-7.7.0-linux-x64.tar.gz",
+      "sha256": "c89d9c682d2c403dfe726f3df948e359675235a5bd6fab535776de69729ca0cb"
+    }
+  ]
+}

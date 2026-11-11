@@ -2,6 +2,9 @@
 from __future__ import annotations
 
 import argparse
+from datetime import datetime, timezone
+import hashlib
+import importlib
 import json
 import os
 from pathlib import Path
@@ -10,6 +13,14 @@ import sys
 
 from prepare_upstream import ROOT, TARGET, prepare
 from compat_report_plugin import key
+
+
+def implementation_files() -> dict[str, str]:
+    package = Path(importlib.import_module("zclick").__file__).parent
+    return {str(path.relative_to(package)): hashlib.sha256(path.read_bytes()).hexdigest()
+            for path in sorted(package.rglob("*"))
+            if path.is_file() and "__pycache__" not in path.parts
+            and (path.suffix in (".py", ".pyi", ".so", ".pyd") or path.name == "py.typed")}
 
 
 def run(source: Path, migrated: Path, report: Path, baseline: bool, extra: list[str],
@@ -31,6 +42,7 @@ def compare(reference: dict, candidate: dict) -> dict:
     for report in (reference, candidate):
         report["collected"] = [key(node) for node in report["collected"]]
         report["results"] = {key(node): value for node, value in report["results"].items()}
+        report["deselected"] = [key(node) for node in report.get("deselected", [])]
     expected = set(reference["collected"])
     actual = set(candidate["collected"])
     failures, unexpected_skips = [], []
@@ -55,12 +67,14 @@ def compare(reference: dict, candidate: dict) -> dict:
         "baseline_exit_status": reference["exit_status"],
         "candidate_exit_status": candidate["exit_status"],
         "collection_errors": candidate["collection_errors"],
+        "baseline_collection_errors": reference["collection_errors"],
         "deselected": reference.get("deselected", []),
         "validated_test_ids": sorted(expected),
     }
     result["passed"] = bool(expected) and not any((
         reference["exit_status"], candidate["exit_status"], result["missing_tests"],
         result["extra_tests"], failures, unexpected_skips, candidate["collection_errors"],
+        reference["collection_errors"],
     ))
     result["scope"] = "selection" if result["deselected"] else "all-collected"
     result["complete"] = result["passed"] and not result["deselected"]
@@ -88,6 +102,7 @@ def main() -> None:
     baseline = args.output / "click.json"
     candidate = args.output / "zclick.json"
     extra = args.pytest_args[1:] if args.pytest_args[:1] == ["--"] else args.pytest_args
+    files_before = implementation_files()
     if not args.candidate_only:
         run(args.source, args.destination, baseline, True, extra, args.test)
     if not baseline.exists():
@@ -95,10 +110,19 @@ def main() -> None:
     run(args.source, args.destination, candidate, False, extra, args.test)
     if not candidate.exists():
         raise SystemExit("Candidate process produced no report")
-    result = compare(json.loads(baseline.read_text()), json.loads(candidate.read_text()))
+    result = compare(json.loads(baseline.read_text(encoding="utf-8")), json.loads(candidate.read_text(encoding="utf-8")))
     result["selected_paths"] = args.test
+    result["implementation_commit"] = subprocess.check_output(
+        ["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
+    result["source_provenance"] = {
+        "candidate_files": files_before, "recorded_utc": datetime.now(timezone.utc).isoformat(),
+        "changed_during_run": files_before != implementation_files(),
+    }
+    if result["source_provenance"]["changed_during_run"]:
+        result["passed"] = False
     result["complete"] = result["complete"] and not args.test
-    (args.output / "summary.json").write_text(json.dumps(result, indent=2) + "\n")
+    result["complete"] = result["complete"] and result["passed"]
+    (args.output / "summary.json").write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({k: result[k] for k in ("complete", "expected_tests", "collected_tests", "counts")}, indent=2))
     raise SystemExit(0 if result["passed"] else 1)
 

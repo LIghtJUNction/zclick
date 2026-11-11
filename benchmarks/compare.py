@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import gc
+import hashlib
 import importlib
 import importlib.metadata
 import json
@@ -56,6 +57,13 @@ def memory(fn) -> dict:
 
 def worker(package: str, sizes: list[int], loops: int, repeats: int) -> dict:
     cli = importlib.import_module(package)
+    package_path = Path(cli.__file__).parent
+    def fingerprints():
+        return {str(path.relative_to(package_path)): hashlib.sha256(path.read_bytes()).hexdigest()
+                for path in sorted(package_path.rglob("*"))
+                if path.is_file() and "__pycache__" not in path.parts
+                and path.suffix in (".py", ".so", ".pyd")}
+    source_files = fingerprints()
     results = {}
     for size in sizes:
         def construct():
@@ -101,8 +109,10 @@ def worker(package: str, sizes: list[int], loops: int, repeats: int) -> dict:
         rss_bytes = rss if sys.platform == "darwin" else rss * 1024
     except ImportError:
         rss_bytes = None
+    if source_files != fingerprints():
+        raise RuntimeError(f"{package} source changed during measurement")
     return {"package": package, "version": importlib.metadata.version(package), "cases": results,
-            "process_peak_rss_bytes": rss_bytes}
+            "source_files": source_files, "process_peak_rss_bytes": rss_bytes}
 
 
 def cold(package: str, repeats: int) -> dict:
@@ -128,6 +138,8 @@ def main() -> None:
     parser.add_argument("--repeats", type=int, default=9)
     parser.add_argument("--output", type=Path, default=ROOT / "reports/benchmarks.json")
     args = parser.parse_args()
+    if args.iterations < 1 or args.repeats < 1 or any(size < 1 for size in args.sizes):
+        parser.error("sizes, iterations and repeats must be positive")
     if args.worker:
         print(json.dumps(worker(args.worker, args.sizes, args.iterations, args.repeats)))
         return
@@ -140,7 +152,7 @@ def main() -> None:
         measurements[package] = json.loads(output)
         measurements[package]["cold"] = cold(package, args.repeats)
     reference, native = measurements["click"], measurements["zclick"]
-    expected_target = json.loads((ROOT / "compatibility/target.json").read_text())["version"]
+    expected_target = json.loads((ROOT / "compatibility/target.json").read_text(encoding="utf-8"))["version"]
     if reference["version"] != expected_target:
         raise SystemExit(f"Wrong Click benchmark version {reference['version']}; expected {expected_target}")
     ratios = {}
@@ -156,6 +168,8 @@ def main() -> None:
         "machine": platform.machine(), "cpu_count": os.cpu_count(),
         "load_average": list(os.getloadavg()) if hasattr(os, "getloadavg") else None,
         "git_commit": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
+        "cargo_lock_sha256": hashlib.sha256((ROOT / "Cargo.lock").read_bytes()).hexdigest(),
+        "target": json.loads((ROOT / "compatibility/target.json").read_text(encoding="utf-8")),
         "measurements": measurements, "ratios": ratios,
         "method": {
             "build": "maturin build/develop --release --locked",
@@ -166,7 +180,7 @@ def main() -> None:
         },
     }
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(json.dumps(result, indent=2) + "\n")
+    args.output.write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
     print("case                    Click us    zclick us   speedup")
     for name, ratio in ratios.items():
         print(f"{name:24s}{reference['cases'][name]['median_wall_us']:10.3f}"

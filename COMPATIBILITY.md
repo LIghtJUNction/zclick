@@ -10,12 +10,17 @@ The contract covers public object names, call parameters and defaults, return an
 | --- | --- |
 | Public object and member signature audit | Passed; 196 public objects |
 | Upstream normal suite on the local interpreter | 2434 passed, 24 skipped, 1 xfailed |
-| Upstream stress suite | 31000 cases tracked separately; passing stress reports must cover every case before release |
+| Full upstream coverage recorded locally | 33434 passed, 24 skipped, 1 xfailed; 33,459 unique original cases |
+| Upstream stress suite | 31,000 passed: 10,000 each for thread pool, logging and GC; 1,000 for pager cleanup; no stress skips |
 | Cross platform validation | See the [CI runs](https://github.com/LIghtJUNction/zclick/actions/workflows/ci.yml); a configured runner is not a passing result |
+
+These local numbers record development snapshots. The detailed reports retain test IDs and source hashes; they do not assert that every later code change is already validated. The release gate requires fresh reports for the exact immutable release commit, all 33,459 pinned test IDs, the public API audit and real execution of all four Shell runtimes. The final release includes the complete evidence archive and raw performance measurements.
 
 The normal run preserves the upstream `not stress` development selection. The release workflow runs all four original stress functions with their original parameter counts, then checks the union of test IDs. It rejects failures, collection errors, missing tests and extra skips. Upstream platform skips and expected failures retain their original conditions; they are reported separately.
 
 Tests are copied only into `.cache/click-migrated`, outside the runtime package. The migration changes package imports, module references, monkeypatch import paths, subprocess imports, distribution metadata lookup and four module-qualified object repr patterns. The complete edit log is `.cache/click-migrated/namespace-migration.json`. Assertions, argument values, expected behavior and skip markers remain intact.
+
+Before Python 3.12, f-strings are opaque tokenizer strings. The migrator uses AST source positions to rename only package-name expressions inside them, retaining literal output text. Test ID canonicalization also normalizes the three upstream program-name cases built with platform path separators; test arguments and assertions are unchanged. The fixed count and ID fingerprint are recorded in [test-manifest.json](compatibility/test-manifest.json).
 
 ## Behavior checklist
 
@@ -268,8 +273,10 @@ The core directly depends only on registry `zclap = 0.1.4` and builds with `no_s
 python -m pip install -r requirements-dev.txt
 maturin build --release --locked --out dist
 python -m pip install --no-deps --force-reinstall dist/*.whl
-python scripts/run_compatibility.py
-python scripts/api_inventory.py --compare compatibility/api-reference.json --output reports/api.json
+python scripts/run_compatibility.py --output reports/normal -- -m 'not stress'
+python scripts/run_stress.py --output reports/stress --workers 4 --batch-size 500
+python scripts/api_inventory.py --source .cache/click-source --output reports/api-reference.json
+python scripts/api_inventory.py --compare reports/api-reference.json --output reports/api.json
 python -m mypy .cache/click-migrated/tests/typing --no-incremental
 python benchmarks/compare.py
 ```

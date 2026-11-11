@@ -94,6 +94,56 @@ impl<'py> Inputs<'py> {
         }
     }
 }
+fn execute<'a, 'py>(
+    py: Python<'py>,
+    specs: &[Spec],
+    argv: &'a [Vec<u8>],
+    interspersed: bool,
+    ignore_unknown: bool,
+    normalizer: Option<&Bound<'py, PyAny>>,
+) -> (core::ParseResult<'a>, Option<PyErr>) {
+    if let Some(callback) = normalizer {
+        let mut failure = None;
+        let mut normalize = |spelling: &[u8]| {
+            let value = decode(py, spelling)
+                .and_then(|value| callback.call1((value,)))
+                .and_then(|value| encode(&value));
+            match value {
+                Ok(value) => Some(value),
+                Err(error) => {
+                    failure = Some(error);
+                    None
+                }
+            }
+        };
+        let result = core::parse_with_normalizer(
+            specs,
+            argv,
+            interspersed,
+            ignore_unknown,
+            Some(&mut normalize),
+        );
+        (result, failure)
+    } else {
+        (core::parse(specs, argv, interspersed, ignore_unknown), None)
+    }
+}
+fn update_original<'py>(
+    py: Python<'py>,
+    input: &Inputs<'py>,
+    remaining: &[std::borrow::Cow<'_, [u8]>],
+    original: Option<&Bound<'py, PyAny>>,
+) -> PyResult<()> {
+    if let Some(original) = original {
+        let list = original.cast::<PyList>()?;
+        let values = remaining
+            .iter()
+            .map(|value| input.restore(py, value))
+            .collect::<PyResult<Vec<_>>>()?;
+        list.set_slice(0, list.len(), PyList::new(py, values)?.as_any())?;
+    }
+    Ok(())
+}
 fn native_error<'py>(
     py: Python<'py>,
     error: Option<core::ParseError>,
@@ -121,22 +171,31 @@ fn native_error<'py>(
 }
 
 #[pyfunction]
-#[pyo3(signature=(specs,argv,allow_interspersed_args=true,ignore_unknown_options=false))]
+#[pyo3(signature=(specs,argv,allow_interspersed_args=true,ignore_unknown_options=false,normalizer=None,original_args=None))]
+#[allow(clippy::too_many_arguments)]
 fn parse<'py>(
     py: Python<'py>,
     specs: &Bound<'py, PyAny>,
     argv: &Bound<'py, PyAny>,
     allow_interspersed_args: bool,
     ignore_unknown_options: bool,
+    normalizer: Option<&Bound<'py, PyAny>>,
+    original_args: Option<&Bound<'py, PyAny>>,
 ) -> PyResult<Bound<'py, PyTuple>> {
     let definitions = read_specs(specs)?;
     let input = Inputs::new(argv)?;
-    let parsed = core::parse(
+    let (parsed, failure) = execute(
+        py,
         &definitions,
         &input.bytes,
         allow_interspersed_args,
         ignore_unknown_options,
+        normalizer,
     );
+    update_original(py, &input, &parsed.remaining_input, original_args)?;
+    if let Some(error) = failure {
+        return Err(error);
+    }
     let values = PyDict::new(py);
     for (id, occurrences) in parsed.values {
         let rows = PyList::empty(py);
@@ -169,7 +228,7 @@ fn parse<'py>(
 /// Apply parser actions through each live Python definition's process hook.
 /// There is no retained mutable borrow or shared state across these callbacks.
 #[pyfunction]
-#[pyo3(signature=(specs,argv,definitions,state,unset,flag_needs_value,allow_interspersed_args=true,ignore_unknown_options=false))]
+#[pyo3(signature=(specs,argv,definitions,state,unset,flag_needs_value,allow_interspersed_args=true,ignore_unknown_options=false,normalizer=None,original_args=None))]
 #[allow(clippy::too_many_arguments)]
 fn parse_into<'py>(
     py: Python<'py>,
@@ -181,6 +240,8 @@ fn parse_into<'py>(
     flag_needs_value: &Bound<'py, PyAny>,
     allow_interspersed_args: bool,
     ignore_unknown_options: bool,
+    normalizer: Option<&Bound<'py, PyAny>>,
+    original_args: Option<&Bound<'py, PyAny>>,
 ) -> PyResult<Bound<'py, PyTuple>> {
     let specs = read_specs(specs)?;
     if specs.iter().enumerate().any(|(i, s)| s.id != i as i64) {
@@ -189,25 +250,40 @@ fn parse_into<'py>(
         ));
     }
     let input = Inputs::new(argv)?;
-    let parsed = core::parse(
+    let (parsed, failure) = execute(
+        py,
         &specs,
         &input.bytes,
         allow_interspersed_args,
         ignore_unknown_options,
+        normalizer,
     );
+    update_original(py, &input, &parsed.remaining_input, original_args)?;
     let mut seen = vec![0; specs.len()];
+    let nargs_name = PyString::new(py, "nargs");
+    let takes_value_name = PyString::new(py, "takes_value");
+    let process_name = PyString::new(py, "process");
+    let definitions_list = if definitions.is_exact_instance_of::<PyList>() {
+        Some(definitions.cast::<PyList>()?)
+    } else {
+        None
+    };
     for &id in &parsed.order {
         let index = id as usize;
         let spec = &specs[index];
         let row = &parsed.values[&id][seen[index]];
         seen[index] += 1;
-        let definition = definitions.get_item(index)?;
-        let count: i64 = definition.getattr("nargs")?.extract()?;
+        let definition = if let Some(list) = definitions_list {
+            list.get_item(index)?
+        } else {
+            definitions.get_item(index)?
+        };
+        let count: i64 = definition.getattr(&nargs_name)?.extract()?;
         let option = !spec.options.is_empty();
         let value = if option
             && row.is_empty()
             && count != 0
-            && definition.getattr("takes_value")?.is_truthy()?
+            && definition.getattr(&takes_value_name)?.is_truthy()?
         {
             flag_needs_value.clone()
         } else if count == 1 && !row.is_empty() {
@@ -223,7 +299,10 @@ fn parse_into<'py>(
         } else {
             unset.clone()
         };
-        definition.call_method1("process", (value, state))?;
+        definition.call_method1(&process_name, (value, state))?;
+    }
+    if let Some(error) = failure {
+        return Err(error);
     }
     let leftovers = PyList::empty(py);
     for value in parsed.leftovers {
@@ -233,8 +312,15 @@ fn parse_into<'py>(
 }
 
 #[pyfunction]
-fn processing_order(eager: Vec<bool>, encounter_indices: Vec<usize>) -> Vec<usize> {
-    core::processing_order(&eager, &encounter_indices)
+fn processing_order(
+    eager: &Bound<'_, PyAny>,
+    encounter_indices: Vec<usize>,
+) -> PyResult<Vec<usize>> {
+    let eager = eager
+        .try_iter()?
+        .map(|v| v?.is_truthy())
+        .collect::<PyResult<Vec<_>>>()?;
+    Ok(core::processing_order(&eager, &encounter_indices))
 }
 #[pyfunction]
 fn select_parameter_value(

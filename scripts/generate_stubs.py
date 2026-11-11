@@ -84,7 +84,7 @@ def declaration(nodes: list[ast.stmt], in_class: bool = False) -> list[ast.stmt]
 def generate(source: Path, destination: Path) -> None:
     destination.mkdir(parents=True, exist_ok=True)
     for file in sorted((source / "src/click").glob("*.py")):
-        tree = ast.parse(file.read_text())
+        tree = ast.parse(file.read_text(encoding="utf-8"))
         body = declaration(tree.body)
         # A few inferred declarations use Any even in modules without typing.
         has_t = any(isinstance(n, ast.Import) and any(a.name == "typing" and a.asname == "t" for a in n.names) for n in body)
@@ -98,8 +98,8 @@ def generate(source: Path, destination: Path) -> None:
         # builtin after instance annotations are moved into the class body.
         text = re.sub(r"(?<![\w.])type\[", "builtins.type[", text)
         header = "# Type declarations for Click 8.5.1, extracted without implementation bodies.\n"
-        (destination / file.with_suffix(".pyi").name).write_text(header + text + "\n")
-    (ROOT / "compatibility/CLICK_LICENSE.txt").write_text((source / "LICENSE.txt").read_text())
+        (destination / file.with_suffix(".pyi").name).write_text(header + text + "\n", encoding="utf-8")
+    (ROOT / "compatibility/CLICK_LICENSE.txt").write_text((source / "LICENSE.txt").read_text(encoding="utf-8"), encoding="utf-8")
 
 
 if __name__ == "__main__":

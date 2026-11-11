@@ -18,7 +18,7 @@ import subprocess
 import warnings
 
 ROOT = Path(__file__).resolve().parents[1]
-TARGET = json.loads((ROOT / "compatibility/target.json").read_text())
+TARGET = json.loads((ROOT / "compatibility/target.json").read_text(encoding="utf-8"))
 MODULES = ("core", "decorators", "types", "exceptions", "formatting", "parser",
            "termui", "utils", "globals", "shell_completion", "testing")
 
@@ -73,7 +73,7 @@ def collect(source: Path) -> dict:
         raise RuntimeError("Reference inventory imported the wrong Click installation")
     names: dict[str, set[str]] = {}
     current = "click"
-    for line in (source / TARGET["api_reference"]).read_text().splitlines():
+    for line in (source / TARGET["api_reference"]).read_text(encoding="utf-8").splitlines():
         match = re.search(r"(?:\.\.\s+currentmodule::|\{currentmodule\})\s+(\S+)", line)
         if match:
             current = match[1]
@@ -81,7 +81,7 @@ def collect(source: Path) -> dict:
         if match:
             name = match[1] if match[1].startswith("click.") else f"{current}.{match[1]}"
             names.setdefault(name, set()).add("official-api-reference")
-    init = ast.parse((source / "src/click/__init__.py").read_text())
+    init = ast.parse((source / "src/click/__init__.py").read_text(encoding="utf-8"))
     for node in init.body:
         if isinstance(node, ast.ImportFrom) and node.level:
             for alias in node.names:
@@ -92,7 +92,7 @@ def collect(source: Path) -> dict:
             if not name.startswith("_") and getattr(obj, "__module__", "") == module.__name__:
                 names.setdefault(f"{module.__name__}.{name}", set()).add("public-submodule-definition")
         path = source / f"src/click/{module_name}.py"
-        tree = ast.parse(path.read_text())
+        tree = ast.parse(path.read_text(encoding="utf-8"))
         for node in ast.walk(tree):
             if isinstance(node, ast.FunctionDef) and node.name == "__getattr__":
                 for comparison in ast.walk(node):
@@ -101,7 +101,7 @@ def collect(source: Path) -> dict:
                             if isinstance(value, ast.Constant) and isinstance(value.value, str):
                                 names.setdefault(f"{module.__name__}.{value.value}", set()).add("deprecated-public-export")
     names["click.__version__"] = {"deprecated-public-export"}
-    tests = {str(p.relative_to(source)): p.read_text() for p in (source / "tests").rglob("test_*.py")}
+    tests = {str(p.relative_to(source)): p.read_text(encoding="utf-8") for p in (source / "tests").rglob("test_*.py")}
     entries = {}
     for name in sorted(names):
         with warnings.catch_warnings(record=True) as emitted:
@@ -183,15 +183,22 @@ def main() -> None:
     parser.add_argument("--compare", type=Path)
     args = parser.parse_args()
     if args.compare:
-        result = compare(json.loads(args.compare.read_text()))
+        result = compare(json.loads(args.compare.read_text(encoding="utf-8")))
     elif args.source:
         result = collect(args.source)
     else:
         parser.error("Pass --source or --compare")
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n")
+    args.output.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     print(f"Recorded {len(result['entries'])} API objects in {args.output}")
     if args.compare and not result["complete"]:
+        for name, entry in result["entries"].items():
+            issues = {key: value for key, value in entry.items()
+                      if (key == "available" and not value)
+                      or (key.endswith("_matches") and not value)
+                      or (key in ("error", "missing_members", "member_contract_mismatches") and value)}
+            if issues:
+                print(f"{name}: {json.dumps(issues, ensure_ascii=True)}", file=sys.stderr)
         raise SystemExit(1)
 
 

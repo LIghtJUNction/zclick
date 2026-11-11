@@ -20,6 +20,7 @@ import sys
 
 from prepare_upstream import ROOT, TARGET, prepare
 from run_compatibility import compare
+from compat_report_plugin import key
 
 CASES = {
     "thread_pool_with_exit": ("tests/test_stream_lifecycle.py", 10000),
@@ -37,7 +38,9 @@ def merged(paths: list[Path]) -> dict:
     result = {"schema": 1, "exit_status": 0, "collected": [], "deselected": [],
               "results": {}, "collection_errors": [], "shards": []}
     for path in paths:
-        item = json.loads(path.read_text())
+        item = json.loads(path.read_text(encoding="utf-8"))
+        item["collected"] = [key(node) for node in item["collected"]]
+        item["results"] = {key(node): value for node, value in item["results"].items()}
         overlap = set(result["results"]) & set(item["results"])
         if overlap:
             raise ValueError(f"Duplicate stress IDs: {min(overlap)}")
@@ -84,7 +87,7 @@ def main() -> None:
         "reference_tests": {path: digest(source / path) for path, _ in CASES.values()},
         "candidate_tests": {path: digest(destination / path) for path, _ in CASES.values()},
     }
-    (output / "source.json").write_text(json.dumps(provenance, indent=2) + "\n")
+    (output / "source.json").write_text(json.dumps(provenance, indent=2) + "\n", encoding="utf-8")
     selections = []
     cases = args.case or list(CASES)
     expected_ids = set()
@@ -106,7 +109,7 @@ def main() -> None:
         package_name, name, selectors = job
         report_path = output / f"{package_name}-{name}.json"
         argfile = output / f"{package_name}-{name}.args"
-        argfile.write_text("\n".join(selectors) + "\n")
+        argfile.write_text("\n".join(selectors) + "\n", encoding="utf-8")
         env = os.environ.copy()
         python_path = source / "src" if package_name == "click" else snapshot.parent
         env["PYTHONPATH"] = os.pathsep.join((str(python_path), str(ROOT / "scripts")))
@@ -115,10 +118,10 @@ def main() -> None:
                    "-c", str(destination / "pytest.ini"), "-q", "--tb=short", f"@{argfile}"]
         result = subprocess.run(command, cwd=source if package_name == "click" else destination,
                                 env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
-        (output / f"{package_name}-{name}.log").write_text(result.stdout)
+        (output / f"{package_name}-{name}.log").write_text(result.stdout, encoding="utf-8")
         if not report_path.exists():
             raise RuntimeError(f"Stress process did not write a report: {package_name}/{name}\n{result.stdout}")
-        report = json.loads(report_path.read_text())
+        report = json.loads(report_path.read_text(encoding="utf-8"))
         print(f"{package_name}/{name}: {len(report['results'])} cases, exit {result.returncode}", flush=True)
         return package_name, report_path
 
@@ -133,11 +136,12 @@ def main() -> None:
     for package_name, report in reports.items():
         if set(report["collected"]) != expected_ids:
             raise RuntimeError(f"{package_name}: stress case coverage does not match pinned IDs")
-        (output / f"{package_name}.json").write_text(json.dumps(report, indent=2) + "\n")
+        (output / f"{package_name}.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     summary = compare(reports["click"], reports["zclick"])
     summary.update({"complete": False, "scope": "stress", "selected_cases": cases,
-                    "source_provenance": provenance})
-    (output / "summary.json").write_text(json.dumps(summary, indent=2) + "\n")
+                    "source_provenance": provenance,
+                    "implementation_commit": provenance["implementation_commit"]})
+    (output / "summary.json").write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
     print(f"Stress coverage: {len(expected_ids)} exact IDs; passed={summary['passed']}")
     raise SystemExit(0 if summary["passed"] else 1)
 

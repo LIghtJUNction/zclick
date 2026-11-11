@@ -418,7 +418,7 @@ class Command:
         if not args and self.no_args_is_help and not ctx.resilient_parsing:
             raise NoArgsIsHelpError(ctx)
         parser = self.make_parser(ctx)
-        opts, remaining, order = parser.parse_args(args=list(args))
+        opts, remaining, order = parser.parse_args(args=args)
         for param in iter_params_for_processing(order, self.get_params(ctx)):
             _, remaining = param.handle_parse_result(ctx, opts, remaining)
         ctx.params = {key: Parameter._hide_unset(value) for key, value in ctx.params.items()}
@@ -453,7 +453,7 @@ class Command:
             if isinstance(parent.command, Group) and parent.command.chain:
                 for name in parent.command.list_commands(parent):
                     command = parent.command.get_command(parent, name)
-                    if command and not command.hidden and name.startswith(incomplete):
+                    if command and not command.hidden and name.startswith(incomplete) and name not in getattr(parent, "_completion_used_commands", parent._protected_args):
                         result.append(CompletionItem(name, help=command.get_short_help_str()))
             parent = parent.parent
         return result
@@ -775,6 +775,9 @@ class Parameter(abc.ABC):
             return () if self.multiple or self.nargs == -1 else UNSET
         if value is None:
             return () if self.multiple or self.nargs == -1 else None
+        multiple = self.multiple
+        if not multiple and (self.nargs == 1 or self.type.is_composite):
+            return self.type(value, param=self, ctx=ctx)
         def convert(item):
             if self.nargs == 1 or self.type.is_composite:
                 return self.type(item, param=self, ctx=ctx)
@@ -787,7 +790,7 @@ class Parameter(abc.ABC):
             if self.nargs != -1 and len(parts) != self.nargs:
                 raise BadParameter(f"Takes {self.nargs} values but {len(parts)} {'was' if len(parts) == 1 else 'were'} given.", ctx, self)
             return tuple(self.type(x, param=self, ctx=ctx) for x in parts)
-        if self.multiple:
+        if multiple:
             if isinstance(value, str):
                 raise BadParameter("Value must be an iterable.", ctx, self)
             try:
@@ -832,7 +835,7 @@ class Parameter(abc.ABC):
         old_value = ctx.params.get(self.name, UNSET)
         old_source = ctx.get_parameter_source(self.name)
         old_explicit = ctx._param_default_explicit.get(self.name, False)
-        with augment_usage_errors(ctx, self):
+        try:
             value, source = self.consume_value(ctx, opts)
             ctx.set_parameter_source(self.name, source)
             if self.deprecated and value is not UNSET and source not in (ParameterSource.DEFAULT, ParameterSource.DEFAULT_MAP):
@@ -850,6 +853,16 @@ class Parameter(abc.ABC):
                 ctx._param_default_explicit[self.name] = self._default_explicit
             elif not selected and old_source is not None:
                 ctx.set_parameter_source(self.name, old_source)
+        except BadParameter as exc:
+            if exc.ctx is None:
+                exc.ctx = ctx
+            if exc.param is None:
+                exc.param = self
+            raise
+        except UsageError as exc:
+            if exc.ctx is None:
+                exc.ctx = ctx
+            raise
         return value, args
 
     def get_help_record(self, ctx: Context) -> tuple[str, str] | None:

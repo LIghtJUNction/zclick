@@ -33,6 +33,15 @@ def test_composite_generic_supports_default_input_type() -> None:
     assert Coordinates().arity == 2
 
 
+def test_windows_raw_terminal_works_with_redirected_stdin(monkeypatch: pytest.MonkeyPatch) -> None:
+    import zclick._termui_impl as terminal
+
+    monkeypatch.setattr(terminal, "WIN", True)
+    monkeypatch.setattr(sys, "stdin", io.StringIO())
+    with terminal.raw_terminal() as handle:
+        assert handle == -1
+
+
 @pytest.fixture
 def console():
     if sys.platform != "win32":
@@ -97,3 +106,14 @@ def test_windows_console_facade_preserves_caller_bytes(console) -> None:
 
 def test_windows_console_does_not_wrap_redirected_streams(console) -> None:
     assert console._get_windows_console_stream(io.StringIO(), None, None) is None
+
+
+def test_windows_special_key_preserves_echo_reader(console, monkeypatch: pytest.MonkeyPatch) -> None:
+    import zclick._termui_impl as terminal
+
+    keys = iter(("\xe0", "H"))
+    monkeypatch.setattr(terminal.msvcrt, "getwche", lambda: next(keys))
+    monkeypatch.setattr(terminal.msvcrt, "getwch", lambda: "\x04")
+    assert terminal.getchar(echo=True) == "\xe0H"
+    # Windows EOF is Ctrl+Z. Ctrl+D remains an ordinary input character.
+    assert terminal.getchar() == "\x04"

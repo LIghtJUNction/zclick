@@ -230,7 +230,7 @@ class CliRunner:
                     stream.flush()
                 except (ValueError, OSError):
                     pass
-            for fd, backup, temporary, target in reversed(fd_captures):
+            for fd, backup, temporary, target in fd_captures:
                 os.dup2(backup, fd)
                 os.close(backup)
                 temporary.seek(0)

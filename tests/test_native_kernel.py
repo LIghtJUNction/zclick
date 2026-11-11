@@ -72,7 +72,7 @@ def test_native_matches_reference_parser(positions, interspersed, ignore_unknown
         assert order == expected_order, args
 
 
-def test_original_string_objects_and_surrogates_are_preserved():
+def test_original_string_objects_and_surrogates_are_preserved(record_property):
     class UserText(str):
         pass
 
@@ -82,7 +82,11 @@ def test_original_string_objects_and_surrogates_are_preserved():
     assert error is None
     assert values[0][0][0] is value
     del values, value
-    gc.collect()
+    for collection_pass in range(1, 6):
+        gc.collect()
+        if reference() is None:
+            break
+    record_property("gc_collection_passes", collection_pass)
     assert reference() is None
     values, _, _, error = _native.parse([(0, ["--file"], 1, False)], ["--file=\udcff-tail"])
     assert error is None
@@ -161,3 +165,28 @@ def test_zero_arity_values_follow_reference_requeue_semantics(args):
         actual["flag"] = True
     assert actual == expected
     assert leftovers == remaining
+
+
+def test_normalizer_reentry_and_exception_identity():
+    failure = ValueError("normalizer failure")
+    seen = []
+    def normalize(spelling):
+        assert _native.parse([(0, ["--nested"], 1, True)], ["--nested"])[2] == [0]
+        seen.append(spelling)
+        if spelling == "--FAIL":
+            raise failure
+        return spelling.lower()
+    args = ["--OK", "--FAIL", "remaining"]
+    with pytest.raises(ValueError) as caught:
+        _native.parse([(0, ["--ok"], 1, True)], args, normalizer=normalize, original_args=args)
+    assert caught.value is failure
+    assert seen == ["--OK", "--FAIL"]
+    assert args == ["remaining"]
+
+
+def test_parameter_eagerness_uses_python_truthiness():
+    class Eager:
+        def __bool__(self):
+            assert _native.parse([], [])[3] is None
+            return True
+    assert _native.processing_order([0, Eager(), None], [0, 2]) == [1, 0, 2]

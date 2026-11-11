@@ -13,7 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 def audit() -> list[str]:
     problems = []
     for source in (ROOT / "python/zclick").rglob("*.py"):
-        tree = ast.parse(source.read_text(), filename=str(source))
+        tree = ast.parse(source.read_text(encoding="utf-8"), filename=str(source))
         for node in ast.walk(tree):
             imports = []
             if isinstance(node, ast.Import):
@@ -49,7 +49,7 @@ def audit() -> list[str]:
             if dep["name"] == "zclap" and (not dep["req"].startswith("=") or dep.get("source") != "registry+https://github.com/rust-lang/crates.io-index"):
                 problems.append("zclap must have an exact crates.io requirement")
     for path in (ROOT / "crates").rglob("*.rs"):
-        text = path.read_text()
+        text = path.read_text(encoding="utf-8")
         for forbidden in ("Box::leak", "std::process::exit", "process::exit(", "from_utf8_lossy", "to_string_lossy"):
             if forbidden in text:
                 problems.append(f"{path.relative_to(ROOT)}: forbidden lifetime, exit, or lossy conversion: {forbidden}")

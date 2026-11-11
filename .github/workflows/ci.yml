@@ -58,6 +58,7 @@ jobs:
           - {os: ubuntu-latest, python: '3.14'}
           - {os: ubuntu-latest, python: '3.14t', build_args: '--no-default-features'}
           - {os: ubuntu-latest, python: '3.15'}
+          - {os: ubuntu-latest, python: '3.15t', build_args: '--no-default-features'}
           - {os: ubuntu-latest, python: 'pypy-3.11', build_args: '--no-default-features'}
           - {os: macos-latest, python: '3.14'}
           - {os: windows-latest, python: '3.14'}
@@ -67,6 +68,7 @@ jobs:
           ref: ${{ inputs.ref || github.sha }}
           persist-credentials: false
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        id: runtime
         with:
           python-version: ${{ matrix.python }}
       - uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec
@@ -82,7 +84,7 @@ jobs:
         run: |
           python -m pip install --no-deps --force-reinstall dist/*.whl
           python scripts/check_wheel.py dist/*.whl
-      - run: python -m pytest tests -q
+      - run: python -m pytest tests -q --junitxml=reports/project.xml -o junit_family=xunit1
       - name: Upstream compatibility
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         run: python scripts/run_compatibility.py --output reports/normal -- -m 'not stress'
@@ -91,15 +93,82 @@ jobs:
         run: |
           python scripts/api_inventory.py --source .cache/click-source --output reports/api-reference.json
           python scripts/api_inventory.py --compare reports/api-reference.json --output reports/api.json
+      # Mypy 1.20's compiler runtime requires CPython. Its target interpreter
+      # remains the original PyPy runtime, including that wheel's type stubs.
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        if: ${{ !cancelled() && steps.install.outcome == 'success' && startsWith(matrix.python, 'pypy-') }}
+        with:
+          python-version: '3.11'
+      - name: Install type checker for PyPy's declarations
+        if: ${{ !cancelled() && steps.install.outcome == 'success' && startsWith(matrix.python, 'pypy-') }}
+        run: python -m pip install mypy==1.20.2
       - name: Target typing examples
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
-        run: python -m mypy .cache/click-migrated/tests/typing --no-incremental
+        env:
+          TYPING_PYTHON: ${{ steps.runtime.outputs.python-path }}
+        run: python -m mypy .cache/click-migrated/tests/typing --no-incremental --python-executable "$TYPING_PYTHON"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: evidence-${{ matrix.os }}-${{ matrix.python }}
           path: reports/
           if-no-files-found: warn
+
+  shells:
+    name: Four real Shell runtimes
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.ref || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.14'
+      - uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec
+        with:
+          toolchain: '1.99.1'
+      - run: python -m pip install -r requirements-dev.txt
+      - run: maturin build --release --locked --interpreter python --out dist
+      - run: python -m pip install --no-deps --force-reinstall dist/*.whl
+      - name: Install pinned Shell runtimes
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes zsh
+          python scripts/install_test_shells.py
+      - run: python scripts/check_shells.py --output reports/shells
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: shell-evidence-linux
+          path: reports/shells/
+          if-no-files-found: error
+
+  benchmark:
+    if: ${{ inputs.full }}
+    name: Measured Python API performance
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.ref || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.14'
+      - uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec
+        with:
+          toolchain: '1.99.1'
+      - run: python -m pip install -r requirements-dev.txt
+      - run: maturin build --release --locked --interpreter python --out dist
+      - run: python -m pip install --no-deps --force-reinstall dist/*.whl
+      - run: python benchmarks/compare.py --iterations 1000 --repeats 9 --output reports/benchmarks.json
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: performance-evidence
+          path: reports/benchmarks.json
+          if-no-files-found: error
 
   stress:
     if: ${{ inputs.full }}
@@ -138,7 +207,7 @@ jobs:
 
   release-evidence:
     if: ${{ inputs.full }}
-    needs: [rust, python, stress]
+    needs: [rust, python, shells, benchmark, stress]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -149,4 +218,11 @@ jobs:
         with:
           pattern: evidence-*
           path: evidence
-      - run: python scripts/release_gate.py --reports evidence/*/*/summary.json --api evidence/*/api.json
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: shell-evidence-linux
+          path: shell-evidence
+      - name: Validate complete evidence for the immutable release commit
+        env:
+          RELEASE_SHA: ${{ inputs.ref || github.sha }}
+        run: python scripts/release_gate.py --reports evidence/*/*/summary.json --api evidence/*/api.json --shell shell-evidence/summary.json --implementation "$RELEASE_SHA"

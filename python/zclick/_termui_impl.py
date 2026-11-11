@@ -15,7 +15,7 @@ import time
 import typing as t
 from io import StringIO
 
-from ._compat import WIN, _default_text_stdout, isatty, strip_ansi, term_len
+from ._compat import WIN, _default_text_stdout, get_best_encoding, isatty, strip_ansi, term_len
 from .exceptions import ClickException
 from .utils import echo
 
@@ -365,7 +365,7 @@ def open_url(url: str, wait: bool = False, locate: bool = False) -> int:
 @contextlib.contextmanager
 def raw_terminal() -> t.Iterator[int]:
     if WIN:
-        yield sys.stdin.fileno()
+        yield -1
         return
     import termios
     import tty
@@ -383,17 +383,17 @@ def raw_terminal() -> t.Iterator[int]:
 
 def getchar(echo: bool = False) -> str:
     if WIN:
-        value = (msvcrt.getwche if echo else msvcrt.getwch)()
+        read = msvcrt.getwche if echo else msvcrt.getwch
+        value = read()
         if value in ("\x00", "\xe0"):
-            value += msvcrt.getwch()
+            value += read()
     else:
         with raw_terminal() as fd:
-            value = os.read(fd, 32).decode(sys.stdin.encoding or "utf-8", "replace")
-        if echo:
-            from .utils import echo as write
-            write(value, nl=False)
+            value = os.read(fd, 32).decode(get_best_encoding(sys.stdin), "replace")
+        if echo and isatty(sys.stdout):
+            sys.stdout.write(value)
     if value == "\x03":
         raise KeyboardInterrupt()
-    if value in ("\x04", "\x1a"):
+    if value == ("\x1a" if WIN else "\x04"):
         raise EOFError()
     return value

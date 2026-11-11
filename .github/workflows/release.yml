@@ -2,6 +2,7 @@ name: Release
 
 on:
   push:
+    branches: [main]
     tags: ['v*']
   workflow_dispatch:
     inputs:
@@ -28,6 +29,7 @@ defaults:
 
 jobs:
   version:
+    if: ${{ github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/') || startsWith(github.event.head_commit.message, 'release:') }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -60,8 +62,11 @@ jobs:
         id: ref
         run: |
           VERSION="$(python -c 'import tomllib; print(tomllib.load(open("pyproject.toml", "rb"))["project"]["version"])')"
+          python -c 'import sys, tomllib; sys.path.insert(0, "scripts"); from bump_version import parse; parse(tomllib.load(open("pyproject.toml", "rb"))["project"]["version"])'
           if [[ "$GITHUB_REF_TYPE" == tag ]]; then
             test "$GITHUB_REF_NAME" = "v$VERSION"
+          elif [[ "$GITHUB_EVENT_NAME" == push ]]; then
+            python -c 'import json, os, tomllib; event=json.load(open(os.environ["GITHUB_EVENT_PATH"])); version=tomllib.load(open("pyproject.toml", "rb"))["project"]["version"]; assert event["head_commit"]["message"].splitlines()[0] == "release: " + version'
           fi
           RELEASE_SHA="$(git rev-parse HEAD)"
           echo "ref=$RELEASE_SHA" >> "$GITHUB_OUTPUT"
@@ -90,7 +95,7 @@ jobs:
           - {os: macos-15-intel, target: x86_64-apple-darwin, manylinux: auto}
           - {os: macos-latest, target: aarch64-apple-darwin, manylinux: auto}
           - {os: windows-latest, target: x86_64-pc-windows-msvc, manylinux: auto}
-          - {os: windows-11-arm, target: aarch64-pc-windows-msvc, manylinux: auto}
+          - {os: windows-11-arm, target: aarch64-pc-windows-msvc, manylinux: auto, python: '3.12', architecture: arm64}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -98,7 +103,8 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
-          python-version: '3.10'
+          python-version: ${{ matrix.python || '3.10' }}
+          architecture: ${{ matrix.architecture || '' }}
       - uses: PyO3/maturin-action@e83996d129638aa358a18fbd1dfb82f0b0fb5d3b # v1.51.0
         with:
           maturin-version: '1.16.0'
@@ -108,10 +114,29 @@ jobs:
           command: build
           args: --release --locked --out dist
       - run: python scripts/check_wheel.py dist/*.whl
+      - name: Execute installed wheel on its native platform
+        if: ${{ !contains(matrix.target, 'musl') }}
+        run: python scripts/smoke_wheel.py --directory dist --output reports/wheel-smoke.json
+      - name: Execute musllinux wheel in matching musl runtime
+        if: ${{ contains(matrix.target, 'musl') }}
+        run: |
+          mkdir -p reports
+          docker run --rm \
+            --volume "$PWD/dist:/wheels:ro" \
+            --volume "$PWD/scripts:/checks:ro" \
+            --volume "$PWD/reports:/reports" \
+            python:3.14-alpine@sha256:a18b20ad69e74df6cf6d2e1b1a260d7a1ecf5380fd83b310f83ba88c461cf894 \
+            python /checks/smoke_wheel.py --directory /wheels --output /reports/wheel-smoke.json
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: wheels-${{ matrix.target }}
           path: dist/*.whl
+          if-no-files-found: error
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: smoke-${{ matrix.target }}
+          path: reports/wheel-smoke.json
           if-no-files-found: error
 
   sdist:
@@ -131,19 +156,62 @@ jobs:
       - run: python -m pip install maturin==1.16.0 twine==7.0.0
       - run: maturin sdist --out dist
       - run: python -m twine check dist/*
+      - name: Rebuild and execute the published source archive
+        run: |
+          python -m pip wheel --no-deps --no-build-isolation --no-cache-dir --config-settings=maturin.build-args=--locked dist/*.tar.gz --wheel-dir rebuilt
+          python scripts/check_wheel.py rebuilt/*.whl
+          python scripts/smoke_wheel.py --directory rebuilt --output reports/sdist-smoke.json
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: sdist
           path: dist/*.tar.gz
           if-no-files-found: error
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: smoke-sdist
+          path: reports/sdist-smoke.json
+          if-no-files-found: error
 
-  publish:
-    needs: [version, validate, wheels, sdist]
+  alternative-wheels:
+    needs: [version, validate]
     runs-on: ubuntu-latest
-    environment: pypi
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ['pypy-3.11', '3.14t', '3.15t']
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.version.outputs.ref }}
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: ${{ matrix.python }}
+      - uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec
+        with:
+          toolchain: '1.99.1'
+      - run: python -m pip install maturin==1.16.0
+      - run: maturin build --release --locked --no-default-features --interpreter python --out dist
+      - run: python scripts/check_wheel.py dist/*.whl
+      - run: python scripts/smoke_wheel.py --directory dist --output reports/wheel-smoke.json
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: wheels-${{ matrix.python }}-linux-x86_64
+          path: dist/*.whl
+          if-no-files-found: error
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: smoke-${{ matrix.python }}-linux-x86_64
+          path: reports/wheel-smoke.json
+          if-no-files-found: error
+
+  github-release:
+    needs: [version, validate, wheels, alternative-wheels, sdist]
+    runs-on: ubuntu-latest
     permissions:
       contents: write
-      id-token: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -158,18 +226,59 @@ jobs:
         with:
           name: sdist
           path: dist
-      - name: Publish PyPI artifacts
-        uses: pypa/gh-action-pypi-publish@ed0c53931b1dc9bd32cbe73a98c7f6766f8a527e # v1.13.0
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
-          password: ${{ secrets.PYPI_API_TOKEN }}
+          pattern: evidence-*
+          path: evidence/upstream
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: shell-evidence-linux
+          path: evidence/shells
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: smoke-*
+          path: evidence/built-artifacts
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: performance-evidence
+          path: release-reports
+      - run: python -m zipfile -c release-reports/compatibility-evidence.zip evidence
       - name: Create release tag and GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
+          RELEASE_SHA: ${{ needs.version.outputs.ref }}
         run: |
           VERSION="$(python -c 'import tomllib; print(tomllib.load(open("pyproject.toml", "rb"))["project"]["version"])')"
           TAG="v$VERSION"
           if ! git rev-parse "$TAG" >/dev/null 2>&1; then
-            git tag "$TAG"
+            git tag "$TAG" "$RELEASE_SHA"
             git push origin "$TAG"
+          else
+            test "$(git rev-parse "$TAG^{commit}")" = "$RELEASE_SHA"
           fi
-          gh release create "$TAG" dist/* --verify-tag --title "zclick $VERSION" --generate-notes
+          PRERELEASE=()
+          if [[ "$VERSION" =~ (a|b|rc)[0-9]+$ ]]; then
+            PRERELEASE=(--prerelease)
+          fi
+          gh release create "$TAG" dist/* release-reports/* --verify-tag --title "zclick $VERSION" --generate-notes "${PRERELEASE[@]}"
+
+  publish-pypi:
+    needs: [version, validate, wheels, alternative-wheels, sdist]
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: wheels-*
+          path: dist
+          merge-multiple: true
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: sdist
+          path: dist
+      - name: Publish PyPI artifacts
+        uses: pypa/gh-action-pypi-publish@ed0c53931b1dc9bd32cbe73a98c7f6766f8a527e # v1.13.0
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}

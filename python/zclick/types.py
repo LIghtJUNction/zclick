@@ -27,12 +27,12 @@ class ParamTypeInfoDict(t.TypedDict):
     name: str
 
 
-class FuncParamTypeInfoDict(ParamTypeInfoDict, t.Generic[I, V]):
-    func: t.Callable[[I], V]
+class FuncParamTypeInfoDict(ParamTypeInfoDict):
+    func: t.Callable[[t.Any], t.Any]
 
 
-class ChoiceInfoDict(ParamTypeInfoDict, t.Generic[V]):
-    choices: tuple[V, ...]
+class ChoiceInfoDict(ParamTypeInfoDict):
+    choices: tuple[t.Any, ...]
     case_sensitive: bool
 
 
@@ -40,9 +40,9 @@ class DateTimeInfoDict(ParamTypeInfoDict):
     formats: t.Sequence[str]
 
 
-class NumberRangeInfoDict(ParamTypeInfoDict, t.Generic[V]):
-    min: V | None
-    max: V | None
+class NumberRangeInfoDict(ParamTypeInfoDict):
+    min: t.Any | None
+    max: t.Any | None
     min_open: bool
     max_open: bool
     clamp: bool
@@ -73,7 +73,7 @@ class OptionHelpExtra(t.TypedDict, total=False):
     required: str
 
 
-class ParamType(t.Generic[V, I]):
+class ParamType(t.Generic[V, I], abc.ABC):
     name: str
     is_composite = False
     arity = 1

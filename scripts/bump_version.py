@@ -46,7 +46,7 @@ def order(value: str) -> tuple[int, int, int, int, int]:
 
 def bump(root: Path, part: str, explicit: str | None = None, dry_run: bool = False) -> str:
     pyproject = root / "pyproject.toml"
-    python_text = pyproject.read_text()
+    python_text = pyproject.read_text(encoding="utf-8")
     match = re.search(r'^version = "([^"]+)"$', python_text, re.M)
     if match is None:
         raise ValueError("pyproject.toml needs one explicit project version")
@@ -60,21 +60,21 @@ def bump(root: Path, part: str, explicit: str | None = None, dry_run: bool = Fal
     rust_version = cargo_version(proposed)
     updates = {pyproject: python_text[:match.start(1)] + proposed + python_text[match.end(1):]}
     workspace = root / "Cargo.toml"
-    cargo = workspace.read_text()
+    cargo = workspace.read_text(encoding="utf-8")
     cargo, changed = re.subn(r'(?ms)(\[workspace\.package\]\n.*?^version = ")[^"]+("$)',
                              lambda m: m[1] + rust_version + m[2], cargo, count=1)
     if changed != 1:
         raise ValueError("Cargo.toml needs workspace.package.version")
     updates[workspace] = cargo
     for manifest in sorted((root / "crates").glob("*/Cargo.toml")):
-        text = manifest.read_text()
+        text = manifest.read_text(encoding="utf-8")
         text = re.sub(r'(?m)^(zclick-[\w-]+\s*=\s*\{[^\n]*?version\s*=\s*"=)[^"]+',
                       lambda m: m[1] + rust_version, text)
         updates[manifest] = text
     if not dry_run:
         for path, content in updates.items():
             temp = path.with_suffix(path.suffix + ".bump.tmp")
-            temp.write_text(content)
+            temp.write_text(content, encoding="utf-8")
             temp.replace(path)
     print(f"{current} -> {proposed} (Cargo {rust_version})")
     return proposed

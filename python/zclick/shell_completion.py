@@ -56,9 +56,10 @@ def _resolve_context(cli: t.Any, ctx_args: dict[str, t.Any], prog_name: str, arg
             name, child, remaining = ctx.command.resolve_command(ctx, remainder)
             if child is None:
                 break
+            completion_args = list(remaining)
             ctx = child.make_context(name, remaining, parent=ctx, resilient_parsing=True)
             stack.callback(ctx.close)
-            ctx._completion_args = remaining
+            ctx._completion_args = completion_args
             continue
         used: list[str] = []
         while remainder:
@@ -67,9 +68,10 @@ def _resolve_context(cli: t.Any, ctx_args: dict[str, t.Any], prog_name: str, arg
                 remainder = []
                 break
             used.append(name)
+            completion_args = list(remaining)
             ctx = child.make_context(name, remaining, parent=group_ctx, resilient_parsing=True, allow_extra_args=True, allow_interspersed_args=False)
             stack.callback(ctx.close)
-            ctx._completion_args = remaining
+            ctx._completion_args = completion_args
             remainder = ctx.args
             if isinstance(child, Group):
                 break
@@ -150,13 +152,7 @@ class ShellComplete:
             ctx = _resolve_context(self.cli, dict(self.ctx_args), self.prog_name, args, resources)
             target = _resolve_incomplete(ctx, incomplete)
             with ctx.scope(cleanup=False):
-                result = target.shell_complete(ctx, incomplete)
-            used: set[str] = set()
-            parent = ctx
-            while parent is not None:
-                used.update(getattr(parent, "_completion_used_commands", ()))
-                parent = parent.parent
-            return [item for item in result if item.value not in used]
+                return target.shell_complete(ctx, incomplete)
 
     def format_completion(self, item: CompletionItem[str]) -> str:
         raise NotImplementedError()
@@ -293,7 +289,9 @@ class PowerShellComplete(BashComplete):
             $help = $items[$i + 2]
             if ($help -eq '_') { $help = $value }
             if ($items[$i] -eq 'file' -or $items[$i] -eq 'dir') {
-                Get-ChildItem -Path ($value + '*') -ErrorAction SilentlyContinue | ForEach-Object {
+                $paths = Get-ChildItem -Path ($value + '*') -ErrorAction SilentlyContinue
+                if ($items[$i] -eq 'dir') { $paths = $paths | Where-Object { $_.PSIsContainer } }
+                $paths | ForEach-Object {
                     [System.Management.Automation.CompletionResult]::new($_.FullName, $_.Name, 'ProviderItem', $_.FullName)
                 }
             } else {

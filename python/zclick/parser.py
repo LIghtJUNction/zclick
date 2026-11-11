@@ -29,7 +29,7 @@ def _normalize_opt(opt: str, ctx: Context | None) -> str:
     if ctx is None or ctx.token_normalize_func is None:
         return opt
     prefix, name = _split_opt(opt)
-    return prefix + ctx.token_normalize_func(name)
+    return f"{prefix}{ctx.token_normalize_func(name)}"
 
 
 class _ParsingState:
@@ -44,12 +44,18 @@ class _Option:
     def __init__(self, obj: Any, opts: list[str], dest: str | None,
                  action: str | None = None, nargs: int = 1, const: Any = None) -> None:
         self.obj, self.opts, self.dest = obj, list(opts), dest
-        self.action, self.nargs, self.const = action or "store", nargs, const
+        self.action, self.nargs, self.const = "store" if action is None else action, nargs, const
         self._short_opts, self._long_opts, self.prefixes = [], [], set()
         for spelling in opts:
             prefix, suffix = _split_opt(spelling)
-            self.prefixes.add(prefix)
-            (self._short_opts if len(prefix) == len(suffix) == 1 else self._long_opts).append(spelling)
+            if not prefix:
+                raise ValueError(f"Invalid start character for option ({spelling})")
+            self.prefixes.add(prefix[0])
+            if len(prefix) == len(suffix) == 1:
+                self._short_opts.append(spelling)
+            else:
+                self._long_opts.append(spelling)
+                self.prefixes.add(prefix)
 
     @property
     def takes_value(self) -> bool:
@@ -58,12 +64,14 @@ class _Option:
     def process(self, value: Any, state: _ParsingState) -> None:
         if self.action in ("store_const", "append_const"):
             value = self.const
-        if self.action.startswith("append"):
+        if self.action in ("append", "append_const"):
             state.opts.setdefault(self.dest, []).append(value)
         elif self.action == "count":
             state.opts[self.dest] = state.opts.get(self.dest, 0) + 1
-        else:
+        elif self.action in ("store", "store_const"):
             state.opts[self.dest] = value
+        else:
+            raise ValueError(f"unknown action '{self.action}'")
         state.order.append(self.obj)
 
 
@@ -77,15 +85,15 @@ class _Argument:
             if not all(v is UNSET for v in value):
                 raise BadArgumentUsage(f"Argument {self.dest!r} takes {self.nargs} values.")
             value = UNSET
-        state.opts[self.dest] = UNSET if self.nargs == -1 and value == () else value
+        state.opts[self.dest] = UNSET if value == () else value
         state.order.append(self.obj)
 
 
 class _OptionParser:
     def __init__(self, ctx: Context | None = None) -> None:
         self.ctx = ctx
-        self.allow_interspersed_args = ctx.allow_interspersed_args if ctx else True
-        self.ignore_unknown_options = ctx.ignore_unknown_options if ctx else False
+        self.allow_interspersed_args = ctx.allow_interspersed_args if ctx is not None else True
+        self.ignore_unknown_options = ctx.ignore_unknown_options if ctx is not None else False
         self._opt_prefixes = {"-", "--"}
         self._short_opt: dict[str, _Option] = {}
         self._long_opt: dict[str, _Option] = {}
@@ -94,7 +102,7 @@ class _OptionParser:
 
     def add_option(self, obj: Any, opts: list[str], dest: str | None,
                    action: str | None = None, nargs: int = 1, const: Any = None) -> None:
-        normalized = [_normalize_opt(o, self.ctx) for o in opts] if self.ctx and self.ctx.token_normalize_func else opts
+        normalized = [_normalize_opt(o, self.ctx) for o in opts] if self.ctx is not None and self.ctx.token_normalize_func is not None else opts
         option = _Option(obj, normalized, dest, action, nargs, const)
         self._options.append(option)
         self._opt_prefixes.update(option.prefixes)
@@ -113,67 +121,15 @@ class _OptionParser:
                   isinstance(p, _Option) and not p.takes_value,
                   bool(getattr(p.obj, "_flag_needs_value", False)))
                  for i, p in enumerate(definitions)]
-        normalized = args
-        if self.ctx and self.ctx.token_normalize_func:
-            # Normalize option spellings, never their attached values or positional tokens.
-            normalized = []
-            pending = 0
-            optional = False
-            ended = False
-            for index, token in enumerate(args):
-                looks_option = len(token) > 1 and token[:1] in self._opt_prefixes
-                if pending and optional and looks_option:
-                    pending = 0
-                if pending or ended:
-                    normalized.append(token)
-                    pending = max(0, pending - 1)
-                    continue
-                if token == "--":
-                    ended = True
-                    normalized.append(token)
-                    continue
-                if not looks_option:
-                    ended = not self.allow_interspersed_args
-                    normalized.append(token)
-                    continue
-                head, sep, tail = token.partition("=")
-                normalized_head = _normalize_opt(head, self.ctx)
-                found = self._long_opt.get(normalized_head)
-                attached = bool(sep)
-                if found is not None:
-                    token = normalized_head + sep + tail
-                elif token[:2] not in self._opt_prefixes:
-                    # A cluster is a sequence of option names followed by an
-                    # untouched value once the first value-taking option occurs.
-                    prefix = token[0]
-                    pieces = [prefix]
-                    for offset, char in enumerate(token[1:], 1):
-                        spelling = _normalize_opt(prefix + char, self.ctx)
-                        found = self._short_opt.get(spelling)
-                        pieces.append(char if found is None and self.ignore_unknown_options else spelling[1:])
-                        if found is not None and found.takes_value:
-                            suffix = token[offset + 1:]
-                            pieces.append(suffix)
-                            attached = bool(suffix)
-                            break
-                        if found is None and not self.ignore_unknown_options:
-                            pieces.append(token[offset + 1:])
-                            break
-                    token = "".join(pieces)
-                elif not self.ignore_unknown_options:
-                    token = normalized_head + sep + tail
-                if found is not None and found.takes_value:
-                    pending = max(0, found.nargs - int(attached))
-                    optional = bool(getattr(found.obj, "_flag_needs_value", False))
-                    if optional and len(args) - index - 1 < pending:
-                        pending = 0
-                    optional = optional and found.nargs == 1
-                normalized.append(token)
+        normalize = None
+        if self.ctx is not None and self.ctx.token_normalize_func is not None:
+            normalize = lambda spelling: _normalize_opt(spelling, self.ctx)
         state = _ParsingState([])
         leftovers, error = _native.parse_into(
-            specs, normalized, definitions, state, UNSET, _flag_needs_value,
-            self.allow_interspersed_args, self.ignore_unknown_options)
-        if error and not (self.ctx and self.ctx.resilient_parsing):
+            specs, args, definitions, state, UNSET, _flag_needs_value,
+            bool(self.allow_interspersed_args), bool(self.ignore_unknown_options),
+            normalizer=normalize, original_args=args)
+        if error and not (self.ctx is not None and self.ctx.resilient_parsing):
             kind, spelling = error["kind"], error.get("option", "")
             if kind == "unknown_option":
                 import difflib

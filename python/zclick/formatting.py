@@ -26,7 +26,7 @@ def iter_rows(rows: t.Iterable[tuple[str, str]], col_count: int) -> t.Iterator[t
 
 def wrap_text(text: str, width: int = 78, initial_indent: str = "", subsequent_indent: str = "", preserve_paragraphs: bool = False) -> str:
     from ._native import wrap_text as native
-    return native(text, width, initial_indent, subsequent_indent, preserve_paragraphs)
+    return native(text, width, initial_indent, subsequent_indent, bool(preserve_paragraphs))
 
 
 def join_options(options: t.Iterable[str]) -> tuple[str, bool]:

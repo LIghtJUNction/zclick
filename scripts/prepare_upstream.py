@@ -18,11 +18,40 @@ import subprocess
 import tokenize
 
 ROOT = Path(__file__).resolve().parents[1]
-TARGET = json.loads((ROOT / "compatibility/target.json").read_text())
+TARGET = json.loads((ROOT / "compatibility/target.json").read_text(encoding="utf-8"))
 
 
 def digest(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def migrate_fstring(source: str) -> str:
+    """Rename expression names inside a pre-3.12 opaque f-string token.
+
+    Python 3.12 exposes expression NAME tokens. Older tokenizers expose the
+    whole f-string as STRING, so use AST source positions for names only. Text
+    inside the string, including literal words and expected output, is retained.
+    """
+    prefix = re.match(r"(?i)^([rubf]*)(?:\"|'|$)", source)
+    if prefix is None or "f" not in prefix[1].lower():
+        return source
+    tree = ast.parse(source, mode="eval")
+    encoded = source.encode("utf-8")
+    lines = encoded.splitlines(keepends=True)
+    offsets = [0]
+    for line in lines:
+        offsets.append(offsets[-1] + len(line))
+    edits = []
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Name) and node.id == "click":
+            start = offsets[node.lineno - 1] + node.col_offset
+            end = offsets[node.end_lineno - 1] + node.end_col_offset
+            if encoded[start:end] != b"click":
+                raise RuntimeError("Unexpected f-string AST name position")
+            edits.append((start, end))
+    for start, end in sorted(set(edits), reverse=True):
+        encoded = encoded[:start] + b"zclick" + encoded[end:]
+    return encoded.decode("utf-8")
 
 
 def migrate(source: str, path: str) -> tuple[str, list[dict[str, object]]]:
@@ -35,18 +64,19 @@ def migrate(source: str, path: str) -> tuple[str, list[dict[str, object]]]:
         if token.type == tokenize.NAME and token.string == "click":
             replacement = "zclick"
         elif token.type == tokenize.STRING:
+            replacement = migrate_fstring(token.string)
             try:
                 value = ast.literal_eval(token.string)
             except (ValueError, SyntaxError):
                 value = None
             # Monkeypatch paths are imports too, not output expectations.
             if isinstance(value, str) and value.startswith("click."):
-                replacement = token.string.replace("click.", "zclick.", 1)
+                replacement = replacement.replace("click.", "zclick.", 1)
             # Subprocess snippets import the package in a fresh interpreter.
             elif (isinstance(value, str) and "import click" in value) or (
                 isinstance(value, bytes) and b"import click" in value
             ):
-                replacement = re.sub(r"\bclick\b", "zclick", token.string)
+                replacement = re.sub(r"\bclick\b", "zclick", replacement)
         if replacement != token.string:
             changes.append({"line": token.start[0], "before": token.string, "after": replacement})
             token = token._replace(string=replacement)
@@ -95,14 +125,14 @@ def prepare(source: Path, destination: Path) -> dict[str, object]:
         manifest["files"][str(relative)] = {
             "original_sha256": digest(origin), "migrated_sha256": digest(dest)
         }
-    (destination / "namespace-migration.json").write_text(json.dumps(manifest, indent=2) + "\n")
+    (destination / "namespace-migration.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
     # A few upstream glob tests explicitly use the checkout's root files.
     shutil.copyfile(source / "pyproject.toml", destination / "pyproject.toml")
     # Keep upstream warnings and markers. Include stress tests as well.
     (destination / "pytest.ini").write_text(
         "[pytest]\nfilterwarnings =\n    error\nmarkers =\n"
         "    stress: upstream high iteration stress tests\n"
-    )
+    , encoding="utf-8")
     return manifest
 
 

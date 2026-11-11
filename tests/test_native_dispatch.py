@@ -108,7 +108,7 @@ def test_native_chain_can_suppress_one_callback_exception():
     assert cli.main(["first", "second"], standalone_mode=False) == [None, 7]
 
 
-def test_native_frame_cycles_are_collectible():
+def test_native_frame_cycles_are_collectible(record_property):
     class RetainFrameGroup(click.Group):
         def invoke(self, ctx):
             def scope(active, callback):
@@ -119,7 +119,13 @@ def test_native_frame_cycles_are_collectible():
     reference = weakref.ref(group)
     assert group.main([], standalone_mode=False) == 3
     del group
-    gc.collect()
+    # PyPy's cpyext bridge may require a second finalizer/GC pass. Verify
+    # eventual collection within a fixed bound on every supported interpreter.
+    for collection_pass in range(1, 6):
+        gc.collect()
+        if reference() is None:
+            break
+    record_property("gc_collection_passes", collection_pass)
     assert reference() is None
 
 

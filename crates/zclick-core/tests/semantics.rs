@@ -218,3 +218,109 @@ fn zero_arity_option_requeues_attached_suffix_without_allocation() {
         assert_eq!(raw(&result, 2), vec![vec![b"rest".to_vec()]]);
     }
 }
+#[test]
+fn optional_attached_values_obey_requeue_and_fixed_tuple_rules() {
+    let mut single = option(0, &["--alpha"], 1, false);
+    single.optional_value = true;
+    let mut pair = option(1, &["-p"], 2, false);
+    pair.optional_value = true;
+    let specs = [
+        single,
+        pair,
+        option(2, &["--beta"], 1, true),
+        option(3, &[], -1, false),
+    ];
+    let args = argv(&["--alpha=--beta"]);
+    let result = parse(&specs, &args, true, false);
+    assert!(result.error.is_none());
+    assert_eq!(result.order, [0, 2, 3]);
+    assert!(result.values[&0][0].is_empty());
+    let args = argv(&["-p", "--bad", "-m"]);
+    let result = parse(&specs, &args, true, false);
+    assert!(result.error.is_none());
+    assert_eq!(
+        raw(&result, 1),
+        vec![vec![b"--bad".to_vec(), b"-m".to_vec()]]
+    );
+    let args = argv(&["-pX"]);
+    let result = parse(&specs, &args, true, false);
+    assert!(result.error.is_none());
+    assert!(result.values[&1][0].is_empty());
+    assert_eq!(raw(&result, 3), vec![vec![b"X".to_vec()]]);
+}
+#[test]
+fn normalizer_runs_at_lookups_and_never_rewrites_values() {
+    use zclick_core::parse_with_normalizer;
+    let specs = [
+        option(0, &["-n", "--name"], 1, false),
+        option(1, &["-v"], 1, true),
+    ];
+    let args = argv(&["-vNMiXeD", "--NAME=KeepCase"]);
+    let mut seen = Vec::new();
+    let mut normalize = |value: &[u8]| {
+        seen.push(value.to_vec());
+        Some(value.to_ascii_lowercase())
+    };
+    let result = parse_with_normalizer(&specs, &args, true, false, Some(&mut normalize));
+    assert!(result.error.is_none());
+    assert_eq!(
+        raw(&result, 0),
+        vec![vec![b"MiXeD".to_vec()], vec![b"KeepCase".to_vec()]]
+    );
+    assert_eq!(
+        seen,
+        vec![
+            b"-vNMiXeD".to_vec(),
+            b"-v".to_vec(),
+            b"-N".to_vec(),
+            b"--NAME".to_vec()
+        ]
+    );
+}
+#[test]
+fn legacy_remaining_input_preserves_lexer_stopping_point() {
+    let specs = [
+        option(0, &["--pair"], 2, false),
+        option(1, &["--zero"], 0, false),
+    ];
+    for (tokens, interspersed, expected) in [
+        (vec!["--", "--pair", "tail"], true, vec!["--pair", "tail"]),
+        (
+            vec!["--zero=attached", "tail"],
+            false,
+            vec!["attached", "tail"],
+        ),
+        (vec!["--pair", "one"], true, vec!["one"]),
+    ] {
+        let args = argv(&tokens);
+        let result = parse(&specs, &args, interspersed, false);
+        assert_eq!(
+            result
+                .remaining_input
+                .iter()
+                .map(|v| v.as_ref())
+                .collect::<Vec<_>>(),
+            expected.iter().map(|s| s.as_bytes()).collect::<Vec<_>>()
+        );
+    }
+}
+#[test]
+fn deliberately_colliding_names_still_use_unbounded_zclap_buckets() {
+    let mut specs = Vec::new();
+    let mut candidate = 0;
+    while specs.len() < 257 {
+        let name = format!("--collision{candidate}");
+        candidate += 1;
+        let encoded = format!("l{name}");
+        let hash = encoded.bytes().fold(0xcbf29ce484222325u64, |h, b| {
+            (h ^ u64::from(b)).wrapping_mul(0x100000001b3)
+        });
+        if hash & 127 == 0 {
+            specs.push(option(specs.len() as i64, &[&name], 1, true));
+        }
+    }
+    let args = vec![specs[0].options[0].clone(), specs[256].options[0].clone()];
+    let result = parse(&specs, &args, true, false);
+    assert!(result.error.is_none());
+    assert_eq!(result.order, [0, 256]);
+}

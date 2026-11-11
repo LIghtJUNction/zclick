@@ -34,6 +34,8 @@ pub struct ParseError {
 pub struct ParseResult<'a> {
     pub values: BTreeMap<i64, Vec<Vec<Cow<'a, [u8]>>>>,
     pub leftovers: Vec<Cow<'a, [u8]>>,
+    /// Remaining lexer input before positional assignment, for the legacy mutable-list API.
+    pub remaining_input: Vec<Cow<'a, [u8]>>,
     pub order: Vec<i64>,
     pub error: Option<ParseError>,
 }
@@ -67,9 +69,9 @@ fn is_short(s: &[u8]) -> bool {
     !repeated && prefix < s.len() && prefix + codepoint_len(s[prefix]) == s.len()
 }
 
-// zclap deliberately restricts long spellings to portable identifiers. Hex
-// framing makes its recognizer usable for every Click prefix without changing
-// or losing the original Python spelling. The leading kind separates the
+// zclap deliberately restricts long spellings to portable identifiers. A
+// namespace prefix, with hex framing for uncommon invalid spellings, makes its
+// recognizer usable for every Click prefix without changing the Python name. The leading kind separates the
 // long and short option namespaces, which Click resolves differently.
 fn encode_into(out: &mut String, s: &[u8], short: bool) {
     if let Ok(text) = core::str::from_utf8(s)
@@ -92,8 +94,14 @@ fn encode_spelling(s: &[u8], short: bool) -> String {
     out
 }
 
+fn spelling_hash(bytes: &[u8]) -> usize {
+    bytes.iter().fold(0xcbf29ce484222325u64, |hash, &byte| {
+        (hash ^ u64::from(byte)).wrapping_mul(0x100000001b3)
+    }) as usize
+}
 struct Kernel<'a> {
     commands: Vec<Command<'a>>,
+    buckets: Vec<core::ops::Range<usize>>,
     targets: Vec<usize>,
 }
 impl Kernel<'_> {
@@ -105,7 +113,12 @@ impl Kernel<'_> {
         // Chunks keep the kernel's inline presence state bounded while allowing
         // an arbitrary number of runtime definitions. Every successful lookup
         // is a real zclap event, followed by mandatory final validation.
-        for command in &self.commands {
+        let bucket = if self.buckets.len() == 1 {
+            0
+        } else {
+            spelling_hash(&token.as_bytes()[2..]) & (self.buckets.len() - 1)
+        };
+        for command in &self.commands[self.buckets[bucket].clone()] {
             let mut parser = command.parse(&argv);
             if let Ok(Some(Event::Flag { arg })) = parser.next()
                 && parser.next().ok().flatten().is_none()
@@ -137,6 +150,7 @@ fn syntax(
 
 // One pending slice is sufficient: a zero-arity option can put its attached
 // suffix back at the front, and that slice is consumed before another appears.
+#[derive(Clone)]
 struct Tokens<'a> {
     argv: &'a [Vec<u8>],
     cursor: usize,
@@ -171,6 +185,33 @@ pub fn parse<'a>(
     interspersed: bool,
     ignore_unknown: bool,
 ) -> ParseResult<'a> {
+    parse_with_normalizer(specs, argv, interspersed, ignore_unknown, None)
+}
+
+/// Optional caller-owned spelling normalizer. Returning None aborts parsing.
+pub type Normalizer<'n> = &'n mut dyn FnMut(&[u8]) -> Option<Vec<u8>>;
+
+fn normalize<'a>(
+    normalizer: &mut Option<Normalizer<'_>>,
+    spelling: &'a [u8],
+) -> Result<Cow<'a, [u8]>, ParseError> {
+    match normalizer.as_deref_mut() {
+        Some(callback) => callback(spelling)
+            .map(Cow::Owned)
+            .ok_or_else(|| syntax("normalization", spelling, None, 0, String::new())),
+        None => Ok(Cow::Borrowed(spelling)),
+    }
+}
+
+/// Parse while applying the normalizer at each real long/short lookup attempt.
+/// Values are never normalized. The closure may reenter another independent parser.
+pub fn parse_with_normalizer<'a>(
+    specs: &[Spec],
+    argv: &'a [Vec<u8>],
+    interspersed: bool,
+    ignore_unknown: bool,
+    mut normalizer: Option<Normalizer<'_>>,
+) -> ParseResult<'a> {
     let mut spellings = BTreeMap::new();
     let mut prefixes = vec![b"-".to_vec(), b"--".to_vec()];
     for (i, spec) in specs.iter().enumerate() {
@@ -188,18 +229,59 @@ pub fn parse<'a>(
             spellings.insert(encode_spelling(option, is_short(option)), i);
         }
     }
-    let (names, targets): (Vec<_>, Vec<_>) = spellings.into_iter().unzip();
+    // Hashing selects a small schema bucket; zclap alone decides whether a
+    // spelling actually matches. No hash result is accepted as recognition.
+    // Small commands stay in one bucket, avoiding hashing on their hot path.
+    let bucket_count = if spellings.len() < 64 {
+        1
+    } else {
+        (spellings.len() / 32).next_power_of_two()
+    };
+    let mut entries: Vec<_> = spellings
+        .into_iter()
+        .map(|(name, target)| {
+            let bucket = if bucket_count == 1 {
+                0
+            } else {
+                spelling_hash(name.as_bytes()) & (bucket_count - 1)
+            };
+            (bucket, name, target)
+        })
+        .collect();
+    if bucket_count > 1 {
+        entries.sort_unstable_by(|a, b| a.0.cmp(&b.0).then_with(|| a.1.cmp(&b.1)));
+    }
+    let mut counts = vec![0; bucket_count];
+    for &(bucket, _, _) in &entries {
+        counts[bucket] += 1;
+    }
+    let (names, targets): (Vec<_>, Vec<_>) = entries
+        .into_iter()
+        .map(|(_, name, target)| (name, target))
+        .unzip();
     let ids: Vec<_> = (0..names.len()).map(|i| i.to_string()).collect();
     let args: Vec<_> = names
         .iter()
         .zip(&ids)
         .map(|(name, id)| Arg::flag(id).long(name).repeat())
         .collect();
+    let mut commands = Vec::with_capacity(bucket_count);
+    let mut buckets = Vec::with_capacity(bucket_count);
+    let mut start = 0;
+    for count in counts {
+        let first = commands.len();
+        // Even deliberately colliding schemas have no fixed argument limit.
+        commands.extend(
+            args[start..start + count]
+                .chunks(256)
+                .map(|chunk| Command::new("zclick").args(chunk)),
+        );
+        buckets.push(first..commands.len());
+        start += count;
+    }
     let kernel = Kernel {
-        commands: args
-            .chunks(256)
-            .map(|chunk| Command::new("zclick").args(chunk))
-            .collect(),
+        commands,
+        buckets,
         targets,
     };
     let mut result = ParseResult::default();
@@ -211,6 +293,7 @@ pub fn parse<'a>(
     };
     while let Some(token) = tokens.next() {
         if token == b"--" {
+            result.remaining_input = tokens.clone().map(Cow::Borrowed).collect();
             positional.extend(tokens.by_ref().map(Cow::Borrowed));
             break;
         }
@@ -222,6 +305,10 @@ pub fn parse<'a>(
         if !option_like {
             positional.push(Cow::Borrowed(token));
             if !interspersed {
+                result.remaining_input.push(Cow::Borrowed(token));
+                result
+                    .remaining_input
+                    .extend(tokens.clone().map(Cow::Borrowed));
                 positional.extend(tokens.by_ref().map(Cow::Borrowed));
                 break;
             }
@@ -229,10 +316,24 @@ pub fn parse<'a>(
         }
         let eq = token.iter().position(|&b| b == b'=');
         let head = &token[..eq.unwrap_or(token.len())];
-        if let Some(index) = kernel.find(head, false) {
+        let normalized_head = match normalize(&mut normalizer, head) {
+            Ok(value) => value,
+            Err(error) => {
+                result.error = Some(error);
+                break;
+            }
+        };
+        if let Some(index) = kernel.find(&normalized_head, false) {
             let spec = &specs[index];
             let attached = eq.map(|p| &token[p + 1..]);
-            if let Err(error) = consume(spec, head, attached, &mut tokens, &prefixes, &mut result) {
+            if let Err(error) = consume(
+                spec,
+                &normalized_head,
+                attached,
+                &mut tokens,
+                &prefixes,
+                &mut result,
+            ) {
                 result.error = Some(error);
                 break;
             }
@@ -244,7 +345,13 @@ pub fn parse<'a>(
                 positional.push(Cow::Borrowed(token));
                 continue;
             }
-            result.error = Some(syntax("unknown_option", head, None, 0, String::new()));
+            result.error = Some(syntax(
+                "unknown_option",
+                &normalized_head,
+                None,
+                0,
+                String::new(),
+            ));
             break;
         }
         let prefix = &token[..first_len];
@@ -256,12 +363,25 @@ pub fn parse<'a>(
             let mut spelling = prefix.to_vec();
             spelling.extend_from_slice(&token[offset..end]);
             offset = end;
-            let Some(index) = kernel.find(&spelling, true) else {
+            let normalized_short = match normalize(&mut normalizer, &spelling) {
+                Ok(value) => value,
+                Err(error) => {
+                    result.error = Some(error);
+                    break;
+                }
+            };
+            let Some(index) = kernel.find(&normalized_short, true) else {
                 if ignore_unknown {
                     unknown.extend_from_slice(&token[end - len..end]);
                     continue;
                 }
-                result.error = Some(syntax("unknown_option", &spelling, None, 0, String::new()));
+                result.error = Some(syntax(
+                    "unknown_option",
+                    &normalized_short,
+                    None,
+                    0,
+                    String::new(),
+                ));
                 break;
             };
             let spec = &specs[index];
@@ -272,7 +392,7 @@ pub fn parse<'a>(
             };
             if let Err(error) = consume(
                 spec,
-                &spelling,
+                &normalized_short,
                 attached,
                 &mut tokens,
                 &prefixes,
@@ -285,7 +405,7 @@ pub fn parse<'a>(
                 break;
             }
         }
-        if unknown.len() > prefix.len() {
+        if result.error.is_none() && unknown.len() > prefix.len() {
             positional.push(Cow::Owned(unknown));
         }
         if result.error.is_some() {
@@ -293,6 +413,7 @@ pub fn parse<'a>(
         }
     }
     if result.error.is_some() {
+        result.remaining_input = tokens.map(Cow::Borrowed).collect();
         result.leftovers = positional;
         return result;
     }
@@ -331,27 +452,25 @@ fn consume<'a>(
             "negative option arity".into(),
         )
     })?;
-    if count == 0 {
-        if let Some(value) = attached {
-            tokens.pending = Some(value);
-        }
+    // Click inserts an attached suffix into the remaining input before applying
+    // optional-value rules. It can therefore become an option or positional.
+    if let Some(value) = attached {
+        tokens.pending = Some(value);
+    }
+    let available = tokens.remaining();
+    let omitted = spec.optional_value
+        && (available < count
+            || count == 1
+                && tokens.peek().is_some_and(|t| {
+                    let n = t.first().map_or(0, |b| codepoint_len(*b).min(t.len()));
+                    t.len() > n && prefixes.iter().any(|p| p == &t[..n])
+                }));
+    if omitted || count == 0 {
         result.values.entry(spec.id).or_default().push(Vec::new());
         result.order.push(spec.id);
         return Ok(());
     }
-    let needed = count.saturating_sub(usize::from(attached.is_some()));
-    if attached.is_none() && spec.optional_value {
-        let next_is_option = tokens.peek().is_none_or(|t| {
-            let n = t.first().map_or(0, |b| codepoint_len(*b).min(t.len()));
-            t.len() > n && prefixes.iter().any(|p| p == &t[..n])
-        });
-        if next_is_option {
-            result.values.entry(spec.id).or_default().push(Vec::new());
-            result.order.push(spec.id);
-            return Ok(());
-        }
-    }
-    if tokens.remaining() < needed {
+    if available < count {
         return Err(syntax(
             "missing_value",
             spelling,
@@ -361,11 +480,7 @@ fn consume<'a>(
         ));
     }
     if count == 1 {
-        let value = if let Some(value) = attached {
-            value
-        } else {
-            tokens.next().expect("arity checked before consumption")
-        };
+        let value = tokens.next().expect("arity checked before consumption");
         validate_raw_values(&[value])?;
         result
             .values
@@ -375,11 +490,7 @@ fn consume<'a>(
         result.order.push(spec.id);
         return Ok(());
     }
-    let mut values = Vec::with_capacity(count);
-    if let Some(value) = attached {
-        values.push(value);
-    }
-    values.extend(tokens.take(needed));
+    let values: Vec<_> = tokens.take(count).collect();
     // Values go through zclap's byte input/event path. A terminator shields
     // Click's dash-leading values from zclap's native option-boundary policy.
     validate_raw_values(&values)?;

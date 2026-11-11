@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "verified_at": "2026-11-11",
+  "crate": "zclap",
+  "version": "0.1.4",
+  "requirement": "=0.1.4",
+  "registry": "https://crates.io/crates/zclap/0.1.4",
+  "checksum": "5efb5b25a7eb925fe9943888238d1e261224fa629456f4abe203b1deb34ac102",
+  "repository": "https://github.com/LIghtJUNction/zclap",
+  "commit": "4d87f3ae3743e81509d5ac5500909955667c860f",
+  "commit_evidence": "Published registry artifact .cargo_vcs_info.json matches inspected repository checkout",
+  "edition": "2024",
+  "rust_version": "1.99.1",
+  "default_features": false,
+  "upstream_modifications_required": false,
+  "interfaces_used": ["Arg::flag", "Arg::long", "Arg::repeat", "Arg::positional", "Command::args", "Command::parse", "Parser::next", "Parser::finish", "Event"],
+  "inspected_sources": ["src/lib.rs", "src/input.rs", "README.md"],
+  "upstream_test_sources": ["tests/allocation.rs", "tests/edge_cases.rs", "tests/index.rs", "tests/os.rs", "tests/parser.rs", "tests/relationships.rs", "tests/style.rs"],
+  "adaptation_notes": "Click consumption and validation rules are implemented around actual zclap event recognition. Runtime definitions use call-local owned storage and borrowed schemas. Larger schemas are divided into bounded lookup groups; zclap remains responsible for matching. Click help uses independent compatible formatting."
+}

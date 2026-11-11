@@ -8,10 +8,12 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def render(api_path: Path, normal_path: Path, output: Path) -> None:
-    reference = json.loads((ROOT / "compatibility/api-reference.json").read_text())
-    audit = json.loads(api_path.read_text()) if api_path.exists() else {"entries": {}, "complete": False}
-    normal = json.loads(normal_path.read_text()) if normal_path.exists() else {}
+def render(api_path: Path, normal_path: Path, output: Path, complete_path: Path | None = None) -> None:
+    reference = json.loads((ROOT / "compatibility/api-reference.json").read_text(encoding="utf-8"))
+    audit = json.loads(api_path.read_text(encoding="utf-8")) if api_path.exists() else {"entries": {}, "complete": False}
+    normal = json.loads(normal_path.read_text(encoding="utf-8")) if normal_path.exists() else {}
+    complete = (json.loads(complete_path.read_text(encoding="utf-8"))
+                if complete_path is not None and complete_path.exists() else {})
     target = reference["target"]
     lines = [
         "# Click compatibility", "",
@@ -31,13 +33,26 @@ def render(api_path: Path, normal_path: Path, output: Path) -> None:
         counts = normal["counts"]
         lines.append("| Upstream normal suite on the local interpreter | " +
                      ", ".join(f"{count} {name}" for name, count in counts.items() if count) + " |")
-        lines.append(f"| Upstream stress suite | {len(normal.get('deselected', []))} cases tracked separately; "
-                     "passing stress reports must cover every case before release |")
+        if complete.get("complete"):
+            counts = complete["counts"]
+            lines.append("| Full upstream coverage recorded locally | " +
+                         ", ".join(f"{count} {name}" for name, count in counts.items() if count) +
+                         f"; {complete['expected_tests']:,} unique original cases |")
+            lines.append("| Upstream stress suite | 31,000 passed: 10,000 each for thread pool, logging and GC; "
+                         "1,000 for pager cleanup; no stress skips |")
+        else:
+            lines.append(f"| Upstream stress suite | {len(normal.get('deselected', []))} cases tracked separately; "
+                         "passing stress reports must cover every case before release |")
     else:
         lines.append("| Upstream suite | Not yet measured |")
     lines.extend([
         "| Cross platform validation | See the [CI runs](https://github.com/LIghtJUNction/zclick/actions/workflows/ci.yml); "
         "a configured runner is not a passing result |", "",
+        "These local numbers record development snapshots. The detailed reports retain test IDs and source "
+        "hashes; they do not assert that every later code change is already validated. The release gate "
+        "requires fresh reports for the exact immutable release commit, all 33,459 pinned test IDs, the public "
+        "API audit and real execution of all four Shell runtimes. The final release includes the complete "
+        "evidence archive and raw performance measurements.", "",
         "The normal run preserves the upstream `not stress` development selection. "
         "The release workflow runs all four original stress functions with their original parameter counts, "
         "then checks the union of test IDs. It rejects failures, collection errors, missing tests and extra skips. "
@@ -47,6 +62,11 @@ def render(api_path: Path, normal_path: Path, output: Path) -> None:
         "distribution metadata lookup and four module-qualified object repr patterns. "
         "The complete edit log is `.cache/click-migrated/namespace-migration.json`. "
         "Assertions, argument values, expected behavior and skip markers remain intact.", "",
+        "Before Python 3.12, f-strings are opaque tokenizer strings. The migrator uses AST source positions "
+        "to rename only package-name expressions inside them, retaining literal output text. Test ID "
+        "canonicalization also normalizes the three upstream program-name cases built with platform "
+        "path separators; test arguments and assertions are unchanged. The fixed count and ID fingerprint "
+        "are recorded in [test-manifest.json](compatibility/test-manifest.json).", "",
         "## Behavior checklist", "",
         "Each row names the original tests that verify its observable behavior. The API inventory below "
         "adds the exact call and member contract for every public object.", "",
@@ -111,17 +131,20 @@ def render(api_path: Path, normal_path: Path, output: Path) -> None:
                   "python -m pip install -r requirements-dev.txt",
                   "maturin build --release --locked --out dist",
                   "python -m pip install --no-deps --force-reinstall dist/*.whl",
-                  "python scripts/run_compatibility.py",
-                  "python scripts/api_inventory.py --compare compatibility/api-reference.json --output reports/api.json",
+                  "python scripts/run_compatibility.py --output reports/normal -- -m 'not stress'",
+                  "python scripts/run_stress.py --output reports/stress --workers 4 --batch-size 500",
+                  "python scripts/api_inventory.py --source .cache/click-source --output reports/api-reference.json",
+                  "python scripts/api_inventory.py --compare reports/api-reference.json --output reports/api.json",
                   "python -m mypy .cache/click-migrated/tests/typing --no-incremental",
                   "python benchmarks/compare.py", "```", ""])
-    output.write_text("\n".join(lines))
+    output.write_text("\n".join(lines), encoding="utf-8")
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--api", type=Path, default=ROOT / "reports/api.json")
     parser.add_argument("--normal", type=Path, default=ROOT / "reports/compatibility-normal/summary.json")
+    parser.add_argument("--complete", type=Path, default=ROOT / "reports/compatibility-complete/summary.json")
     parser.add_argument("--output", type=Path, default=ROOT / "COMPATIBILITY.md")
     args = parser.parse_args()
-    render(args.api, args.normal, args.output)
+    render(args.api, args.normal, args.output, args.complete)
