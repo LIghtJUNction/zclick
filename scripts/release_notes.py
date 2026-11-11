@@ -58,6 +58,8 @@ def render(version: str, commit: str, repository: str, benchmark: dict | None = 
         "commit on a separate CI host. Timing is workload-specific: a ratio above 1 means lower zclick "
         "latency, and a ratio below 1 means a regression at that boundary.", ""])
     if benchmark is not None:
+        if benchmark.get("diagnostic"):
+            raise ValueError("Diagnostic benchmark runs cannot support release notes")
         if (benchmark["git_commit"] != commit
                 or benchmark["measurements"]["zclick"]["version"] != version
                 or benchmark["target"]["commit"] != target["commit"]):
@@ -75,9 +77,28 @@ def render(version: str, commit: str, repository: str, benchmark: dict | None = 
             a = benchmark["measurements"]["click"]["cold_commands"][name]["median_wall_us"]
             b = benchmark["measurements"]["zclick"]["cold_commands"][name]["median_wall_us"]
             lines.append(f"| `{name}` | {a/1000:.3f} | {b/1000:.3f} | {ratio:.3f}× |")
-        lines.extend(["", "Packages run in fixed order on a shared host, without CPU affinity or frequency "
-                      "locking. Small timing differences are not claimed to be significant. "
-                      "Python allocation samples do not measure every Rust allocation.", ""])
+        if benchmark.get("schema", 1) >= 2:
+            baseline = benchmark["measurements"]["zclick-baseline"]
+            lines.extend(["", f"### Change from published zclick {baseline['version']}", "",
+                          "| Warm Python API workload | Published baseline µs | Candidate µs | Baseline / candidate |",
+                          "| --- | ---: | ---: | ---: |"])
+            for name, ratio in benchmark["improvement_over_baseline"].items():
+                old = baseline["cases"][name]["median_wall_us"]
+                new = benchmark["measurements"]["zclick"]["cases"][name]["median_wall_us"]
+                lines.append(f"| `{name}` | {old:.3f} | {new:.3f} | {ratio['wall_speedup']:.3f}× |")
+            method = benchmark["method"]
+            lines.extend(["", f"The three implementations run in separate minimal environments for {method['repeats']} "
+                          f"rounds, with seeded ordering ({method['seed']}); every six rounds include all six package "
+                          "orders. Cold scenarios use independently seeded orders. Full output checksums and immutable "
+                          "wheel/runtime hashes are verified. Raw data also includes the old-version cold timings, "
+                          "every allocation sample and per-process RSS.", "",
+                          f"Recorded CPU affinity: `{benchmark['host_before']['affinity']}`. "
+                          "CPU frequency and shared-host activity are not locked. Small differences are not claimed "
+                          "to be significant. Python allocation samples do not measure every Rust allocation.", ""])
+        else:
+            lines.extend(["", "Packages run in fixed order on a shared host, without CPU affinity or frequency "
+                          "locking. Small timing differences are not claimed to be significant. "
+                          "Python allocation samples do not measure every Rust allocation.", ""])
     lines.extend(["## Installation and publication", "",
         "Wheel assets are attached for the listed Python/platform combinations, together with a source "
         "archive. GitHub artifact publication and PyPI publication are separate jobs. The existence "

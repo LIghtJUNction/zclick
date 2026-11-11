@@ -85,19 +85,34 @@ the exact integration boundaries and reproducible commands.
 ## Reproduce benchmarks
 
 ```sh
-maturin develop --release --locked
-python benchmarks/compare.py --iterations 1000 --repeats 9 --output reports/benchmarks.json
+maturin build --release --locked --out dist
+python benchmarks/compare.py --candidate-wheel dist/*.whl --iterations 1000 --repeats 12 --seed 20261111 --affinity auto --output reports/benchmarks.json
 ```
 
-The driver checks each workload's result before timing. It records separate
-processes for the two packages, repeated wall and CPU measurements, import
-latency, Python allocation peaks and process peak RSS. The warm `invoke` workload
+The driver compares fixed Click 8.5.1, the published zclick 0.1.1a1 baseline and
+the candidate wheel. Baseline wheel checksums are locked; both zclick versions
+are installed in separate minimal virtual environments using the same Python
+interpreter. Candidate source edits cannot alter the installed baseline. Each
+round uses fresh isolated worker processes; six rounds contain every ordering
+of the three implementations once, and the default twelve rounds repeat that
+balanced block. Cold scenarios have independently seeded balanced orders.
+
+The driver checks each workload's result before timing and compares full output
+checksums across all three implementations. It records every wall and CPU sample,
+import latency, Python allocation sample and process peak RSS. CPU model,
+affinity, observed frequency, load, interpreter and per-round order are retained.
+`--affinity auto` selects the first allowed CPU on Linux; omit it on platforms
+without affinity control. Frequency and shared-host activity are not controlled.
+The warm `invoke` workload
 reuses an already-defined command and includes context creation, parser-plan
 setup, conversion, callbacks and Python binding costs. `parse` uses an already-created
 Python parser. Fresh-process measurements additionally include import and
 `Command`/`Option` construction. These boundaries remain separately
 reported. Ratios greater than one mean that zclick was faster in that workload.
-Python `tracemalloc` does not measure all Rust allocations.
+Python `tracemalloc` does not measure all Rust allocations. The old fixed-order
+measurements retain their original method and raw files; they are not rewritten
+as measurements from this protocol. See [the benchmark protocol](../benchmarks/README.md)
+for boundaries, integrity checks and a short harness-only diagnostic command.
 
 ## Interpreter compatibility boundary
 
