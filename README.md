@@ -23,25 +23,29 @@ is blocked while an open compatibility gap remains.
 
 ## Installation and a first command
 
-The **0.1.1a1** preview is available from
-[GitHub Releases](https://github.com/LIghtJUNction/zclick/releases/tag/v0.1.1a1),
-with 12 wheels, a source archive and the complete validation evidence.
-Its PyPI upload was attempted and returned `invalid-publisher`: a matching
-Trusted Publisher has not been configured. A PyPI installation is therefore
-not yet available from this release workflow.
-
-Install the matching wheel from the release assets, or build the released
-source archive on ordinary CPython with Rust 1.99.1 and the platform build tools:
+The **0.1.1a1** preview is available on
+[PyPI](https://pypi.org/project/zclick/0.1.1a1/) and
+[GitHub Releases](https://github.com/LIghtJUNction/zclick/releases/tag/v0.1.1a1).
+Install this fixed preview version:
 
 ```sh
-python -m pip install https://github.com/LIghtJUNction/zclick/releases/download/v0.1.1a1/zclick-0.1.1a1.tar.gz
+python -m pip install zclick==0.1.1a1
 ```
 
-Once PyPI publication is configured, the preview installation is:
+To select the latest available preview instead:
 
 ```sh
 pip install --pre zclick
 ```
+
+The first PyPI upload returned `invalid-publisher`. After the publisher was
+configured, [attempt 2 succeeded](https://github.com/LIghtJUNction/zclick/actions/runs/43031862640/job/130584511741)
+on 2026-11-11 at 14:28:58 UTC. All 12 wheels and the source archive on PyPI
+match the tested GitHub assets byte for byte, as recorded in the
+[publication verification](compatibility/releases/0.1.1a1-pypi.json).
+GitHub also retains the complete validation evidence and raw benchmarks.
+
+Source installation requires Rust 1.99.1 and the platform build tools.
 
 Ordinary CPython wheels support Python 3.10 and newer; PyPy and free-threaded CPython
 require their corresponding wheels or an interpreter-specific source build.

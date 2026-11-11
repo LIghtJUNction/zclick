@@ -121,7 +121,7 @@ zclap 只借用当前调用拥有的字符串和参数表，没有 `Box::leak`�
 
 ## 最终发布结果
 
-**GitHub 预发布已成功，PyPI 发布被账户配置阻止。** [Release v0.1.1a1](https://github.com/LIghtJUNction/zclick/releases/tag/v0.1.1a1) 的实际 Git 标签指向 `3281e18f215dec976c3ce0c4b5dd933ad4d62616`。公开发布页包含 12 个 wheel、1 个 sdist、原始基准 JSON、完整兼容性证据 ZIP 和发布说明，共 16 个文件；这些公开下载文件均已逐个验证与 GitHub 资产元数据的 SHA-256 一致。
+**GitHub 预发布和 PyPI 发布均已成功。** [Release v0.1.1a1](https://github.com/LIghtJUNction/zclick/releases/tag/v0.1.1a1) 的实际 Git 标签指向 `3281e18f215dec976c3ce0c4b5dd933ad4d62616`。GitHub 发布页包含 12 个 wheel、1 个 sdist、原始基准 JSON、完整兼容性证据 ZIP 和发布说明，共 16 个文件；这些公开下载文件均已逐个验证与 GitHub 资产元数据的 SHA-256 一致。[PyPI 的同版本页面](https://pypi.org/project/zclick/0.1.1a1/)提供同一批 13 个发行包，其 SHA-256 与 GitHub 已验证文件逐个一致。
 
 公开下载的 Linux x86_64 wheel 还在未安装原版 Click 的全新虚拟环境中再次安装执行，原生解析、组命令、Unicode 输出、大整数和帮助均通过，未出现 `click` 模块注入。这项检查使用公开 Release 的实际文件，与 CI 原生模块烟测分开记录。
 
@@ -131,9 +131,9 @@ zclap 只借用当前调用拥有的字符串和参数表，没有 `Box::leak`�
 | 12 个 wheel | 全部构建、检查并实际安装执行成功 |
 | sdist | 从源码包重新构建 wheel，安装执行成功 |
 | GitHub Release | [成功](https://github.com/LIghtJUNction/zclick/actions/runs/43031862640/job/130565922406)，明确标记 prerelease |
-| PyPI 上传 | [失败](https://github.com/LIghtJUNction/zclick/actions/runs/43031862640/job/130565922326)，`invalid-publisher` |
+| PyPI 上传 | [第二次尝试成功](https://github.com/LIghtJUNction/zclick/actions/runs/43031862640/job/130584511741)，2026-11-11 14:28:58 UTC 完成；13 个发行包已公开 |
 
-整个 Release workflow 为 **60 个任务成功、1 个任务失败**；唯一失败任务是 PyPI 上传。不能将整个 workflow 描述为全绿，也不能据 GitHub 发布成功就宣称 `pip install zclick` 已从 PyPI 验证成功。
+首次 Release workflow 为 60 个任务成功、1 个任务失败，唯一失败任务是 PyPI 上传返回 `invalid-publisher`。配置发布者后，仅重跑失败的上传任务，第二次尝试于 **2026-11-11 14:28:58 UTC** 成功，workflow 当前结论为 `success`。本次重试使用已验证的相同发行文件，没有重写旧报告或替换软件版本；[PyPI 元数据与制品哈希核验](../compatibility/releases/0.1.1a1-pypi.json)保留独立确认结果。
 
 ### 正式发布证据中的测试计数
 
@@ -153,7 +153,13 @@ wheel 标签中的系统最低版本来自构建与二进制兼容性检查，�
 
 ### 当前可用的安装入口
 
-从 [Release 页面](https://github.com/LIghtJUNction/zclick/releases/tag/v0.1.1a1) 选择与解释器、系统和架构匹配的 wheel 安装。当前工作区的普通 CPython / Linux x86_64 对应以下公开发行包：
+可以直接安装 PyPI 上的固定预发布版本：
+
+```sh
+python -m pip install zclick==0.1.1a1
+```
+
+也可以从 [Release 页面](https://github.com/LIghtJUNction/zclick/releases/tag/v0.1.1a1) 选择与解释器、系统和架构匹配的 wheel。当前工作区的普通 CPython / Linux x86_64 对应以下公开发行包：
 
 ```sh
 python -m pip install https://github.com/LIghtJUNction/zclick/releases/download/v0.1.1a1/zclick-0.1.1a1-cp310-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.whl
@@ -165,11 +171,11 @@ python -m pip install https://github.com/LIghtJUNction/zclick/releases/download/
 python -m pip install https://github.com/LIghtJUNction/zclick/releases/download/v0.1.1a1/zclick-0.1.1a1.tar.gz
 ```
 
-### PyPI 尚需的账户配置
+### PyPI 发布重试记录
 
-PyPI 返回的具体原因是有效身份令牌没有匹配到已配置的 publisher。本轮没有可管理该 PyPI 发布者配置的账户访问权限，因此无法替账户所有者完成这项信任配置；GitHub 仓库写权限本身不包含 PyPI 项目发布权限。
+第一次上传时，PyPI 返回的原因是有效身份令牌没有匹配到已配置的 publisher。账户所有者完成配置后，使用同一不可变源码提交和同一批制品重跑了失败的上传任务。第二次尝试从 2026-11-11 14:28:09 UTC 开始，14:28:58 UTC 成功完成；PyPI 元数据显示 13 个文件于 14:28:39–14:28:56 UTC 上传。
 
-在 PyPI 账户的 Publishing 页面添加 GitHub Actions pending publisher；若项目已在该账户下创建，则从该项目的 Publishing 页面添加。填写：
+本仓库工作流使用的发布者字段为：
 
 | 字段 | 值 |
 | --- | --- |
@@ -179,5 +185,5 @@ PyPI 返回的具体原因是有效身份令牌没有匹配到已配置的 publi
 | Workflow filename | `release.yml` |
 | Environment name | `pypi` |
 
-这是 [PyPI 官方支持的新项目创建流程](https://docs.pypi.org/trusted-publishers/creating-a-project-through-oidc/)；[现有项目配置说明](https://docs.pypi.org/trusted-publishers/adding-a-publisher/)与[错误排查说明](https://docs.pypi.org/trusted-publishers/troubleshooting/)解释了这些字段与 `invalid-publisher` 的关系。配置完成后，可重跑上述失败的 PyPI 上传任务，使用已经验证的同一批发行文件。当前未把该步骤标为完成。
+首次失败的 [job 130565922326](https://github.com/LIghtJUNction/zclick/actions/runs/43031862640/job/130565922326) 和成功重试的 [job 130584511741](https://github.com/LIghtJUNction/zclick/actions/runs/43031862640/job/130584511741) 均保留。该发布步骤现已完成；子解释器兼容缺口和预发布定位保持不变。
 

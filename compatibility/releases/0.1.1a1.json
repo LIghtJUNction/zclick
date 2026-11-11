@@ -1547,10 +1547,24 @@
     "url": "https://github.com/LIghtJUNction/zclick/actions/runs/43031862640/job/130565922406"
   },
   "pypi_publish": {
-    "id": 130565922326,
-    "conclusion": "failure",
-    "url": "https://github.com/LIghtJUNction/zclick/actions/runs/43031862640/job/130565922326",
-    "reason": "invalid-publisher: valid token, but no corresponding publisher"
+    "id": 130584511741,
+    "conclusion": "success",
+    "url": "https://github.com/LIghtJUNction/zclick/actions/runs/43031862640/job/130584511741",
+    "attempt": 2,
+    "started_at": "2026-11-11T14:28:09Z",
+    "completed_at": "2026-11-11T14:28:58Z",
+    "project_url": "https://pypi.org/project/zclick/",
+    "artifact_count": 13,
+    "artifact_checksums_match_github": true,
+    "previous_attempts": [
+      {
+        "id": 130565922326,
+        "conclusion": "failure",
+        "url": "https://github.com/LIghtJUNction/zclick/actions/runs/43031862640/job/130565922326",
+        "reason": "invalid-publisher: valid token, but no corresponding publisher",
+        "attempt": 1
+      }
+    ]
   },
   "full_compatibility_complete": false,
   "unfinished_compatibility": [
@@ -1560,7 +1574,7 @@
     "Original platform skips and expected failures are preserved; no extra skips.",
     "Typing is checked in every normal matrix job; PyPy declarations are checked using a CPython-hosted mypy executable.",
     "Test-suite coverage and safe rejection are distinct from full compatibility.",
-    "Workflow conclusion is failure solely because PyPI Trusted Publisher exchange failed; GitHub prerelease succeeded."
+    "Attempt 1 failed only at PyPI Trusted Publisher exchange; after publisher configuration, attempt 2 published the same 13 artifacts on 2026-11-11 at 14:28:58 UTC. Current workflow conclusion is success; both attempts remain recorded."
   ],
   "public_download_installation": {
     "passed": true,

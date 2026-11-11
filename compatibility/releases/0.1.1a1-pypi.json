@@ -1,0 +1,80 @@
+{
+  "url": "https://pypi.org/pypi/zclick/0.1.1a1/json",
+  "version": "0.1.1a1",
+  "project_url": "https://pypi.org/project/zclick/",
+  "artifact_count": 13,
+  "all_match_github_release": true,
+  "artifacts": [
+    {
+      "filename": "zclick-0.1.1a1-cp310-abi3-macosx_10_12_x86_64.whl",
+      "sha256": "34ec4c16a8d2670937e4c878776fe9f1fc7dbe9d862432fac956b72b8c144dab",
+      "upload_time": "2026-11-11T14:28:39.815074Z"
+    },
+    {
+      "filename": "zclick-0.1.1a1-cp310-abi3-macosx_11_0_arm64.whl",
+      "sha256": "5eb368ea6fe01b407ed255e692361384db31d20ee3c371454839dc80f3b53515",
+      "upload_time": "2026-11-11T14:28:41.381821Z"
+    },
+    {
+      "filename": "zclick-0.1.1a1-cp310-abi3-manylinux2014_aarch64.manylinux_2_17_aarch64.whl",
+      "sha256": "e86b07022018c15df6baa9e59a803b8ae5367651e37936d2c14f948e1ec83536",
+      "upload_time": "2026-11-11T14:28:42.606270Z"
+    },
+    {
+      "filename": "zclick-0.1.1a1-cp310-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.whl",
+      "sha256": "457e6d01343ccc39cc925ac86ab0e43b6c85e45a165af14e06f37c827ee13a98",
+      "upload_time": "2026-11-11T14:28:43.899247Z"
+    },
+    {
+      "filename": "zclick-0.1.1a1-cp310-abi3-musllinux_1_2_aarch64.whl",
+      "sha256": "daa463ecee2adc2b74e579f8c81a25773f437972c9dabdb93bea90d677532ccb",
+      "upload_time": "2026-11-11T14:28:45.450487Z"
+    },
+    {
+      "filename": "zclick-0.1.1a1-cp310-abi3-musllinux_1_2_x86_64.whl",
+      "sha256": "c308f9b241c0b8cc66940e202b86446039457b5e98d181d3d4ad089ab9229dfd",
+      "upload_time": "2026-11-11T14:28:46.851629Z"
+    },
+    {
+      "filename": "zclick-0.1.1a1-cp310-abi3-win_amd64.whl",
+      "sha256": "355779cc84e7fb4890f8e8579fc580a98a939bd210c13cf2477ab3806df63d62",
+      "upload_time": "2026-11-11T14:28:48.446749Z"
+    },
+    {
+      "filename": "zclick-0.1.1a1-cp310-abi3-win_arm64.whl",
+      "sha256": "b5ec2cd570ac97744459f373fffad48f43413c00525378ad682f85f5a3dcebce",
+      "upload_time": "2026-11-11T14:28:49.661644Z"
+    },
+    {
+      "filename": "zclick-0.1.1a1-cp314-cp314t-manylinux_2_34_x86_64.whl",
+      "sha256": "27e64507f1b46d37d50e636026cbcc1d0379f4ca25f8a85e14683efc7937891e",
+      "upload_time": "2026-11-11T14:28:50.954547Z"
+    },
+    {
+      "filename": "zclick-0.1.1a1-cp315-cp315t-manylinux_2_34_x86_64.whl",
+      "sha256": "b641b61129ec25a70d8272cd58e07c22479d4c1183742e6e712cee7e9909f015",
+      "upload_time": "2026-11-11T14:28:52.197796Z"
+    },
+    {
+      "filename": "zclick-0.1.1a1-pp311-pypy311_pp80-manylinux_2_34_x86_64.whl",
+      "sha256": "3fe5afe1e54e22ed9d5f568ecac29fde35a1e69f121eb0f368df2d46cdb68256",
+      "upload_time": "2026-11-11T14:28:53.437420Z"
+    },
+    {
+      "filename": "zclick-0.1.1a1-pp312-pypy312_pp80-manylinux_2_34_x86_64.whl",
+      "sha256": "3e6dc314b9b414a224598be9a90e3d7acb9c2a2344a5764d0407191d5acdd51b",
+      "upload_time": "2026-11-11T14:28:54.711122Z"
+    },
+    {
+      "filename": "zclick-0.1.1a1.tar.gz",
+      "sha256": "9d86ba424eb8f0ecef8740639461e0e2f7ee9c76fcac13dcb2fe2c4dcf3a795c",
+      "upload_time": "2026-11-11T14:28:56.258651Z"
+    }
+  ],
+  "verified_at": "2026-11-11T14:35:20.794588+00:00",
+  "workflow_run": 43031862640,
+  "workflow_attempt": 2,
+  "publish_job": 130584511741,
+  "publish_job_url": "https://github.com/LIghtJUNction/zclick/actions/runs/43031862640/job/130584511741",
+  "completed_at": "2026-11-11T14:28:58Z"
+}
