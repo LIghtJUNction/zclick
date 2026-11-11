@@ -25,7 +25,11 @@ Source = "https://github.com/LIghtJUNction/zclick"
 Issues = "https://github.com/LIghtJUNction/zclick/issues"
 
 [project.optional-dependencies]
-test = ["pytest==9.2.0", "click==8.5.1", "hypothesis==6.170.15"]
+test = [
+  "pytest==9.2.0", "click==8.5.1",
+  "hypothesis==6.170.15; python_version >= '3.11'",
+  "hypothesis==6.168.5; python_version < '3.11'",
+]
 
 [tool.maturin]
 manifest-path = "crates/zclick-python/Cargo.toml"

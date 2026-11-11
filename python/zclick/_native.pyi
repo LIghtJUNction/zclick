@@ -1,5 +1,5 @@
 from collections.abc import Sequence
-from typing import TypedDict
+from typing import Any, Callable, TypedDict
 
 class ParseError(TypedDict):
     kind: str
@@ -22,3 +22,7 @@ def join_options(options: Sequence[str]) -> tuple[str, bool]: ...
 ZCLAP_VERSION: str
 
 def select_parameter_value(existing_missing: bool, existing_source: int | None, incoming_source: int, existing_explicit: bool, incoming_explicit: bool) -> bool: ...
+
+def invoke_group(group: Any, ctx: Any, base_invoke: Callable[..., Any], scope: Callable[..., tuple[bool, Any]]) -> Any: ...
+
+def parse_into(specs: Sequence[Spec], argv: Sequence[str], definitions: Sequence[Any], state: Any, unset: Any, flag_needs_value: Any, allow_interspersed_args: bool = True, ignore_unknown_options: bool = False) -> tuple[list[str], ParseError | None]: ...

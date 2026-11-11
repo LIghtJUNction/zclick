@@ -4,6 +4,7 @@ from __future__ import annotations
 import gc
 import weakref
 
+import pytest
 import zclick as click
 from zclick.testing import CliRunner
 
@@ -109,3 +110,31 @@ def test_lazy_group_overrides_and_registration():
     assert runner.invoke(group, ["lazy"], standalone_mode=False).return_value == "loaded"
     group.add_command(click.Command("added", callback=lambda: "registered"))
     assert runner.invoke(group, ["added"], standalone_mode=False).return_value == "registered"
+
+
+@pytest.mark.parametrize("tokens", [
+    ["-NVALUE"], ["-vNValue"], ["-VNValue"], ["--NAME=Value"],
+    ["--NAME", "Value"], ["-N", "--VERBOSE"], ["--NAME", "--VERBOSE"],
+    ["--UNKNOWN=Value"], ["-Xv"], ["--", "--NAME"],
+    ["positional", "--NAME=Value"], ["-N=Value"],
+])
+@pytest.mark.parametrize("optional", [False, True])
+@pytest.mark.parametrize("interspersed", [False, True])
+def test_normalization_preserves_values_and_unknown_tokens(tokens, optional, interspersed):
+    import click as reference
+    from click.testing import CliRunner as ReferenceRunner
+
+    def execute(module, runner):
+        kwargs = {"is_flag": False, "flag_value": "implicit"} if optional else {}
+        command = module.Command("normalize", params=[
+            module.Option(["-n", "--name"], **kwargs),
+            module.Option(["-v", "--verbose"], is_flag=True),
+        ], callback=module.pass_context(lambda ctx, **values: (values, ctx.args)),
+           context_settings={"token_normalize_func": str.lower,
+                             "allow_extra_args": True,
+                             "ignore_unknown_options": True,
+                             "allow_interspersed_args": interspersed})
+        result = runner.invoke(command, tokens, standalone_mode=False)
+        return result.return_value, result.output, result.exit_code
+
+    assert execute(click, CliRunner()) == execute(reference, ReferenceRunner())

@@ -1,7 +1,6 @@
 use alloc::{
     borrow::Cow,
     collections::BTreeMap,
-    format,
     string::{String, ToString},
     vec,
     vec::Vec,
@@ -72,14 +71,24 @@ fn is_short(s: &[u8]) -> bool {
 // framing makes its recognizer usable for every Click prefix without changing
 // or losing the original Python spelling. The leading kind separates the
 // long and short option namespaces, which Click resolves differently.
-fn encode_spelling(s: &[u8], short: bool) -> String {
+fn encode_into(out: &mut String, s: &[u8], short: bool) {
+    if let Ok(text) = core::str::from_utf8(s)
+        && !s.iter().any(|&b| b <= 32 || b == b'=' || b == 127)
+    {
+        out.push(if short { 's' } else { 'l' });
+        out.push_str(text);
+        return;
+    }
     const HEX: &[u8; 16] = b"0123456789abcdef";
-    let mut out = String::with_capacity(s.len() * 2 + 1);
-    out.push(if short { 's' } else { 'l' });
+    out.push(if short { 'S' } else { 'L' });
     for &b in s {
         out.push(HEX[(b >> 4) as usize] as char);
         out.push(HEX[(b & 15) as usize] as char);
     }
+}
+fn encode_spelling(s: &[u8], short: bool) -> String {
+    let mut out = String::with_capacity(s.len() + 1);
+    encode_into(&mut out, s, short);
     out
 }
 
@@ -89,8 +98,9 @@ struct Kernel<'a> {
 }
 impl Kernel<'_> {
     fn find(&self, spelling: &[u8], short: bool) -> Option<usize> {
-        let name = encode_spelling(spelling, short);
-        let token = format!("--{name}");
+        let mut token = String::with_capacity(spelling.len() + 3);
+        token.push_str("--");
+        encode_into(&mut token, spelling, short);
         let argv = [token.as_str()];
         // Chunks keep the kernel's inline presence state bounded while allowing
         // an arbitrary number of runtime definitions. Every successful lookup
@@ -125,6 +135,34 @@ fn syntax(
     }
 }
 
+// One pending slice is sufficient: a zero-arity option can put its attached
+// suffix back at the front, and that slice is consumed before another appears.
+struct Tokens<'a> {
+    argv: &'a [Vec<u8>],
+    cursor: usize,
+    pending: Option<&'a [u8]>,
+}
+impl<'a> Tokens<'a> {
+    fn peek(&self) -> Option<&'a [u8]> {
+        self.pending
+            .or_else(|| self.argv.get(self.cursor).map(Vec::as_slice))
+    }
+    fn remaining(&self) -> usize {
+        self.argv.len() - self.cursor + usize::from(self.pending.is_some())
+    }
+}
+impl<'a> Iterator for Tokens<'a> {
+    type Item = &'a [u8];
+    fn next(&mut self) -> Option<Self::Item> {
+        if let Some(value) = self.pending.take() {
+            return Some(value);
+        }
+        let value = self.argv.get(self.cursor)?;
+        self.cursor += 1;
+        Some(value)
+    }
+}
+
 /// Parse without resolving defaults, converting Python values, or invoking user code.
 /// Those operations must dispatch through Python's overridable public methods.
 pub fn parse<'a>(
@@ -150,7 +188,7 @@ pub fn parse<'a>(
             spellings.insert(encode_spelling(option, is_short(option)), i);
         }
     }
-    let names: Vec<_> = spellings.keys().cloned().collect();
+    let (names, targets): (Vec<_>, Vec<_>) = spellings.into_iter().unzip();
     let ids: Vec<_> = (0..names.len()).map(|i| i.to_string()).collect();
     let args: Vec<_> = names
         .iter()
@@ -162,16 +200,18 @@ pub fn parse<'a>(
             .chunks(256)
             .map(|chunk| Command::new("zclick").args(chunk))
             .collect(),
-        targets: spellings.values().copied().collect(),
+        targets,
     };
     let mut result = ParseResult::default();
     let mut positional: Vec<Cow<'a, [u8]>> = Vec::new();
-    let mut cursor = 0;
-    while cursor < argv.len() {
-        let token = argv[cursor].as_slice();
-        cursor += 1;
+    let mut tokens = Tokens {
+        argv,
+        cursor: 0,
+        pending: None,
+    };
+    while let Some(token) = tokens.next() {
         if token == b"--" {
-            positional.extend(argv[cursor..].iter().map(|v| Cow::Borrowed(v.as_slice())));
+            positional.extend(tokens.by_ref().map(Cow::Borrowed));
             break;
         }
         let first_len = token
@@ -182,7 +222,7 @@ pub fn parse<'a>(
         if !option_like {
             positional.push(Cow::Borrowed(token));
             if !interspersed {
-                positional.extend(argv[cursor..].iter().map(|v| Cow::Borrowed(v.as_slice())));
+                positional.extend(tokens.by_ref().map(Cow::Borrowed));
                 break;
             }
             continue;
@@ -192,15 +232,7 @@ pub fn parse<'a>(
         if let Some(index) = kernel.find(head, false) {
             let spec = &specs[index];
             let attached = eq.map(|p| &token[p + 1..]);
-            if let Err(error) = consume(
-                spec,
-                head,
-                attached,
-                argv,
-                &mut cursor,
-                &prefixes,
-                &mut result,
-            ) {
+            if let Err(error) = consume(spec, head, attached, &mut tokens, &prefixes, &mut result) {
                 result.error = Some(error);
                 break;
             }
@@ -242,8 +274,7 @@ pub fn parse<'a>(
                 spec,
                 &spelling,
                 attached,
-                argv,
-                &mut cursor,
+                &mut tokens,
                 &prefixes,
                 &mut result,
             ) {
@@ -273,8 +304,7 @@ fn consume<'a>(
     spec: &Spec,
     spelling: &[u8],
     attached: Option<&'a [u8]>,
-    argv: &'a [Vec<u8>],
-    cursor: &mut usize,
+    tokens: &mut Tokens<'a>,
     prefixes: &[Vec<u8>],
     result: &mut ParseResult<'a>,
 ) -> Result<(), ParseError> {
@@ -301,9 +331,17 @@ fn consume<'a>(
             "negative option arity".into(),
         )
     })?;
+    if count == 0 {
+        if let Some(value) = attached {
+            tokens.pending = Some(value);
+        }
+        result.values.entry(spec.id).or_default().push(Vec::new());
+        result.order.push(spec.id);
+        return Ok(());
+    }
     let needed = count.saturating_sub(usize::from(attached.is_some()));
     if attached.is_none() && spec.optional_value {
-        let next_is_option = argv.get(*cursor).is_none_or(|t| {
+        let next_is_option = tokens.peek().is_none_or(|t| {
             let n = t.first().map_or(0, |b| codepoint_len(*b).min(t.len()));
             t.len() > n && prefixes.iter().any(|p| p == &t[..n])
         });
@@ -313,7 +351,7 @@ fn consume<'a>(
             return Ok(());
         }
     }
-    if argv.len().saturating_sub(*cursor) < needed {
+    if tokens.remaining() < needed {
         return Err(syntax(
             "missing_value",
             spelling,
@@ -322,12 +360,26 @@ fn consume<'a>(
             String::new(),
         ));
     }
+    if count == 1 {
+        let value = if let Some(value) = attached {
+            value
+        } else {
+            tokens.next().expect("arity checked before consumption")
+        };
+        validate_raw_values(&[value])?;
+        result
+            .values
+            .entry(spec.id)
+            .or_default()
+            .push(vec![Cow::Borrowed(value)]);
+        result.order.push(spec.id);
+        return Ok(());
+    }
     let mut values = Vec::with_capacity(count);
     if let Some(value) = attached {
         values.push(value);
     }
-    values.extend(argv[*cursor..*cursor + needed].iter().map(Vec::as_slice));
-    *cursor += needed;
+    values.extend(tokens.take(needed));
     // Values go through zclap's byte input/event path. A terminator shields
     // Click's dash-leading values from zclap's native option-boundary policy.
     validate_raw_values(&values)?;
@@ -342,6 +394,18 @@ fn consume<'a>(
 
 fn validate_raw_values(values: &[&[u8]]) -> Result<(), ParseError> {
     const RAW: Command<'static> = Command::new("values").args(&[Arg::positional("raw").repeat()]);
+    if values.len() == 1 {
+        let tokens = [&b"--"[..], values[0]];
+        let mut parser = RAW.parse_bytes(&tokens);
+        while parser
+            .next()
+            .map_err(|e| syntax("kernel", b"", None, 0, e.to_string()))?
+            .is_some()
+        {}
+        return parser
+            .finish()
+            .map_err(|e| syntax("kernel", b"", None, 0, e.to_string()));
+    }
     let mut tokens = Vec::with_capacity(values.len() + 1);
     tokens.push(&b"--"[..]);
     tokens.extend_from_slice(values);

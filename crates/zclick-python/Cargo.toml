@@ -11,6 +11,10 @@ publish = false
 name = "_native"
 crate-type = ["cdylib"]
 
+[features]
+default = ["abi3"]
+abi3 = ["pyo3/abi3-py310"]
+
 [dependencies]
 zclick-core = { path = "../zclick-core", version = "=0.1.0" }
-pyo3 = { version = "=0.30.1", features = ["extension-module", "abi3-py310"] }
+pyo3 = { version = "=0.30.1", features = ["extension-module"] }

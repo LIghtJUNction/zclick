@@ -1,0 +1,9 @@
+# Optional integration-test environment; never included in the zclick wheel.
+click==8.5.1
+click-didyoumean==0.3.1
+click-plugins==1.1.1.2
+click-repl==0.4.1
+prompt_toolkit==3.0.53
+typing_extensions==4.16.0
+wcwidth==0.9.4
+pytest==9.2.0

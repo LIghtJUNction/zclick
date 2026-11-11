@@ -81,7 +81,7 @@ class ParamType(t.Generic[V, I]):
 
     @classmethod
     def __class_getitem__(cls, item: t.Any) -> t.Any:
-        if cls is ParamType and not isinstance(item, tuple):
+        if len(getattr(cls, "__parameters__", ())) == 2 and not isinstance(item, tuple):
             item = (item, t.Any)
         return super().__class_getitem__(item)
 
@@ -379,7 +379,7 @@ class File(ParamType[t.IO[t.Any], t.Any]):
                 ctx.call_on_close(stream.close if owned else stream.flush)
             return stream
         except OSError as exc:
-            self.fail(f"{format_filename(value)!r}: {exc.strerror}", param, ctx)
+            self.fail(f"'{format_filename(value)}': {exc.strerror}", param, ctx)
 
     def shell_complete(self, ctx: t.Any, param: t.Any, incomplete: str) -> list[t.Any]:
         from .shell_completion import CompletionItem

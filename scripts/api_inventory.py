@@ -14,6 +14,7 @@ import json
 from pathlib import Path
 import re
 import sys
+import subprocess
 import warnings
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -63,6 +64,9 @@ def resolve(name: str) -> object:
 
 
 def collect(source: Path) -> dict:
+    commit = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=source, text=True).strip()
+    if commit != TARGET["commit"]:
+        raise RuntimeError(f"Wrong reference commit: {commit}")
     sys.path.insert(0, str(source / "src"))
     click = importlib.import_module("click")
     if not Path(click.__file__).resolve().is_relative_to(source.resolve()):
@@ -164,7 +168,8 @@ def compare(inventory: dict) -> dict:
                     mismatches[member] = {"expected": member_expected, "actual": description}
         record["member_contract_mismatches"] = mismatches
         entries[reference_name] = record
-    return {"schema": 1, "target": TARGET, "entries": entries,
+    return {"schema": 1, "target": TARGET, "entries": entries, "python": sys.version,
+            "implementation_commit": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
             "complete": all(e.get("available") and e.get("parameter_contract_matches", True)
                             and e.get("deprecation_categories_match") and not e.get("missing_members")
                             and not e.get("member_contract_mismatches")

@@ -21,6 +21,8 @@ from typing import Any, TypeVar
 
 from . import types
 from ._utils import UNSET, FLAG_NEEDS_VALUE
+from ._native import (invoke_group as _invoke_group, processing_order as _processing_order,
+                      select_parameter_value as _select_parameter_value)
 from .exceptions import (Abort, BadParameter, ClickException, Exit, MissingParameter,
                          NoArgsIsHelpError, NoSuchCommand, UsageError)
 from .formatting import HelpFormatter
@@ -54,10 +56,9 @@ def augment_usage_errors(ctx: Context, param: Parameter | None = None):
 
 
 def iter_params_for_processing(invocation_order: Sequence[Parameter], declaration_order: Sequence[Parameter]) -> list[Parameter]:
-    from ._native import processing_order
     indices = {id(p): n for n, p in enumerate(declaration_order)}
     order = [indices[id(p)] for p in invocation_order if id(p) in indices]
-    return [declaration_order[i] for i in processing_order([p.is_eager for p in declaration_order], order)]
+    return [declaration_order[i] for i in _processing_order([p.is_eager for p in declaration_order], order)]
 
 
 def _format_deprecated_label(value: bool | str) -> str:
@@ -302,7 +303,6 @@ class Command:
         return formatter.getvalue().rstrip("\n")
 
     def get_params(self, ctx: Context) -> list[Parameter]:
-        import warnings
         params = self.params[:]
         help_option = self.get_help_option(ctx)
         if help_option is not None:
@@ -310,14 +310,24 @@ class Command:
         counts = Counter(o for p in params for o in p.opts + p.secondary_opts)
         for name, count in counts.items():
             if count > 1:
+                import warnings
                 warnings.warn(f"The parameter {name} is used more than once. Remove its duplicate as parameters should be unique.", UserWarning, stacklevel=3)
+        argument_names = set()
+        options = []
         for param in self.params:
             if help_option is not None and param.name == "_click_default_help":
+                import warnings
                 warnings.warn("The name '_click_default_help' is reserved for the automatic help option.", UserWarning, stacklevel=3)
-        argument_names = {p.name for p in self.params if isinstance(p, Argument)}
-        for param in self.params:
-            if isinstance(param, Option) and param.name in argument_names:
-                warnings.warn(f"The name {param.name!r} is used by an argument and an option.", UserWarning, stacklevel=3)
+            cls = type(param)
+            if cls is Option or isinstance(param, Option):
+                options.append(param)
+            elif cls is Argument or isinstance(param, Argument):
+                argument_names.add(param.name)
+        if argument_names:
+            import warnings
+            for param in options:
+                if param.name in argument_names:
+                    warnings.warn(f"The name {param.name!r} is used by an argument and an option.", UserWarning, stacklevel=3)
         return params
 
     def format_usage(self, ctx: Context, formatter: HelpFormatter) -> None:
@@ -628,40 +638,7 @@ class Group(Command):
         return ctx.args
 
     def invoke(self, ctx: Context) -> Any:
-        def finish(result):
-            return ctx.invoke(self._result_callback, result, **ctx.params) if self._result_callback is not None else result
-        if not ctx._protected_args:
-            if not self.invoke_without_command:
-                ctx.fail("Missing command.")
-            with ctx:
-                result = super().invoke(ctx)
-                return finish([] if self.chain else result)
-        args = ctx._protected_args + ctx.args
-        ctx._protected_args, ctx.args = [], []
-        with ctx:
-            if not self.chain:
-                cmd_name, command, rest = self.resolve_command(ctx, args)
-                if command is None:
-                    return None
-                ctx.invoked_subcommand = cmd_name
-                super().invoke(ctx)
-                with command.make_context(cmd_name, rest, parent=ctx) as subctx:
-                    return finish(command.invoke(subctx))
-            ctx.invoked_subcommand = "*"
-            super().invoke(ctx)
-            contexts = []
-            while args:
-                name, command, rest = self.resolve_command(ctx, args)
-                if command is None:
-                    break
-                subctx = command.make_context(name, rest, parent=ctx, allow_extra_args=True, allow_interspersed_args=False)
-                contexts.append(subctx)
-                args, subctx.args = subctx.args, []
-            results = []
-            for subctx in contexts:
-                with subctx:
-                    results.append(subctx.command.invoke(subctx))
-            return finish(results)
+        return _invoke_group(self, ctx, super().invoke, _invoke_context)
 
     def resolve_command(self, ctx: Context, args: list[str]) -> tuple[str | None, Command | None, list[str]]:
         import difflib
@@ -852,7 +829,6 @@ class Parameter(abc.ABC):
         return value
 
     def handle_parse_result(self, ctx: Context, opts: Mapping[str, Any], args: list[str]) -> tuple[Any, list[str]]:
-        from ._native import select_parameter_value
         old_value = ctx.params.get(self.name, UNSET)
         old_source = ctx.get_parameter_source(self.name)
         old_explicit = ctx._param_default_explicit.get(self.name, False)
@@ -868,7 +844,7 @@ class Parameter(abc.ABC):
                 if not ctx.resilient_parsing:
                     raise
                 value = UNSET
-            selected = select_parameter_value(old_value is UNSET, old_source, source, old_explicit, self._default_explicit)
+            selected = _select_parameter_value(old_value is UNSET, old_source, source, old_explicit, self._default_explicit)
             if selected and self.expose_value and self.name is not None:
                 ctx.params[self.name] = value
                 ctx._param_default_explicit[self.name] = self._default_explicit

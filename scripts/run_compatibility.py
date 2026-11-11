@@ -41,8 +41,12 @@ def compare(reference: dict, candidate: dict) -> dict:
             failures.append(node)
         elif current.get("outcome") == "skipped" and baseline.get("outcome") != "skipped":
             unexpected_skips.append(node)
-    counts = {state: sum(r.get("outcome") == state for r in candidate["results"].values())
+    counts = {state: sum(r.get("outcome") == state and "xfail" not in r for r in candidate["results"].values())
               for state in ("passed", "failed", "skipped", "pending")}
+    counts["xfailed"] = sum(r.get("outcome") == "skipped" and "xfail" in r
+                             for r in candidate["results"].values())
+    counts["xpassed"] = sum(r.get("outcome") == "passed" and "xfail" in r
+                             for r in candidate["results"].values())
     result = {
         "schema": 1, "target": TARGET, "expected_tests": len(expected),
         "collected_tests": len(actual), "counts": counts,

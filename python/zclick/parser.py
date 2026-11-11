@@ -9,6 +9,7 @@ from typing import Any, TYPE_CHECKING, TypeVar
 
 from .exceptions import BadArgumentUsage, BadOptionUsage, NoSuchOption
 from ._utils import FLAG_NEEDS_VALUE
+from . import _native
 
 if TYPE_CHECKING:
     from .core import Context
@@ -44,9 +45,11 @@ class _Option:
                  action: str | None = None, nargs: int = 1, const: Any = None) -> None:
         self.obj, self.opts, self.dest = obj, list(opts), dest
         self.action, self.nargs, self.const = action or "store", nargs, const
-        self._short_opts = [x for x in opts if len(_split_opt(x)[0]) == 1 and len(_split_opt(x)[1]) == 1]
-        self._long_opts = [x for x in opts if x not in self._short_opts]
-        self.prefixes = {_split_opt(x)[0] for x in opts}
+        self._short_opts, self._long_opts, self.prefixes = [], [], set()
+        for spelling in opts:
+            prefix, suffix = _split_opt(spelling)
+            self.prefixes.add(prefix)
+            (self._short_opts if len(prefix) == len(suffix) == 1 else self._long_opts).append(spelling)
 
     @property
     def takes_value(self) -> bool:
@@ -91,17 +94,19 @@ class _OptionParser:
 
     def add_option(self, obj: Any, opts: list[str], dest: str | None,
                    action: str | None = None, nargs: int = 1, const: Any = None) -> None:
-        option = _Option(obj, [_normalize_opt(o, self.ctx) for o in opts], dest, action, nargs, const)
+        normalized = [_normalize_opt(o, self.ctx) for o in opts] if self.ctx and self.ctx.token_normalize_func else opts
+        option = _Option(obj, normalized, dest, action, nargs, const)
         self._options.append(option)
         self._opt_prefixes.update(option.prefixes)
-        self._short_opt.update((o, option) for o in option._short_opts)
-        self._long_opt.update((o, option) for o in option._long_opts)
+        for spelling in option._short_opts:
+            self._short_opt[spelling] = option
+        for spelling in option._long_opts:
+            self._long_opt[spelling] = option
 
     def add_argument(self, obj: Any, dest: str | None, nargs: int = 1) -> None:
         self._args.append(_Argument(obj, dest, nargs))
 
     def parse_args(self, args: list[str]) -> tuple[dict[str, Any], list[str], list[Any]]:
-        from . import _native
         from ._utils import UNSET
         definitions: list[Any] = self._options + self._args
         specs = [(i, p.opts if isinstance(p, _Option) else [], p.nargs,
@@ -113,8 +118,12 @@ class _OptionParser:
             # Normalize option spellings, never their attached values or positional tokens.
             normalized = []
             pending = 0
+            optional = False
             ended = False
-            for token in args:
+            for index, token in enumerate(args):
+                looks_option = len(token) > 1 and token[:1] in self._opt_prefixes
+                if pending and optional and looks_option:
+                    pending = 0
                 if pending or ended:
                     normalized.append(token)
                     pending = max(0, pending - 1)
@@ -123,29 +132,47 @@ class _OptionParser:
                     ended = True
                     normalized.append(token)
                     continue
+                if not looks_option:
+                    ended = not self.allow_interspersed_args
+                    normalized.append(token)
+                    continue
                 head, sep, tail = token.partition("=")
-                if _split_opt(head)[0] in self._opt_prefixes:
-                    head = _normalize_opt(head, self.ctx)
-                    found = self._long_opt.get(head) or self._short_opt.get(head)
-                    if found and found.takes_value and not sep:
-                        pending = found.nargs
-                    token = head + sep + tail
+                normalized_head = _normalize_opt(head, self.ctx)
+                found = self._long_opt.get(normalized_head)
+                attached = bool(sep)
+                if found is not None:
+                    token = normalized_head + sep + tail
+                elif token[:2] not in self._opt_prefixes:
+                    # A cluster is a sequence of option names followed by an
+                    # untouched value once the first value-taking option occurs.
+                    prefix = token[0]
+                    pieces = [prefix]
+                    for offset, char in enumerate(token[1:], 1):
+                        spelling = _normalize_opt(prefix + char, self.ctx)
+                        found = self._short_opt.get(spelling)
+                        pieces.append(char if found is None and self.ignore_unknown_options else spelling[1:])
+                        if found is not None and found.takes_value:
+                            suffix = token[offset + 1:]
+                            pieces.append(suffix)
+                            attached = bool(suffix)
+                            break
+                        if found is None and not self.ignore_unknown_options:
+                            pieces.append(token[offset + 1:])
+                            break
+                    token = "".join(pieces)
+                elif not self.ignore_unknown_options:
+                    token = normalized_head + sep + tail
+                if found is not None and found.takes_value:
+                    pending = max(0, found.nargs - int(attached))
+                    optional = bool(getattr(found.obj, "_flag_needs_value", False))
+                    if optional and len(args) - index - 1 < pending:
+                        pending = 0
+                    optional = optional and found.nargs == 1
                 normalized.append(token)
-        values, leftovers, order, error = _native.parse(
-            specs, normalized, self.allow_interspersed_args, self.ignore_unknown_options)
         state = _ParsingState([])
-        occurrence = {}
-        for index in order:
-            p = definitions[index]
-            position = occurrence.get(index, 0)
-            occurrence[index] = position + 1
-            items = values.get(index, [()])[position]
-            if isinstance(p, _Option):
-                value = (_flag_needs_value if not items and p.takes_value else
-                         items[0] if p.nargs == 1 and items else tuple(items))
-            else:
-                value = items[0] if p.nargs == 1 and items else tuple(items) if items or p.nargs < 0 else UNSET
-            p.process(value, state)
+        leftovers, error = _native.parse_into(
+            specs, normalized, definitions, state, UNSET, _flag_needs_value,
+            self.allow_interspersed_args, self.ignore_unknown_options)
         if error and not (self.ctx and self.ctx.resilient_parsing):
             kind, spelling = error["kind"], error.get("option", "")
             if kind == "unknown_option":

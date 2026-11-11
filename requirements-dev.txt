@@ -2,7 +2,8 @@
 maturin==1.16.0
 pytest==9.2.0
 click==8.5.1
-hypothesis==6.170.15
+hypothesis==6.170.15; python_version >= '3.11'
+hypothesis==6.168.5; python_version < '3.11'
 build==1.6.1
 twine==7.0.0
 mypy==1.20.2

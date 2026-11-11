@@ -89,6 +89,16 @@ def test_original_string_objects_and_surrogates_are_preserved():
     assert values[0][0][0] == "\udcff-tail"
 
 
+def test_distinct_empty_string_subclasses_keep_argument_identity():
+    class Text(str):
+        pass
+    a, b = Text(""), Text("")
+    values, _, _, error = _native.parse([(0, ["--a"], 1, False), (1, ["--b"], 1, False)], ["--a", a, "--b", b])
+    assert error is None
+    assert values[0][0][0] is a
+    assert values[1][0][0] is b
+
+
 def test_runtime_definitions_are_rebuilt_and_not_limited_to_256():
     definitions = [(i, [f"--option{i}"], 1, False) for i in range(1025)]
     result = _native.parse(definitions, ["--option1024=last"])
@@ -111,3 +121,43 @@ def test_native_wrapping_matches_reference(width, preserve):
     for text in cases:
         assert _native.wrap_text(text, width, "  ", "  ", preserve) == wrap_text(
             text, width, "  ", "  ", preserve), repr(text)
+
+
+def test_native_action_hooks_can_reenter_and_keep_python_objects():
+    from zclick.parser import _Option, _Argument, _ParsingState, _flag_needs_value
+    from zclick._utils import UNSET as LOCAL_UNSET
+    events = []
+    marker = object()
+    class CustomOption(_Option):
+        def process(self, value, state):
+            events.append(value)
+            # A nested native parse must have independent state.
+            assert _native.parse([(0, ["--nested"], 1, True)], ["--nested"])[2] == [0]
+            return super().process(value, state)
+    definitions = [CustomOption(None, ["--number"], "number", action="append"),
+                   _Option(None, ["--flag"], "flag", action="store_const", const=marker),
+                   _Argument(None, "tail", nargs=-1)]
+    specs = [(0, ["--number"], 1, False), (1, ["--flag"], 1, True), (2, [], -1, False)]
+    state = _ParsingState([])
+    leftovers, error = _native.parse_into(specs, ["--number=1", "--number", "2", "--flag", "x"],
+                                         definitions, state, LOCAL_UNSET, _flag_needs_value)
+    assert error is None and leftovers == []
+    assert state.opts == {"number": ["1", "2"], "flag": marker, "tail": ("x",)}
+    assert events == ["1", "2"]
+
+
+@pytest.mark.parametrize("args", [["--zero"], ["--zero=x"], ["-zx"], ["--zero=--flag"], ["-z--flag"]])
+def test_zero_arity_values_follow_reference_requeue_semantics(args):
+    parser = _OptionParser()
+    obj = SimpleNamespace(_flag_needs_value=False)
+    parser.add_option(obj, ["-z", "--zero"], "zero", action="store", nargs=0)
+    parser.add_option(obj, ["--flag"], "flag", action="store_const", const=True)
+    expected, remaining, _ = parser.parse_args(args.copy())
+    values, leftovers, _, error = _native.parse(
+        [(0, ["-z", "--zero"], 0, False), (1, ["--flag"], 1, True)], args)
+    assert error is None
+    actual = {"zero": ()} if 0 in values else {}
+    if 1 in values:
+        actual["flag"] = True
+    assert actual == expected
+    assert leftovers == remaining

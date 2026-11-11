@@ -202,3 +202,19 @@ fn source_arbitration_preserves_priority_and_user_injections() {
     assert!(select(false, Some(5), 5, false, true));
     assert!(select(false, Some(5), 2, true, false));
 }
+#[test]
+fn zero_arity_option_requeues_attached_suffix_without_allocation() {
+    let specs = [
+        option(0, &["-z", "--zero"], 0, false),
+        option(1, &["--flag"], 1, true),
+        option(2, &[], -1, false),
+    ];
+    for tokens in [&["--zero=--flag", "rest"][..], &["-z--flag", "rest"][..]] {
+        let args = argv(tokens);
+        let result = parse(&specs, &args, true, false);
+        assert!(result.error.is_none());
+        assert_eq!(result.order, [0, 1, 2]);
+        assert_eq!(raw(&result, 0), vec![Vec::<Vec<u8>>::new()]);
+        assert_eq!(raw(&result, 2), vec![vec![b"rest".to_vec()]]);
+    }
+}

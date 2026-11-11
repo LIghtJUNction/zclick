@@ -38,7 +38,9 @@ def should_strip_ansi(stream: t.Any = None, color: bool | None = None) -> bool:
     if color is not None:
         return not color
     if stream is None:
-        stream = sys.stdout
+        stream = sys.stdin
+    elif hasattr(stream, "color"):
+        return False
     return not (isatty(stream) or _is_jupyter_kernel_output(stream))
 
 
@@ -105,6 +107,11 @@ def _text(name: str, encoding: str | None, errors: str | None) -> t.Any:
     stream = getattr(sys, name)
     if stream is None:
         return None
+    if WIN:
+        from ._winconsole import _get_windows_console_stream
+        console = _get_windows_console_stream(stream, encoding, errors)
+        if console is not None:
+            return console
     compatible = (encoding is None or getattr(stream, "encoding", None) == encoding) and (errors is None or getattr(stream, "errors", None) == errors)
     if compatible and not is_ascii_encoding(getattr(stream, "encoding", None) or "utf-8"):
         return stream

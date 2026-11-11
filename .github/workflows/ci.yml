@@ -58,7 +58,7 @@ jobs:
           - {os: ubuntu-latest, python: '3.14'}
           - {os: ubuntu-latest, python: '3.14t', build_args: '--no-default-features'}
           - {os: ubuntu-latest, python: '3.15'}
-          - {os: ubuntu-latest, python: 'pypy-3.11'}
+          - {os: ubuntu-latest, python: 'pypy-3.11', build_args: '--no-default-features'}
           - {os: macos-latest, python: '3.14'}
           - {os: windows-latest, python: '3.14'}
     steps:
@@ -76,7 +76,7 @@ jobs:
       - name: Build native wheel
         env:
           BUILD_ARGS: ${{ matrix.build_args }}
-        run: maturin build --release --locked --out dist $BUILD_ARGS
+        run: maturin build --release --locked --interpreter python --out dist $BUILD_ARGS
       - name: Install and inspect wheel
         id: install
         run: |
@@ -88,7 +88,9 @@ jobs:
         run: python scripts/run_compatibility.py --output reports/normal -- -m 'not stress'
       - name: Public API contracts
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
-        run: python scripts/api_inventory.py --compare compatibility/api-reference.json --output reports/api.json
+        run: |
+          python scripts/api_inventory.py --source .cache/click-source --output reports/api-reference.json
+          python scripts/api_inventory.py --compare reports/api-reference.json --output reports/api.json
       - name: Target typing examples
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         run: python -m mypy .cache/click-migrated/tests/typing --no-incremental
@@ -121,18 +123,12 @@ jobs:
         with:
           toolchain: '1.99.1'
       - run: python -m pip install -r requirements-dev.txt
-      - run: maturin build --release --locked --out dist
+      - run: maturin build --release --locked --interpreter python --out dist
       - run: python -m pip install --no-deps --force-reinstall dist/*.whl
       - name: Run every case in one upstream stress function
         env:
           STRESS_CASE: ${{ matrix.case }}
-        run: |
-          if [[ "$STRESS_CASE" == "echo_via_pager_exception_cleanup" ]]; then
-            TEST_PATH="tests/test_utils/test_echo_via_pager.py::test_stress_$STRESS_CASE"
-          else
-            TEST_PATH="tests/test_stream_lifecycle.py::test_stress_$STRESS_CASE"
-          fi
-          python scripts/run_compatibility.py --test "$TEST_PATH" --output reports/stress
+        run: python scripts/run_stress.py --case "$STRESS_CASE" --workers 4 --batch-size 500 --output reports/stress
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
