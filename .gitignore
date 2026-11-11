@@ -11,3 +11,5 @@ __pycache__/
 *.pyd
 *.egg-info/
 /benchmark-results/
+/.cache/
+/reports/

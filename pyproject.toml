@@ -1,0 +1,44 @@
+[build-system]
+requires = ["maturin>=1.16,<2"]
+build-backend = "maturin"
+
+[project]
+name = "zclick"
+version = "0.1.0a1"
+description = "Rust and zclap based command line interfaces for Python"
+requires-python = ">=3.10"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{name = "LIghtJUNction"}]
+dependencies = []
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Rust",
+  "Operating System :: OS Independent",
+  "Typing :: Typed",
+]
+
+[project.urls]
+Source = "https://github.com/LIghtJUNction/zclick"
+Issues = "https://github.com/LIghtJUNction/zclick/issues"
+
+[project.optional-dependencies]
+test = ["pytest==9.2.0", "click==8.5.1", "hypothesis==6.170.15"]
+
+[tool.maturin]
+manifest-path = "crates/zclick-python/Cargo.toml"
+python-source = "python"
+module-name = "zclick._native"
+features = ["pyo3/extension-module"]
+include = ["python/zclick/py.typed", "python/zclick/*.pyi"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+filterwarnings = ["error"]
+markers = ["stress: upstream high iteration stress tests"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100

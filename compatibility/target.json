@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "verified_at": "2026-11-11",
+  "distribution": "click",
+  "version": "8.5.1",
+  "released_at": "2026-11-06",
+  "requires_python": ">=3.10",
+  "repository": "https://github.com/pallets/click.git",
+  "tag": "8.5.1",
+  "tag_object": "57292a92a56908efe3fd1e5bfaaea4a658181aa8",
+  "commit": "cf19179e8e2fd54c601378cec9e0d21bb12b6fb1",
+  "documentation": "https://github.com/pallets/click/tree/cf19179e8e2fd54c601378cec9e0d21bb12b6fb1/docs",
+  "api_reference": "docs/api.md",
+  "tests": "https://github.com/pallets/click/tree/cf19179e8e2fd54c601378cec9e0d21bb12b6fb1/tests",
+  "pypi": "https://pypi.org/project/click/8.5.1/",
+  "wheel_sha256": "8bb5376d2006950386f8c6427613334a2acadc5f559cb80e638d00b4df957e37",
+  "sdist_sha256": "9bbfada76703fd1d784b83eea012e3e8c6a001a876543ef104fa56aaaeb072b4",
+  "moving_stable_docs_used": false
+}
