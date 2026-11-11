@@ -84,7 +84,7 @@ jobs:
       full: true
 
   wheels:
-    needs: [version, validate]
+    needs: version
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -142,7 +142,7 @@ jobs:
           if-no-files-found: error
 
   sdist:
-    needs: [version, validate]
+    needs: version
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -176,7 +176,7 @@ jobs:
           if-no-files-found: error
 
   alternative-wheels:
-    needs: [version, validate]
+    needs: version
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false

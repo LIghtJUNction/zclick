@@ -5,6 +5,8 @@ import importlib.util
 from pathlib import Path
 import sys
 
+import pytest
+
 
 _path = Path(__file__).resolve().parents[1] / "scripts/prepare_upstream.py"
 _spec = importlib.util.spec_from_file_location("prepare_upstream", _path)
@@ -42,3 +44,27 @@ def test_report_ids_normalize_only_pinned_platform_path_example():
     windows = r"tests/test_utils/test__detect_program_name.py::test_detect_program_name[example\\cli.py-example-python -m example.cli]"
     posix = "tests/test_utils/test__detect_program_name.py::test_detect_program_name[example/cli.py-example-python -m example.cli]"
     assert key(windows) == key(posix)
+
+
+@pytest.mark.parametrize(("python310", "python311"), [
+    ("ColorInt-ColorInt.GREEN-GREEN", "ColorInt-2-GREEN"),
+    ("Number-Number.TWO-TWO", "Number-2-TWO"),
+    ("Letter-Letter.NAME_1-NAME_1", "Letter-Value-1-NAME_1"),
+    ("Letter-Letter.NAME_2-NAME_2", "Letter-Value_2-NAME_2"),
+    ("Letter-Letter.NAME_3-NAME_3", "Letter-42_value-NAME_3"),
+])
+def test_pinned_enum_parameter_ids_across_python_versions(python310, python311):
+    prefix = "tests/test_options.py::test_choice_default_rendering"
+    expected = f"{prefix}[{python311}]"
+    assert key(f"{prefix}[{python310}]") == expected
+    assert key(expected) == expected
+
+
+def test_enum_id_normalization_preserves_distinct_defaults_and_other_tests():
+    prefix = "tests/test_options.py::test_choice_default_rendering"
+    enum_default = f"{prefix}[Letter-Letter.NAME_1-NAME_1]"
+    string_default = f"{prefix}[Letter-NAME_1-NAME_1]"
+    assert key(enum_default) != key(string_default)
+    assert key(string_default) == string_default
+    other_test = "tests/test_other.py::test_choice_default_rendering[Letter-Letter.NAME_1-NAME_1]"
+    assert key(other_test) == other_test

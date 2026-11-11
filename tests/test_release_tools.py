@@ -80,6 +80,18 @@ def test_release_gate_rejects_stale_source(release_evidence):
         verify([report], [api], implementation="different-sha", manifest=manifest, known_gaps=gaps)
 
 
+def test_release_gate_rejects_duplicate_canonical_ids(release_evidence):
+    report, api, manifest, gaps = release_evidence
+    value = json.loads(report.read_text(encoding="utf-8"))
+    value["validated_test_ids"].extend([
+        "tests/test_options.py::test_choice_default_rendering[Number-Number.TWO-TWO]",
+        "tests/test_options.py::test_choice_default_rendering[Number-2-TWO]",
+    ])
+    report.write_text(json.dumps(value), encoding="utf-8")
+    with pytest.raises(ValueError, match="not unique within report"):
+        verify([report], [api], implementation="release-sha", manifest=manifest, known_gaps=gaps)
+
+
 def test_release_gate_rejects_new_skips_or_failures(release_evidence):
     report, api, manifest, gaps = release_evidence
     value = json.loads(report.read_text(encoding="utf-8"))

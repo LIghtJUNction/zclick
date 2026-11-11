@@ -13,6 +13,23 @@ _collection_errors: list[dict[str, object]] = []
 _collected: list[str] = []
 _deselected: list[str] = []
 
+# The fixed upstream test tree uses Enum members as parameter values. Python
+# 3.10 formats IntEnum/IntFlag as member names; it also substitutes Enum for
+# StrEnum in test_options.py. Python 3.11+ formats these five members as values.
+# Map only their complete display IDs, never the test values or assertions.
+_ENUM_IDS_PY310 = {
+    "tests/test_options.py::test_choice_default_rendering[ColorInt-ColorInt.GREEN-GREEN]":
+        "tests/test_options.py::test_choice_default_rendering[ColorInt-2-GREEN]",
+    "tests/test_options.py::test_choice_default_rendering[Number-Number.TWO-TWO]":
+        "tests/test_options.py::test_choice_default_rendering[Number-2-TWO]",
+    "tests/test_options.py::test_choice_default_rendering[Letter-Letter.NAME_1-NAME_1]":
+        "tests/test_options.py::test_choice_default_rendering[Letter-Value-1-NAME_1]",
+    "tests/test_options.py::test_choice_default_rendering[Letter-Letter.NAME_2-NAME_2]":
+        "tests/test_options.py::test_choice_default_rendering[Letter-Value_2-NAME_2]",
+    "tests/test_options.py::test_choice_default_rendering[Letter-Letter.NAME_3-NAME_3]":
+        "tests/test_options.py::test_choice_default_rendering[Letter-42_value-NAME_3]",
+}
+
 
 def key(nodeid: str, filename: str | None = None) -> str:
     # Normalize only the file path. Parameter IDs contain escaped ANSI bytes,
@@ -35,7 +52,7 @@ def key(nodeid: str, filename: str | None = None) -> str:
         # These three upstream IDs use os.path.join. Normalize the displayed
         # platform separator while leaving the test arguments themselves intact.
         nodeid = nodeid.replace("\\\\", "/")
-    return nodeid
+    return _ENUM_IDS_PY310.get(nodeid, nodeid)
 
 
 def pytest_collection_finish(session):

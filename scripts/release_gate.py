@@ -49,7 +49,10 @@ def verify(paths: list[Path], api_paths: list[Path], *, shell_path: Path | None 
             raise ValueError("Reports mix upstream Click versions")
         if implementation and report.get("implementation_commit") != implementation:
             raise ValueError(f"Compatibility report does not match release commit: {path}")
-        ids = {key(node) for node in report["validated_test_ids"]}
+        normalized = [key(node) for node in report["validated_test_ids"]]
+        ids = set(normalized)
+        if len(ids) != len(normalized):
+            raise ValueError(f"Canonical test IDs are not unique within report: {path}")
         if not ids:
             raise ValueError(f"Empty compatibility report: {path}")
         covered.update(ids)
@@ -60,7 +63,9 @@ def verify(paths: list[Path], api_paths: list[Path], *, shell_path: Path | None 
         raise ValueError(f"{len(missing)} upstream tests have no passing evidence; first: {min(missing)}")
     fingerprint = hashlib.sha256(("\n".join(sorted(covered)) + "\n").encode("utf-8")).hexdigest()
     if len(covered) != contract["test_count"] or fingerprint != contract["test_ids_sha256"]:
-        raise ValueError("Evidence does not cover the exact pinned upstream test inventory")
+        raise ValueError("Evidence does not cover the exact pinned upstream test inventory: "
+                         f"count={len(covered)}, expected={contract['test_count']}; "
+                         f"sha256={fingerprint}, expected={contract['test_ids_sha256']}")
     for path in api_paths:
         report = json.loads(path.read_text(encoding="utf-8"))
         if not report.get("complete") or report["target"]["commit"] != target:

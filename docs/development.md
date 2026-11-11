@@ -36,6 +36,14 @@ Click commit, distribution checksums, documentation and test sources. The
 harness verifies the checkout, prepares a namespace-only migration and runs
 both packages. It does not import original Click from the runtime package.
 
+Report identifiers normalize package names, three platform-dependent program
+paths, and five explicitly listed Enum parameter display IDs in the fixed
+upstream `test_choice_default_rendering` test. Python 3.10 displays those members
+by name, while newer interpreters display their values; the upstream test also
+substitutes `Enum` for `StrEnum` on Python 3.10. The original parameter values,
+assertions and skips remain unchanged. Duplicate canonical IDs within a report
+are rejected, and the fixed 33,459-case inventory checksum remains unchanged.
+
 ```sh
 python scripts/run_compatibility.py --output reports/normal -- -m 'not stress'
 python scripts/run_stress.py --output reports/stress --workers 4 --batch-size 500

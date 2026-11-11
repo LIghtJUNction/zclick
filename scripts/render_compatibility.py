@@ -90,7 +90,10 @@ def render(api_path: Path, normal_path: Path, output: Path, complete_path: Path 
         "Before Python 3.12, f-strings are opaque tokenizer strings. The migrator uses AST source positions "
         "to rename only package-name expressions inside them, retaining literal output text. Test ID "
         "canonicalization also normalizes the three upstream program-name cases built with platform "
-        "path separators; test arguments and assertions are unchanged. The fixed count and ID fingerprint "
+        "path separators and five exact Enum parameter display IDs whose names differ on Python 3.10. "
+        "The latter map only complete IDs in the pinned `test_choice_default_rendering` test; distinct "
+        "defaults remain distinct, and duplicate canonical IDs within one report are rejected. "
+        "Test arguments and assertions are unchanged. The fixed count and ID fingerprint "
         "are recorded in [test-manifest.json](compatibility/test-manifest.json).", "",
         "## Behavior checklist", "",
         "Each row names the original tests that verify its observable behavior. The API inventory below "
