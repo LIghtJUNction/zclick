@@ -129,6 +129,59 @@ def test_native_frame_cycles_are_collectible(record_property):
     assert reference() is None
 
 
+@pytest.mark.parametrize("raises", [False, True])
+def test_native_completed_scope_releases_retained_frame(raises):
+    frames = []
+    error = RuntimeError("callback failure")
+
+    class RetainFrameGroup(click.Group):
+        def invoke(self, ctx):
+            def scope(active, callback):
+                frames.append(callback)
+                return _invoke_context(active, callback)
+            return _native.invoke_group(self, ctx, click.Command.invoke.__get__(self), scope)
+
+    def callback():
+        if raises:
+            raise error
+        return 3
+
+    group = RetainFrameGroup("cli", invoke_without_command=True, callback=callback)
+    if raises:
+        with pytest.raises(RuntimeError) as caught:
+            group.main([], standalone_mode=False)
+        assert caught.value is error
+    else:
+        assert group.main([], standalone_mode=False) == 3
+    assert len(frames) == 1
+    with pytest.raises(RuntimeError, match="dispatch frame has been cleared"):
+        frames[0]()
+
+
+def test_native_frame_remains_reusable_until_scope_exit():
+    frames = []
+    calls = []
+
+    class RepeatFrameGroup(click.Group):
+        def invoke(self, ctx):
+            def scope(active, callback):
+                frames.append(callback)
+                with active:
+                    assert callback() == (True, 1)
+                    return True, callback()
+            return _native.invoke_group(self, ctx, click.Command.invoke.__get__(self), scope)
+
+    def callback():
+        calls.append(len(calls) + 1)
+        return calls[-1]
+
+    group = RepeatFrameGroup("cli", invoke_without_command=True, callback=callback)
+    assert group.main([], standalone_mode=False) == 2
+    assert calls == [1, 2]
+    with pytest.raises(RuntimeError, match="dispatch frame has been cleared"):
+        frames[0]()
+
+
 @pytest.mark.parametrize("chain, expected", [(False, 5), (True, [])])
 def test_native_empty_group_return_value(chain, expected):
     group = NativeGroup("cli", chain=chain, invoke_without_command=True, callback=lambda: 5)

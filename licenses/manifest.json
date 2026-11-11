@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "cargo_lock_sha256": "d25a6989ea18858a3a4daba94bf52fc6a8ff88d773a838c879ea9897e2d399af",
+  "cargo_lock_sha256": "6b3a30c32c8eb4655c44a6e04749ddf1907038df1fdf6955fdb60eed3504005a",
   "scope": "All registry crates resolved by locked workspace metadata, including build-only dependencies; complete Rust standard-library notices for the pinned release.",
   "packages": [
     {
@@ -320,15 +320,15 @@
       },
       {
         "path": "licenses/rust-standard-library/1.99.1/LICENSE-MIT",
-        "sha256": "b25189d638b67b70e913334c11b9fa48917b9000e4a6564dfa23b4232b92af3d"
+        "sha256": "b71bd43a069ca0641a9ecfe585ca7b3c53b5cc1608f8b68321168698e28b5ea1"
       },
       {
         "path": "licenses/rust-standard-library/1.99.1/LICENSE-APACHE",
-        "sha256": "fd26644b0118c8ae84a8770bdbbe18f7db14387b5cc19d1de670ad2d98a7ad42"
+        "sha256": "62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a"
       },
       {
         "path": "licenses/rust-standard-library/1.99.1/COPYRIGHT",
-        "sha256": "56793b7f32c42e01397860156edea3b88d39333329a27ae5e8ecd7497b761e07"
+        "sha256": "172020dbfd5b53a226dfde77616190a48dcff519b0bc0e6deb91a8450782c4af"
       }
     ]
   }

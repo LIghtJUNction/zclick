@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "zclick"
-version = "0.1.0"
+version = "0.1.1a1"
 description = "Rust and zclap based command line interfaces for Python"
 requires-python = ">=3.10"
 readme = "README.md"
@@ -13,7 +13,7 @@ license-files = ["LICENSE", "THIRD_PARTY_LICENSES.md", "compatibility/CLICK_LICE
 authors = [{name = "LIghtJUNction"}]
 dependencies = []
 classifiers = [
-  "Development Status :: 4 - Beta",
+  "Development Status :: 3 - Alpha",
   "Programming Language :: Python :: 3",
   "Programming Language :: Rust",
   "Operating System :: OS Independent",

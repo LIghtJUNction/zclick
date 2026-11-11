@@ -6,6 +6,7 @@ use pyo3::{
 };
 use zclick_core::{self as core, Spec};
 mod dispatch;
+mod interpreter;
 
 fn encode(value: &Bound<'_, PyAny>) -> PyResult<Vec<u8>> {
     let text = value.cast::<PyString>()?;
@@ -403,6 +404,7 @@ fn join_options<'py>(
 }
 #[pymodule(gil_used = false)]
 fn _native(m: &Bound<'_, PyModule>) -> PyResult<()> {
+    interpreter::check_main_interpreter()?;
     m.add_function(wrap_pyfunction!(dispatch::invoke_group, m)?)?;
     m.add_function(wrap_pyfunction!(parse, m)?)?;
     m.add_function(wrap_pyfunction!(parse_into, m)?)?;

@@ -1,6 +1,11 @@
 """Rust-backed command-line interfaces with a Click-compatible Python API."""
 from __future__ import annotations
 
+# Reject unsupported interpreters before importing Python modules that may
+# initialize their own native state. This import also establishes the binding
+# boundary before any public classes or decorators are constructed.
+from . import _native as _native
+
 from .core import Argument as Argument, Command as Command, CommandCollection as CommandCollection
 from .core import Context as Context, Group as Group, Option as Option
 from .core import Parameter as Parameter, ParameterSource as ParameterSource

@@ -41,7 +41,8 @@ python scripts/run_compatibility.py --output reports/normal -- -m 'not stress'
 python scripts/run_stress.py --output reports/stress --workers 4 --batch-size 500
 python scripts/api_inventory.py --source .cache/click-source --output reports/api-reference.json
 python scripts/api_inventory.py --compare reports/api-reference.json --output reports/api.json
-python scripts/release_gate.py --reports reports/normal/summary.json reports/stress/summary.json --api reports/api.json
+python3.12 scripts/check_subinterpreters.py --output reports/subinterpreters
+python scripts/release_gate.py --reports reports/normal/summary.json reports/stress/summary.json --api reports/api.json --boundary reports/subinterpreters/summary.json
 ```
 
 The stress runner uses exact original node IDs in smaller subprocesses. This
@@ -88,6 +89,26 @@ Python parser. These are different boundaries and must remain separately
 reported. Ratios greater than one mean that zclick was faster in that workload.
 Python `tracemalloc` does not measure all Rust allocations.
 
+## Interpreter compatibility boundary
+
+Subinterpreter compatibility is **UNFINISHED**. Click 8.5.1 works in the tested
+CPython 3.12 subinterpreters; zclick's native binding is restricted to the main
+interpreter. This includes worker threads in that interpreter. It does not
+include isolated or legacy shared-GIL subinterpreters.
+
+The pinned PyO3 0.30.1 binding keeps Python-object caches that cannot safely be
+shared across interpreters. zclick rejects child-interpreter initialization
+before entering those caches. The diagnostic compares both packages in fresh
+processes, checks both import orders and verifies that the main interpreter
+still works afterward. Its report distinguishes `safe_rejection` from
+`compatibility_passed`; safety does not remove the compatibility difference.
+
+The [known gap list](../compatibility/known-gaps.json) remains part of the
+release evidence. While any item is unfinished, the release gate rejects a
+version without an `a`, `b` or `rc` suffix. A disclosed prerelease still requires
+all original tests, API contracts, actual Shell tests and interpreter safety
+checks. No upstream tests are removed, weakened or marked xfail for this gap.
+
 ## Distribution and release gates
 
 Build and inspect distributions locally with:
@@ -114,7 +135,7 @@ executed before it can be published.
 
 The eight ordinary wheel targets use CPython's stable ABI from Python 3.10.
 Linux x86-64 also has separate interpreter-specific wheels for PyPy 3.11 and
-free-threaded CPython 3.14 and 3.15. Other PyPy or free-threaded platforms require
+3.12, and free-threaded CPython 3.14 and 3.15. Other PyPy or free-threaded platforms require
 a source build with `--no-default-features`; a successful CPython stable-ABI
 wheel does not establish support for those runtimes. The exact platform results
 remain in the CI artifacts and release evidence archive.

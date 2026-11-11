@@ -14,6 +14,9 @@ def render(api_path: Path, normal_path: Path, output: Path, complete_path: Path 
     normal = json.loads(normal_path.read_text(encoding="utf-8")) if normal_path.exists() else {}
     complete = (json.loads(complete_path.read_text(encoding="utf-8"))
                 if complete_path is not None and complete_path.exists() else {})
+    gap_file = ROOT / "compatibility/known-gaps.json"
+    gaps = json.loads(gap_file.read_text(encoding="utf-8"))["gaps"] if gap_file.exists() else []
+    unfinished = [gap for gap in gaps if gap["status"] != "RESOLVED"]
     target = reference["target"]
     lines = [
         "# Click compatibility", "",
@@ -24,11 +27,33 @@ def render(api_path: Path, normal_path: Path, output: Path, complete_path: Path 
         "class members, properties, deprecated imports, exception behavior, CLI output and terminal tools. "
         "The generated [API inventory](compatibility/api-reference.json) records each declaration and "
         "associated upstream test source. The `.pyi` declarations describe this same fixed target.", "",
+    ]
+    if unfinished:
+        lines.extend([
+            "## Unfinished compatibility", "",
+            f"**Full Click compatibility is not yet complete: {len(unfinished)} known item remains unfinished.** "
+            "Passing the pinned upstream suite is evidence for that suite, not proof of identical behavior "
+            "in every interpreter configuration. The release gate blocks stable versions while this list "
+            "contains unfinished items; an explicitly disclosed prerelease can be published only after "
+            "the existing test, API, Shell and safety gates pass.", "",
+            "| Item | Click target | zclick behavior | Status |", "| --- | --- | --- | --- |",
+        ])
+        for gap in unfinished:
+            lines.append(f"| {gap['area']} | {gap['reference']} | {gap['candidate']} | **{gap['status']}** |")
+        lines.extend([
+            "", "The machine-readable [known gap list](compatibility/known-gaps.json) includes the cause, "
+            "reproduction command and pinned upstream sources. `scripts/check_subinterpreters.py` records "
+            "the Click/zclick difference separately from safe rejection: `compatibility_passed` remains "
+            "false even when `safe_rejection` passes. It checks isolated and shared-GIL configurations, "
+            "both import orders, and successful use of the main interpreter afterward. No upstream "
+            "test has been removed, weakened or marked xfail for this limitation.", "",
+        ])
+    lines.extend([
         "## Evidence and scope", "",
         "| Evidence | Result |", "| --- | --- |",
         f"| Public object and member signature audit | {'Passed' if audit['complete'] else 'Incomplete'}; "
         f"{len(reference['entries'])} public objects |",
-    ]
+    ])
     if normal:
         counts = normal["counts"]
         lines.append("| Upstream normal suite on the local interpreter | " +
@@ -111,6 +136,9 @@ def render(api_path: Path, normal_path: Path, output: Path, complete_path: Path 
         "The Python extension also depends on PyO3, uses std, creates Python objects and allocates memory. "
         "The published Python package has no third-party Python runtime requirements. "
         "Click, pytest, Maturin and type-checking tools are development dependencies.", "",
+        "The binding supports the main Python interpreter, including its worker threads. "
+        "Subinterpreter imports are rejected before initializing PyO3's Python-object caches. "
+        "This is an explicit compatibility limit, not a claim of subinterpreter support.", "",
         "## Public API checklist", "",
         "`Contract passed` means availability, positional/keyword parameters and defaults, member availability, "
         "member signatures, property mutability and deprecation categories passed introspection. "

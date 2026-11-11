@@ -43,6 +43,8 @@ impl FrameState {
 // A GC-visible callable is used instead of an opaque closure capsule. A user
 // hook may retain the callable through Python frame introspection; every
 // captured Python reference therefore participates in cycle collection.
+// Completed scopes also release their captures deterministically, since a
+// retained extension callable can otherwise keep a cpyext cycle alive on PyPy.
 #[pyclass(module = "zclick._native")]
 struct DispatchFrame {
     state: Option<FrameState>,
@@ -120,7 +122,14 @@ fn scoped<'py>(
             state: Some(state.copy(py, phase, context)),
         },
     )?;
-    let output = state.scope.bind(py).call1((context, callback))?;
+    let output = state.scope.bind(py).call1((context, callback.bind(py)));
+    // The callback remains reusable throughout the entire Python scope,
+    // including __exit__ and resource cleanup. Once that scope has returned or
+    // raised, it must no longer retain the closed contexts or its owning group.
+    // __clear__ drops its PyRefMut before releasing any Python objects, so a
+    // finalizer may safely reenter the interpreter while the captures are freed.
+    DispatchFrame::__clear__(callback.bind(py));
+    let output = output?;
     let (completed, value): (bool, Bound<'py, PyAny>) = output.extract()?;
     if !completed {
         return Ok(Flow::continued(py));

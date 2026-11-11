@@ -4,6 +4,16 @@ The fixed target is **Click 8.5.1**, released 2026-11-06, at commit `cf19179e8e2
 
 The contract covers public object names, call parameters and defaults, return annotations, class members, properties, deprecated imports, exception behavior, CLI output and terminal tools. The generated [API inventory](compatibility/api-reference.json) records each declaration and associated upstream test source. The `.pyi` declarations describe this same fixed target.
 
+## Unfinished compatibility
+
+**Full Click compatibility is not yet complete: 1 known item remains unfinished.** Passing the pinned upstream suite is evidence for that suite, not proof of identical behavior in every interpreter configuration. The release gate blocks stable versions while this list contains unfinished items; an explicitly disclosed prerelease can be published only after the existing test, API, Shell and safety gates pass.
+
+| Item | Click target | zclick behavior | Status |
+| --- | --- | --- | --- |
+| Import and command invocation in Python subinterpreters | Click 8.5.1 imports and invokes commands in CPython 3.12 isolated and shared-GIL subinterpreters after initialization in the main interpreter. | zclick requires the main interpreter. Its native module rejects initialization in subinterpreters with ImportError. | **UNFINISHED** |
+
+The machine-readable [known gap list](compatibility/known-gaps.json) includes the cause, reproduction command and pinned upstream sources. `scripts/check_subinterpreters.py` records the Click/zclick difference separately from safe rejection: `compatibility_passed` remains false even when `safe_rejection` passes. It checks isolated and shared-GIL configurations, both import orders, and successful use of the main interpreter afterward. No upstream test has been removed, weakened or marked xfail for this limitation.
+
 ## Evidence and scope
 
 | Evidence | Result |
@@ -63,6 +73,8 @@ Command callbacks, parameter objects and type converters remain Python extension
 | Kernel arity rules are lower-level | Variadics, optional values, callbacks and source precedence | Rust semantic operations and Python extension hooks preserve target ordering |
 
 The core directly depends only on registry `zclap = 0.1.4` and builds with `no_std + alloc`. The Python extension also depends on PyO3, uses std, creates Python objects and allocates memory. The published Python package has no third-party Python runtime requirements. Click, pytest, Maturin and type-checking tools are development dependencies.
+
+The binding supports the main Python interpreter, including its worker threads. Subinterpreter imports are rejected before initializing PyO3's Python-object caches. This is an explicit compatibility limit, not a claim of subinterpreter support.
 
 ## Public API checklist
 

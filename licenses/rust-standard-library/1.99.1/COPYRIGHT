@@ -32,4 +32,3 @@ of Rust. Please refer to that file for detailed information as to the components
 any given Rust release. We also produce a `COPYRIGHT-library.html` file which only
 covers the subset of source code used in the Rust Standard Library, as opposed
 to the toolchain as a whole.
-

@@ -57,32 +57,50 @@ def release_evidence(tmp_path):
     api = {"complete": True, "target": report["target"], "implementation_commit": "release-sha"}
     manifest = {"target_commit": "pinned-click", "test_count": len(ids),
                 "test_ids_sha256": hashlib.sha256(("\n".join(ids) + "\n").encode()).hexdigest()}
-    paths = [tmp_path / name for name in ("report.json", "api.json", "manifest.json")]
-    for path, value in zip(paths, (report, api, manifest)):
+    gaps = {"target_commit": "pinned-click", "gaps": []}
+    paths = [tmp_path / name for name in ("report.json", "api.json", "manifest.json", "gaps.json")]
+    for path, value in zip(paths, (report, api, manifest, gaps)):
         path.write_text(json.dumps(value), encoding="utf-8")
     return paths
 
 
 def test_release_gate_requires_exact_test_inventory(release_evidence):
-    report, api, manifest = release_evidence
-    verify([report], [api], implementation="release-sha", manifest=manifest)
+    report, api, manifest, gaps = release_evidence
+    verify([report], [api], implementation="release-sha", manifest=manifest, known_gaps=gaps)
     value = json.loads(report.read_text(encoding="utf-8"))
     value["validated_test_ids"].pop()
     report.write_text(json.dumps(value), encoding="utf-8")
     with pytest.raises(ValueError, match="exact pinned"):
-        verify([report], [api], implementation="release-sha", manifest=manifest)
+        verify([report], [api], implementation="release-sha", manifest=manifest, known_gaps=gaps)
 
 
 def test_release_gate_rejects_stale_source(release_evidence):
-    report, api, manifest = release_evidence
+    report, api, manifest, gaps = release_evidence
     with pytest.raises(ValueError, match="release commit"):
-        verify([report], [api], implementation="different-sha", manifest=manifest)
+        verify([report], [api], implementation="different-sha", manifest=manifest, known_gaps=gaps)
 
 
 def test_release_gate_rejects_new_skips_or_failures(release_evidence):
-    report, api, manifest = release_evidence
+    report, api, manifest, gaps = release_evidence
     value = json.loads(report.read_text(encoding="utf-8"))
     value["passed"] = False
     report.write_text(json.dumps(value), encoding="utf-8")
     with pytest.raises(ValueError, match="Compatibility failed"):
-        verify([report], [api], manifest=manifest)
+        verify([report], [api], manifest=manifest, known_gaps=gaps)
+
+
+def test_unfinished_compatibility_blocks_stable_release(release_evidence):
+    report, api, manifest, gaps = release_evidence
+    gaps.write_text(json.dumps({"target_commit": "pinned-click", "gaps": [
+        {"id": "subinterpreters", "status": "UNFINISHED", "disclosure": "Not supported"}
+    ]}), encoding="utf-8")
+    with pytest.raises(ValueError, match="stable release is blocked"):
+        verify([report], [api], manifest=manifest, known_gaps=gaps, version="0.1.0")
+    with pytest.raises(ValueError, match="safety evidence is required"):
+        verify([report], [api], manifest=manifest, known_gaps=gaps, version="0.1.1a1")
+    boundary = report.parent / "boundary.json"
+    boundary.write_text(json.dumps({"scope": "subinterpreter-boundary", "reference_control_passed": True,
+        "safe_rejection": True, "safety_passed": True, "compatibility_passed": False,
+        "target": {"commit": "pinned-click"}, "implementation_commit": "release-sha"}), encoding="utf-8")
+    verify([report], [api], manifest=manifest, known_gaps=gaps, version="0.1.1a1",
+           implementation="release-sha", boundary_path=boundary)

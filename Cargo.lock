@@ -132,15 +132,16 @@ checksum = "5efb5b25a7eb925fe9943888238d1e261224fa629456f4abe203b1deb34ac102"
 
 [[package]]
 name = "zclick-core"
-version = "0.1.0"
+version = "0.1.1-alpha.1"
 dependencies = [
  "zclap",
 ]
 
 [[package]]
 name = "zclick-python"
-version = "0.1.0"
+version = "0.1.1-alpha.1"
 dependencies = [
  "pyo3",
+ "pyo3-build-config",
  "zclick-core",
 ]

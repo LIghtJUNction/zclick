@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "target_commit": "cf19179e8e2fd54c601378cec9e0d21bb12b6fb1",
+  "gaps": [
+    {
+      "id": "subinterpreters",
+      "status": "UNFINISHED",
+      "area": "Import and command invocation in Python subinterpreters",
+      "reference": "Click 8.5.1 imports and invokes commands in CPython 3.12 isolated and shared-GIL subinterpreters after initialization in the main interpreter.",
+      "reference_environment_limit": "Child-first experiments can expose a CPython 3.12 datetime-extension teardown crash on the local host, also reproduced without Click or zclick. Raw return codes and independent datetime-only controls remain in the diagnostic report; no imports are preheated to hide this behavior.",
+      "candidate": "zclick requires the main interpreter. Its native module rejects initialization in subinterpreters with ImportError.",
+      "reason": "The pinned PyO3 0.30.1 binding does not support independent subinterpreter module and type state. Bypassing its isolation checks would risk sharing Python objects across interpreters.",
+      "safety_requirement": "Reject both isolated and shared-GIL subinterpreters before initializing PyO3 caches; keep the main interpreter usable afterward.",
+      "disclosure": "This is an unfinished compatibility item. Passing the fixed upstream suite does not establish unrestricted Click compatibility. Releases with this gap remain explicitly disclosed prereleases.",
+      "reproduce": "python3.12 scripts/check_subinterpreters.py --output reports/subinterpreters",
+      "evidence": "reports/subinterpreters/summary.json",
+      "sources": [
+        "https://github.com/PyO3/pyo3/blob/f168538672f2c32e32f7c1b702a502ee92de1edf/src/impl_/pymodule.rs",
+        "https://github.com/PyO3/pyo3/issues/3451"
+      ]
+    }
+  ]
+}

@@ -130,6 +130,38 @@ def cold(package: str, repeats: int) -> dict:
             "fresh_process_wall_us": whole, "median_fresh_process_wall_us": statistics.median(whole)}
 
 
+def cold_commands(package: str, sizes: list[int], repeats: int) -> dict:
+    """Measure the one-shot CLI boundary, including definition and startup."""
+    results = {}
+    for size in sizes:
+        setup = (
+            f"import {package} as click\n"
+            f"params = [click.Option([f'--value-{{i}}'], type=int, default=0) for i in range({size})]\n"
+            "command = click.Command('bench', params=params, callback=lambda **v: sum(v.values()))\n"
+        )
+        programs = {
+            "command": setup +
+                f"args = [part for i in range({size}) for part in (f'--value-{{i}}', str(i))]\n"
+                "print(command.main(args, prog_name='bench', standalone_mode=False))\n",
+            "help": setup + "command.main(['--help'], prog_name='bench', standalone_mode=False)\n",
+        }
+        for label, program in programs.items():
+            values = []
+            for _ in range(repeats):
+                start = time.perf_counter_ns()
+                output = subprocess.check_output([sys.executable, "-c", program], text=True, encoding="utf-8")
+                values.append((time.perf_counter_ns() - start) / 1000)
+                if label == "command":
+                    assert output.strip() == str(sum(range(size)))
+                else:
+                    assert output.startswith("Usage: bench") and "--value-0" in output
+            results[f"{label}/{size}"] = {
+                "wall_us": values, "median_wall_us": statistics.median(values),
+                "min_wall_us": min(values), "max_wall_us": max(values),
+            }
+    return results
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--worker", choices=("click", "zclick"))
@@ -151,6 +183,7 @@ def main() -> None:
         ], text=True)
         measurements[package] = json.loads(output)
         measurements[package]["cold"] = cold(package, args.repeats)
+        measurements[package]["cold_commands"] = cold_commands(package, args.sizes, args.repeats)
     reference, native = measurements["click"], measurements["zclick"]
     expected_target = json.loads((ROOT / "compatibility/target.json").read_text(encoding="utf-8"))["version"]
     if reference["version"] != expected_target:
@@ -171,6 +204,10 @@ def main() -> None:
         "cargo_lock_sha256": hashlib.sha256((ROOT / "Cargo.lock").read_bytes()).hexdigest(),
         "target": json.loads((ROOT / "compatibility/target.json").read_text(encoding="utf-8")),
         "measurements": measurements, "ratios": ratios,
+        "cold_command_ratios": {
+            name: value["median_wall_us"] / native["cold_commands"][name]["median_wall_us"]
+            for name, value in reference["cold_commands"].items()
+        },
         "method": {
             "build": "maturin build/develop --release --locked",
             "runtime_boundary": "identical Python constructors, parser.parse_args, Command.main and get_help",
@@ -185,6 +222,10 @@ def main() -> None:
     for name, ratio in ratios.items():
         print(f"{name:24s}{reference['cases'][name]['median_wall_us']:10.3f}"
               f"{native['cases'][name]['median_wall_us']:12.3f}{ratio['wall_speedup']:9.3f}x")
+    print("fresh process            Click ms    zclick ms   speedup")
+    for name, ratio in result["cold_command_ratios"].items():
+        print(f"{name:24s}{reference['cold_commands'][name]['median_wall_us']/1000:10.3f}"
+              f"{native['cold_commands'][name]['median_wall_us']/1000:12.3f}{ratio:9.3f}x")
     print(f"Saved measurements: {args.output}")
 
 

@@ -42,6 +42,7 @@ jobs:
       - run: cargo check --locked -p zclick-core --target wasm32-unknown-unknown
       - run: cargo clippy --locked --workspace --all-targets -- -D warnings
       - run: python scripts/audit_dependencies.py
+      - run: python scripts/vendor_licenses.py --check
 
   python:
     name: ${{ matrix.os }} / Python ${{ matrix.python }}
@@ -60,6 +61,7 @@ jobs:
           - {os: ubuntu-latest, python: '3.15'}
           - {os: ubuntu-latest, python: '3.15t', build_args: '--no-default-features'}
           - {os: ubuntu-latest, python: 'pypy-3.11', build_args: '--no-default-features'}
+          - {os: ubuntu-latest, python: 'pypy-3.12', build_args: '--no-default-features', typing_python: '3.12'}
           - {os: macos-latest, python: '3.14'}
           - {os: windows-latest, python: '3.14'}
     steps:
@@ -98,7 +100,7 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         if: ${{ !cancelled() && steps.install.outcome == 'success' && startsWith(matrix.python, 'pypy-') }}
         with:
-          python-version: '3.11'
+          python-version: ${{ matrix.typing_python || '3.11' }}
       - name: Install type checker for PyPy's declarations
         if: ${{ !cancelled() && steps.install.outcome == 'success' && startsWith(matrix.python, 'pypy-') }}
         run: python -m pip install mypy==1.20.2
@@ -145,6 +147,31 @@ jobs:
           path: reports/shells/
           if-no-files-found: error
 
+  interpreter-boundary:
+    name: Subinterpreter gap and safety
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.ref || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec
+        with:
+          toolchain: '1.99.1'
+      - run: python -m pip install -r requirements-dev.txt
+      - run: maturin build --release --locked --interpreter python --out dist
+      - run: python -m pip install --no-deps --force-reinstall dist/*.whl
+      - run: python scripts/check_subinterpreters.py --output reports/subinterpreters
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: interpreter-boundary-evidence
+          path: reports/subinterpreters/
+          if-no-files-found: error
+
   benchmark:
     if: ${{ inputs.full }}
     name: Measured Python API performance
@@ -172,13 +199,20 @@ jobs:
 
   stress:
     if: ${{ inputs.full }}
-    name: Stress / ${{ matrix.os }} / ${{ matrix.case }}
-    runs-on: ${{ matrix.os }}
+    name: Stress / ${{ matrix.runtime.os }} / ${{ matrix.runtime.python }} / ${{ matrix.case }}
+    runs-on: ${{ matrix.runtime.os }}
     timeout-minutes: 120
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        runtime:
+          - {os: ubuntu-latest, python: '3.14'}
+          - {os: macos-latest, python: '3.14'}
+          - {os: windows-latest, python: '3.14'}
+          - {os: ubuntu-latest, python: 'pypy-3.11', build_args: '--no-default-features'}
+          - {os: ubuntu-latest, python: 'pypy-3.12', build_args: '--no-default-features'}
+          - {os: ubuntu-latest, python: '3.14t', build_args: '--no-default-features'}
+          - {os: ubuntu-latest, python: '3.15t', build_args: '--no-default-features'}
         case: [thread_pool_with_exit, logging_sequential_invocations, gc_between_invocations, echo_via_pager_exception_cleanup]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -187,12 +221,15 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
-          python-version: '3.14'
+          python-version: ${{ matrix.runtime.python }}
       - uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec
         with:
           toolchain: '1.99.1'
       - run: python -m pip install -r requirements-dev.txt
-      - run: maturin build --release --locked --interpreter python --out dist
+      - name: Build for the selected interpreter
+        env:
+          BUILD_ARGS: ${{ matrix.runtime.build_args }}
+        run: maturin build --release --locked --interpreter python --out dist $BUILD_ARGS
       - run: python -m pip install --no-deps --force-reinstall dist/*.whl
       - name: Run every case in one upstream stress function
         env:
@@ -201,13 +238,15 @@ jobs:
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
-          name: evidence-stress-${{ matrix.os }}-${{ matrix.case }}
-          path: reports/
+          name: evidence-stress-${{ matrix.runtime.os }}-${{ matrix.runtime.python }}-${{ matrix.case }}
+          path: |
+            reports/
+            !reports/**/candidate/**
           if-no-files-found: error
 
   release-evidence:
     if: ${{ inputs.full }}
-    needs: [rust, python, shells, benchmark, stress]
+    needs: [rust, python, shells, interpreter-boundary, benchmark, stress]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -222,7 +261,11 @@ jobs:
         with:
           name: shell-evidence-linux
           path: shell-evidence
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: interpreter-boundary-evidence
+          path: interpreter-boundary
       - name: Validate complete evidence for the immutable release commit
         env:
           RELEASE_SHA: ${{ inputs.ref || github.sha }}
-        run: python scripts/release_gate.py --reports evidence/*/*/summary.json --api evidence/*/api.json --shell shell-evidence/summary.json --implementation "$RELEASE_SHA"
+        run: python scripts/release_gate.py --reports evidence/*/*/summary.json --api evidence/*/api.json --shell shell-evidence/summary.json --boundary interpreter-boundary/summary.json --implementation "$RELEASE_SHA"

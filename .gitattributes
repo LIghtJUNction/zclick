@@ -1,0 +1,4 @@
+# Retain upstream notice bytes so license inventory hashes are platform independent.
+licenses/** -text
+compatibility/CLICK_LICENSE.txt -text
+THIRD_PARTY_LICENSES.md text eol=lf

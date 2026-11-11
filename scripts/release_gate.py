@@ -5,21 +5,41 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
+import re
 
 from compat_report_plugin import key
+from bump_version import parse as parse_version
 
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
 def verify(paths: list[Path], api_paths: list[Path], *, shell_path: Path | None = None,
-           implementation: str | None = None, manifest: Path | None = None) -> None:
+           implementation: str | None = None, manifest: Path | None = None,
+           known_gaps: Path | None = None, version: str | None = None,
+           boundary_path: Path | None = None) -> None:
     if not paths or not api_paths:
         raise ValueError("Compatibility and API evidence are both required")
     covered: set[str] = set()
     required: set[str] = set()
     contract = json.loads((manifest or ROOT / "compatibility/test-manifest.json").read_text(encoding="utf-8"))
     target = contract["target_commit"]
+    gaps = json.loads((known_gaps or ROOT / "compatibility/known-gaps.json").read_text(encoding="utf-8"))
+    if gaps.get("target_commit") != target:
+        raise ValueError("Known gaps refer to a different compatibility target")
+    unfinished = [gap for gap in gaps["gaps"] if gap.get("status") != "RESOLVED"]
+    if version is None:
+        match = re.search(r'^version\s*=\s*"([^"]+)"', (ROOT / "pyproject.toml").read_text(encoding="utf-8"), re.M)
+        if match is None:
+            raise ValueError("Could not read the release version")
+        version = match[1]
+    if unfinished and parse_version(version)[3] is None:
+        raise ValueError("A stable release is blocked by unfinished compatibility items: " +
+                         ", ".join(gap["id"] for gap in unfinished))
+    if any(not gap.get("disclosure") for gap in unfinished):
+        raise ValueError("Every unfinished compatibility item needs an explicit disclosure")
+    if any(gap["id"] == "subinterpreters" for gap in unfinished) and boundary_path is None:
+        raise ValueError("Subinterpreter safety evidence is required for this prerelease")
     for path in paths:
         report = json.loads(path.read_text(encoding="utf-8"))
         if not report.get("passed"):
@@ -55,7 +75,19 @@ def verify(paths: list[Path], api_paths: list[Path], *, shell_path: Path | None 
             raise ValueError("Real Shell evidence must include all four target shells")
         if implementation and shell.get("implementation_commit") != implementation:
             raise ValueError("Shell report does not match release commit")
+    if boundary_path is not None:
+        boundary = json.loads(boundary_path.read_text(encoding="utf-8"))
+        if (boundary.get("scope") != "subinterpreter-boundary" or not boundary.get("reference_control_passed")
+                or not boundary.get("safety_passed")
+                or boundary.get("target", {}).get("commit") != target):
+            raise ValueError("Subinterpreter boundary safety failed")
+        if any(gap["id"] == "subinterpreters" for gap in unfinished) and not boundary.get("safe_rejection"):
+            raise ValueError("The unresolved subinterpreter boundary must safely reject imports")
+        if implementation and boundary.get("implementation_commit") != implementation:
+            raise ValueError("Subinterpreter report does not match release commit")
     print(f"Release gate passed: {len(covered)} upstream cases and all public API contracts")
+    if unfinished:
+        print("Prerelease only; unfinished compatibility: " + ", ".join(gap["id"] for gap in unfinished))
 
 
 if __name__ == "__main__":
@@ -64,8 +96,11 @@ if __name__ == "__main__":
     parser.add_argument("--api", nargs="+", type=Path, required=True)
     parser.add_argument("--shell", type=Path)
     parser.add_argument("--implementation", help="Exact git SHA required for every report")
+    parser.add_argument("--version", help="Release version; defaults to pyproject.toml")
+    parser.add_argument("--boundary", type=Path, help="Subinterpreter compatibility and safety evidence")
     args = parser.parse_args()
     try:
-        verify(args.reports, args.api, shell_path=args.shell, implementation=args.implementation)
+        verify(args.reports, args.api, shell_path=args.shell, implementation=args.implementation,
+               version=args.version, boundary_path=args.boundary)
     except (ValueError, KeyError) as exc:
         parser.exit(1, str(exc) + "\n")
