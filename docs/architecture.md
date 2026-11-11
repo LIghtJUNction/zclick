@@ -22,8 +22,10 @@ dispatch and the text primitives used by the Python help formatter. The
 boundary preserves ordinary subclass overrides and Python object semantics.
 
 The core obtains successful option matches from zclap's `Event::Flag` and
-requires the parser's final `finish()` check. Larger schemas use a hash to
-choose candidate tables; zclap still decides whether a spelling matches.
+requires the parser's final `finish()` check. Schemas store full hashes to
+choose small candidate tables; the hash does not establish a match. Each
+candidate must still be accepted by zclap, including an explicit regression
+which forces a full hash collision between different spellings.
 Consumed values also pass through zclap's byte-input parser, with a terminator
 that preserves Click's treatment of dash-leading values. These paths are
 implemented in [`parse.rs`](../crates/zclick-core/src/parse.rs). The Rust
@@ -42,18 +44,25 @@ distribution, including its namespace and dependency metadata.
 ## One invocation
 
 The public command asks its current parameter objects to register with a fresh
-parser. The binding creates call-local Rust schema storage. This storage owns
-the names while zclap borrows them. No argument name is leaked or retained for
-the lifetime of the process, and no borrowed value is given a fabricated
-`'static` lifetime.
+parser. The binding validates or replaces the parser's owned, immutable Rust
+schema, while execution state remains local to the call. The schema owns names
+which zclap borrows during parsing. No argument name is leaked or permanently
+interned, and no borrowed value is given a fabricated `'static` lifetime.
 
 The Rust core recognizes tokens, consumes values using Click's rules, allocates
 positional arguments and records encounter order. The binding invokes the
-current Python parser action for each event, including overridden actions. Rust
-then provides the stable eager-parameter schedule and value-source arbitration.
-Python parameter hooks perform the requested conversion and callback with the
-current context. Environment lookups, callable defaults and prompting happen
-for that invocation.
+current Python parser action for each event, including overridden actions.
+Parameter scheduling preserves Python's stable sorting, first matching
+invocation index and eager-option behavior. On CPython, exact lists with at
+least 512 declared parameters may use guarded native ordering for ordinary
+object protocols. Smaller lists, custom comparison or attribute protocols,
+and PyPy use the live Python `sorted` and `index` operations. The implementation
+and regressions are in [`ordering.rs`](../crates/zclick-python/src/ordering.rs)
+and [`test_native_ordering.py`](../tests/test_native_ordering.py).
+
+Rust supplies value-source arbitration. Python parameter hooks perform the
+requested conversion and callback with the current context. Environment
+lookups, callable defaults and prompting happen for that invocation.
 
 Group invocation is driven by Rust. It resolves child commands through virtual
 Python methods, calls custom `make_context` and `invoke` methods, handles chained
@@ -66,12 +75,21 @@ manager. The library never terminates the process through Rust
 
 ## Mutation, recursion and ownership
 
-There is deliberately no schema cache. Building a plan on each invocation
-observes mutations to `command.params`, option aliases and defaults, type
-objects, callbacks and registered child commands. It also avoids retaining
-Python application objects in a process-global cache. Benchmarks include the
-cost of this policy; an optimization may not substitute stale structure or
-cache the result of a callable default.
+Each command or parser retains at most its most recent immutable native schema.
+Before reuse, the binding reads the current option aliases, arity, flag behavior
+and optional-value behavior. A difference builds a new owned schema; matching
+definitions reuse the existing schema without reconstructing every string and
+lookup table. The schema contains Rust data only. It holds no Python command,
+context, callback, default result or environment value. Its pickle protocol
+serializes only those structural fields, so a warmed command remains copyable
+and pickleable whenever its ordinary Python fields permit that operation.
+
+`make_parser`, parameter registration hooks, parser actions, conversions and
+callbacks still run through their current Python methods. Replacing a callback,
+modifying an option, changing a type method or registering a command is visible
+to the next invocation. Callable defaults, environment lookups and prompts
+are evaluated for each invocation. The benchmark includes definition validation
+and all Python binding and object-construction costs.
 
 Callbacks may reenter the same command. No native lock or mutable PyO3 borrow is
 held across a call to user Python code. Parsing state is local to one call.
@@ -85,7 +103,20 @@ The mutable PyO3 borrow ends before captured references are released, so a
 Python finalizer can reenter safely. These rules are implemented in
 [`dispatch.rs`](../crates/zclick-python/src/dispatch.rs).
 
-Ordinary UTF-8 strings use the direct PyString path. Python strings containing
+The ordering guard uses a small explicit CPython FFI boundary in addition to
+the interpreter check described below. `PyType_GetSlot` reads documented Stable
+ABI slots whose addresses are compared to classify object protocols; the code
+does not invoke those addresses. `PyObject_GenericGetDict` obtains the ordinary
+instance dictionary without running a user-defined `__dict__` descriptor. Its
+new reference is immediately wrapped in a PyO3 owned handle, which handles the
+error case and eventual release. These calls use documented APIs without
+reading private interpreter layouts or writing reference-count operations.
+
+Ordinary UTF-8 strings borrow the live PyString buffer for the duration of the
+native call. The binding retains the Python owners throughout parsing and
+records argument indices explicitly, rather than using buffer addresses as
+object identities. Distinct empty string subclasses therefore remain distinct.
+Python strings containing
 surrogate code points use a reversible `surrogatepass` representation at the
 boundary. Values originating as whole argument objects retain their Python
 identity where the reference parser does. There is no lossy UTF-8 conversion.
@@ -106,7 +137,7 @@ Free-threaded CPython and PyPy builds disable that ABI feature and build for
 their interpreter.
 
 The CPython extension currently supports the main interpreter only. zclick's
-parser schemas and dispatch handles are local to an invocation, but the pinned
+mutable parsing state and dispatch handles are local to an invocation, but the pinned
 PyO3 0.30.1 binding has process-global Python-object caches, including the
 iterator [length-hint callable](https://github.com/PyO3/pyo3/blob/v0.30.1/src/types/iterator.rs)
 used in stable-ABI builds and native type state. These caches are not partitioned

@@ -87,8 +87,10 @@ def render(version: str, commit: str, repository: str, benchmark: dict | None = 
                 new = benchmark["measurements"]["zclick"]["cases"][name]["median_wall_us"]
                 lines.append(f"| `{name}` | {old:.3f} | {new:.3f} | {ratio['wall_speedup']:.3f}× |")
             method = benchmark["method"]
-            lines.extend(["", f"The three implementations run in separate minimal environments for {method['repeats']} "
-                          f"rounds, with seeded ordering ({method['seed']}); every six rounds include all six package "
+            lines.extend(["", f"The three implementations run in fresh isolated processes for {method['repeats']} "
+                          "rounds, using two minimal wheel environments. The reference environment contains fixed "
+                          "Click and the published baseline; the candidate environment contains the same Click wheel "
+                          f"and the candidate. Ordering is seeded ({method['seed']}); every six rounds include all six package "
                           "orders. Cold scenarios use independently seeded orders. Full output checksums and immutable "
                           "wheel/runtime hashes are verified. Raw data also includes the old-version cold timings, "
                           "every allocation sample and per-process RSS.", "",

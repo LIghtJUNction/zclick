@@ -1,4 +1,8 @@
-# Measured performance
+# Measured performance: 0.1.1a1
+
+This page preserves the 0.1.1a1 measurements and their original protocol.
+The [0.1.1a2 performance document](performance-0.1.1a2.md) describes the current
+implementation changes and the separate three-way measurement protocol.
 
 For the final measured `0.1.1a1` snapshot, the 1,000-option `Command.main` workload was **1.706× faster** than Click 8.5.1 and the Unicode/ANSI wrapping workload was **7.344× faster**. Small warm invocations and reused-parser calls were slower. A fresh process that imported the package, constructed and invoked a 1,000-option command was **1.183× faster** in this run. These results are workload-specific and do not establish a universal speedup.
 
@@ -41,7 +45,7 @@ Values are median microseconds per call. **Ratio = Click time / zclick time**; a
 
 The 1,000-option warm invocation took 11.176 ms with Click and 6.553 ms with zclick, about 41.4% less elapsed time per call. It reuses an already-defined `Command`: the timed work includes a fresh invocation context, parser-plan setup, argument processing, integer conversion and the command callback. `Command` and `Option` construction, process startup and terminal I/O are outside this warm invocation measurement.
 
-The reused-parser result is a material limitation. That workload constructs its parser before timing and measures `parse_args` plus a fresh argument-list copy. Inspection of zclick shows that it reconstructs the native definition while preserving mutable option objects and original argument identities. The timings do not separate schema construction, zclap work, allocations and binding overhead from each other. A future optimization must retain those mutation and identity guarantees.
+The reused-parser result is a material limitation. That workload constructs its parser before timing and measures `parse_args` plus a fresh argument-list copy. Inspection of that 0.1.1a1 runtime shows that it reconstructs the native definition while preserving mutable option objects and original argument identities. The timings do not separate schema construction, zclap work, allocations and binding overhead from each other. A future optimization must retain those mutation and identity guarantees.
 
 ## Whole fresh-process commands
 
@@ -98,7 +102,12 @@ Import-only timing does not establish the performance of an actual command. Use 
 
 Worker peak RSS was 22.78 MiB for Click and 23.82 MiB for zclick. This is not an isolated measurement of native parser allocations. Text wrapping uses fewer observed Python bytes, while large option invocation uses more. The extension allocates Python and Rust objects; no zero-allocation claim is made.
 
-## Reproduce and interpret
+## Reproduce and interpret the historical run
+
+These commands use the driver from the pinned 0.1.1a1 source snapshot above.
+Use that checkout and its own development environment to reproduce this method.
+The current driver uses the [schema-2 protocol](../benchmarks/README.md), including
+three implementations and at least twelve balanced rounds.
 
 ```sh
 maturin develop --release --locked

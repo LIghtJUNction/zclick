@@ -17,7 +17,8 @@ caches that are not partitioned by interpreter. See the
 [open compatibility record](compatibility/known-gaps.json). Stable publication
 is blocked while an open compatibility gap remains.
 
-[Compatibility evidence](COMPATIBILITY.md) · [Performance measurements](docs/performance.md) ·
+[Compatibility evidence](COMPATIBILITY.md) · [0.1.1a1 measurements](docs/performance.md) ·
+[0.1.1a2 mechanisms and measurement protocol](docs/performance-0.1.1a2.md) ·
 [Architecture](docs/architecture.md) · [Build and release](docs/development.md) ·
 [中文交付记录](docs/DELIVERY.zh-CN.md)
 
@@ -103,6 +104,11 @@ parser calls, full `Command.main` calls, nested commands, help, wrapping, import
 and memory measurements. Some workloads are faster and some are slower; the
 report includes both. No universal speedup or zero-allocation claim is made.
 
+Those measurements describe 0.1.1a1. The
+[0.1.1a2 document](docs/performance-0.1.1a2.md) explains schema reuse, input
+ownership and the current three-way comparison method; its numerical results
+will be added after formal measurement of the frozen candidate.
+
 ## Examples
 
 | Example | Behavior |
@@ -142,15 +148,18 @@ the actual wheels before publishing them.
 ## Architecture
 
 Python objects preserve decorators, custom subclasses, callbacks and ordinary
-Python values. The native extension builds a fresh parsing plan for each call.
+Python values. The native extension validates current definitions before reusing
+an immutable parsing schema; every call has its own execution state.
 The Rust core performs token recognition through zclap, applies Click argument
 consumption rules, schedules parameters and formats text. Rust also drives
 command groups and parser actions through Python's current methods. The core uses
 `no_std` with `alloc`; its only direct third-party dependency is zclap. The
 extension uses PyO3 and the Rust standard library.
 
-The Python interface accepts mutations between invocations. Plans are not cached,
-and user callbacks run without a native lock or borrowed mutable parser state.
+The Python interface accepts mutations between invocations. Each parser or
+command retains at most its most recent owned Rust schema. Defaults, environment
+values, callbacks and contexts are evaluated anew. User callbacks run without a
+native lock or borrowed mutable parser state.
 Python integer conversion uses Python integers rather than fixed-width Rust
 integers. Input strings preserve surrogate code points at the binding boundary.
 

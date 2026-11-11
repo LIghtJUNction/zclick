@@ -4,7 +4,23 @@
   "platform": "Linux x86_64",
   "runtimes": [
     {"name": "bash", "version": "5.2.37(1)-release", "source": "system executable /usr/bin/bash"},
-    {"name": "zsh", "version": "5.9", "source": "system executable /usr/bin/zsh"},
+    {
+      "name": "zsh", "version": "5.9", "build": "zsh-source",
+      "source": "https://www.zsh.org/pub/old/zsh-5.9.tar.xz",
+      "sha256": "9b8d1ecedd5b5e81fbf1918e876752a7dd948e05c1a0dba10ab863842d45acd5",
+      "build_dependencies": [{
+        "name": "ncurses-development-headers", "version": "6.5+20250216-2",
+        "source": "https://deb.debian.org/debian/pool/main/n/ncurses/libncurses-dev_6.5+20250216-2_amd64.deb",
+        "sha256": "6bd7804e243fc08e2a2af380c341998bb6d21dd35550588ecc430d7c488a410d",
+        "format": "deb", "scope": "Temporary build headers; links the host libtinfo.so.6"
+      }],
+      "pin_verification": {
+        "signature": "https://www.zsh.org/pub/old/zsh-5.9.tar.xz.asc",
+        "keyring": "https://www.zsh.org/pub/old/zsh-keyring.asc",
+        "signing_fingerprint": "7CA7ECAAF06216B90F894146ACF8146CAE8CBBC4",
+        "result": "Detached signature verified with the official HTTPS keyring; no additional Web-of-Trust identity claim. CI verifies the pinned archive SHA-256."
+      }
+    },
     {
       "name": "fish", "version": "4.9.3",
       "source": "https://github.com/fish-shell/fish-shell/releases/download/4.9.3/fish-4.9.3-linux-x86_64.tar.xz",

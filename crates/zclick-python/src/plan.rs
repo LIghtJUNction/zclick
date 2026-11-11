@@ -118,6 +118,32 @@ impl ParserPlan {
         })
     }
 
+    fn __reduce__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
+        // Commands may be copied or pickled after warming their parsing plan.
+        // Serialize only owned structural fields; contexts, callbacks and
+        // dynamic default results never belong to this object.
+        let specs = PyList::empty(py);
+        for spec in self.schema.specs() {
+            let names = spec
+                .options
+                .iter()
+                .map(|name| decode(py, name))
+                .collect::<PyResult<Vec<_>>>()?;
+            specs.append(PyTuple::new(
+                py,
+                [
+                    spec.id.into_pyobject(py)?.into_any(),
+                    PyList::new(py, names)?.into_any(),
+                    spec.nargs.into_pyobject(py)?.into_any(),
+                    spec.is_flag.into_pyobject(py)?.to_owned().into_any(),
+                    spec.optional_value.into_pyobject(py)?.to_owned().into_any(),
+                ],
+            )?)?;
+        }
+        let args = PyTuple::new(py, [specs])?;
+        PyTuple::new(py, [py.get_type::<Self>().into_any(), args.into_any()])
+    }
+
     #[staticmethod]
     #[pyo3(signature=(definitions, option_type, previous=None))]
     fn from_definitions<'py>(

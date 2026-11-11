@@ -2,6 +2,9 @@
 from __future__ import annotations
 
 import gc
+import copy
+import importlib
+import pickle
 from types import SimpleNamespace
 import weakref
 
@@ -131,7 +134,13 @@ def test_plan_schema_owns_names_without_retaining_the_source_container():
 
 
 def test_order_parameters_preserves_duplicate_identity_and_truthiness():
+    from zclick.core import iter_params_for_processing
+
     calls = []
+
+    class Parameter:
+        def __init__(self, is_eager):
+            self.is_eager = is_eager
 
     class Eager:
         def __bool__(self):
@@ -139,11 +148,43 @@ def test_order_parameters_preserves_duplicate_identity_and_truthiness():
             assert _native.ParserPlan([]).parse([])[3] is None
             return True
 
-    first = SimpleNamespace(is_eager=False)
-    eager = SimpleNamespace(is_eager=Eager())
-    last = SimpleNamespace(is_eager=False)
-    # The existing adapter maps repeated declarations to their last index.
-    result = _native.order_parameters([last, first, last], [first, eager, last, first])
+    first = Parameter(False)
+    eager = Parameter(Eager())
+    last = Parameter(False)
+    # Every repeated declaration shares its first invocation position.
+    result = iter_params_for_processing([last, first, last], [first, eager, last, first])
     assert result == [eager, last, first, first]
     assert result[2] is first and result[3] is first
     assert calls == ["eager"]
+
+
+def _pickle_command_callback(x):
+    return x
+
+
+@pytest.mark.parametrize("package", ["click", "zclick"])
+@pytest.mark.parametrize("method", ["pickle", "deepcopy"])
+def test_warm_command_can_be_pickled_or_deepcopied(package, method):
+    cli = importlib.import_module(package)
+    command = cli.Command("copy", add_help_option=False,
+                          params=[cli.Option(["--x", "--surrogate-\udcff"], type=int)],
+                          callback=_pickle_command_callback)
+    assert command.main(["--x", "17"], standalone_mode=False) == 17
+    restored = pickle.loads(pickle.dumps(command)) if method == "pickle" else copy.deepcopy(command)
+    assert restored is not command and restored.params[0] is not command.params[0]
+    assert restored.main(["--surrogate-\udcff", "23"], standalone_mode=False) == 23
+    restored.params[0].opts = ["--changed"]
+    assert restored.main(["--changed", "29"], standalone_mode=False) == 29
+    assert command.main(["--x", "31"], standalone_mode=False) == 31
+
+
+@pytest.mark.parametrize("method", ["pickle", "deepcopy"])
+def test_plan_roundtrip_preserves_every_structural_field(method):
+    plan = _native.ParserPlan([(42, ["--surrogate-\udcff", "--alias"], 1, False, True),
+                               (7, ["-q"], 1, True, False),
+                               (99, [], -1, False, False)])
+    restored = pickle.loads(pickle.dumps(plan)) if method == "pickle" else copy.deepcopy(plan)
+    assert restored is not plan
+    for argv in (["--surrogate-\udcff", "\udcfe", "-q", "tail"],
+                 ["--alias"], ["--alias=attached"], ["--", "-q"]):
+        assert restored.parse(argv) == plan.parse(argv)

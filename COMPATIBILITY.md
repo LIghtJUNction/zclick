@@ -58,7 +58,7 @@ Each row names the original tests that verify its observable behavior. The API i
 
 Use `import zclick as click` and replace `from click.module` with `from zclick.module`. The distribution installs only the `zclick` namespace and never rewrites `sys.modules['click']`. An extension that internally imports original Click still uses original Click: module aliasing does not merge class identities across packages. Such extensions need their own import migration and tests.
 
-Command callbacks, parameter objects and type converters remain Python extension points. Invocation observes changes to `command.params`, registered commands, callbacks and option attributes. Per-invocation defaults, environment values and context state are not cached. The native parser receives the current definition and does not retain borrowed schema references.
+Command callbacks, parameter objects and type converters remain Python extension points. Invocation observes changes to `command.params`, registered commands, callbacks and option attributes. Per-invocation defaults, environment values and context state are not cached. The native parser validates the current definition before reusing its most recent immutable, owned Rust schema; it does not retain borrowed schema references or Python application objects. Warmed-command pickle/deepcopy, alias and arity mutation, method replacement, reentry and original argument identity have explicit regressions.
 
 `CliRunner` temporarily changes interpreter-wide streams, environment and working directory, matching Click's isolation model. Concurrent runner invocations in the same process are not a supported thread-safe isolation boundary. Native parsing state is per call; this does not make the testing tools thread-safe.
 
@@ -66,7 +66,7 @@ Command callbacks, parameter objects and type converters remain Python extension
 
 | zclap contract | Click requirement | Adaptation |
 | --- | --- | --- |
-| Runtime definitions are borrowed | Python can create and mutate parameter tables | Build owned call-local storage and borrow it while parsing; no leaked strings or fake static lifetimes |
+| Runtime definitions are borrowed | Python can create and mutate parameter tables | Retain an owned, immutable Rust schema; verify current definitions before reuse and borrow its data during parsing; no leaked strings or fake static lifetimes |
 | Option names and values have kernel conventions | Multiple prefixes, aliases, combined shorts, negative and dash-prefixed values | Translate current option spellings and use zclap event parsing for recognition; retain original values and error spelling |
 | Parent/child parsing scope and final validation differ | Click controls interspersed arguments, chain groups and deferred validation | A Rust semantic layer controls boundaries and event sequencing around zclap |
 | Kernel help output has its own layout | Exact Click help and terminal formatting | Rust wrapping/ANSI primitives feed the Click-compatible formatter |
@@ -290,5 +290,13 @@ python scripts/run_stress.py --output reports/stress --workers 4 --batch-size 50
 python scripts/api_inventory.py --source .cache/click-source --output reports/api-reference.json
 python scripts/api_inventory.py --compare reports/api-reference.json --output reports/api.json
 python -m mypy .cache/click-migrated/tests/typing --no-incremental
-python benchmarks/compare.py
+python benchmarks/compare.py --candidate-wheel dist/*.whl \
+  --iterations 1000 --repeats 12 --seed 20261111 \
+  --output reports/benchmarks.json
 ```
+
+Pass the exact candidate wheel path when `dist` contains more than one wheel.
+The current benchmark driver compares the fixed Click release, the published
+zclick 0.1.1a1 wheel and the candidate in separate environments using the same
+interpreter. See the [measurement protocol](benchmarks/README.md) for source
+verification, balanced execution order and optional Linux CPU affinity.

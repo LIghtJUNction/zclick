@@ -123,3 +123,16 @@ def test_style_truthiness_is_observed_once_in_parameter_order(package):
     result = library.style("text", **values, reset=Flag("reset", True))
     assert seen == [*names, "reset"]
     assert result == "\x1b[1m\x1b[22m\x1b[4m\x1b[55m\x1b[3m\x1b[25m\x1b[7m\x1b[29mtext\x1b[0m"
+
+
+@pytest.mark.parametrize("prefix", [
+    "\t", "\v", "\f", "\r", "\x1c", "\x85", "\u00a0", "\u1680",
+    "\u2003", "\u2028", "\u2029", "\u3000",
+])
+def test_help_whitespace_follows_the_running_stdlib(prefix):
+    import inspect
+    from zclick.core import _clean_help
+
+    for suffix in ("", "Unicode 零  "):
+        value = "  " + prefix + suffix
+        assert _clean_help(value) == inspect.cleandoc(value)

@@ -39,7 +39,13 @@ def _clean_help(text: str) -> str:
     # importing inspect (and its source-inspection dependencies) on CLI startup.
     # Subclasses retain the stdlib method calls and their observable overrides.
     if type(text) is str and "\n" not in text:
-        return text.expandtabs().lstrip()
+        stripped = text.expandtabs().lstrip(" ")
+        # Python 3.13 narrowed cleandoc's indentation from all whitespace to
+        # ASCII spaces. Both versions agree unless the first remaining
+        # character is another whitespace character; defer that case to the
+        # running interpreter instead of guessing its stdlib behavior.
+        if not stripped or not stripped[0].isspace():
+            return stripped
     import inspect
     return inspect.cleandoc(text)
 
@@ -66,7 +72,24 @@ def augment_usage_errors(ctx: Context, param: Parameter | None = None):
 
 
 def iter_params_for_processing(invocation_order: Sequence[Parameter], declaration_order: Sequence[Parameter]) -> list[Parameter]:
-    return _order_parameters(invocation_order, declaration_order)
+    # On small lists CPython's list.index implementation costs less than the
+    # dynamic-protocol checks needed to prove identity-based native ordering.
+    if type(declaration_order) is list and type(invocation_order) is list and len(declaration_order) >= 512:
+        ordered = _order_parameters(invocation_order, declaration_order)
+        if ordered is not None:
+            return ordered
+
+    # list.index uses equality, and a custom eager getter can change the
+    # invocation list before the next key is evaluated. Keep that dynamic
+    # Python protocol for definitions the native identity path cannot prove.
+    def key(parameter):
+        try:
+            position = invocation_order.index(parameter)
+        except ValueError:
+            position = float("inf")
+        return not parameter.is_eager, position
+
+    return sorted(declaration_order, key=key)
 
 
 def _format_deprecated_label(value: bool | str) -> str:

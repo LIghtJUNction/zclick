@@ -34,7 +34,7 @@ try {
 
 ## 实测范围
 
-[`tests/test_surface_shell.py`](../tests/test_surface_shell.py) 在真实 Shell 进程中执行生成的脚本。2026-11-11 的 Linux 本地实验使用系统 Bash 和 Zsh，以及从官方发布资产获取、校验 SHA-256 的 Fish 4.9.3 与 PowerShell 7.7.0。版本与下载来源记录在 [`compatibility/shell-runtime-lock.json`](../compatibility/shell-runtime-lock.json)。
+[`tests/test_surface_shell.py`](../tests/test_surface_shell.py) 在真实 Shell 进程中执行生成的脚本。0.1.1a1 发布时的 Linux 本地实验使用系统 Bash 和 Zsh，以及从官方发布资产获取、校验 SHA-256 的 Fish 4.9.3 与 PowerShell 7.7.0。后续 CI 为避免 Ubuntu 软件源连续 DNS 故障阻断验证，改为从固定官方源码构建相同的 Zsh 5.9。每次实际执行使用的路径和版本仍单独写入报告；版本与下载来源记录在 [`compatibility/shell-runtime-lock.json`](../compatibility/shell-runtime-lock.json)。
 
 | Shell | 执行方式 | 已检查的结果 | 边界 |
 | --- | --- | --- | --- |
@@ -49,7 +49,18 @@ PowerShell 的目录过滤曾在实际执行对照中发现差异：zclick 返�
 
 ## 复现实际 Shell 测试
 
-先构建并安装当前 zclick，再确保需要验证的 Shell 已经进入当前进程的 `PATH`：
+先构建并安装当前 zclick。在 Linux x86_64 上，安装脚本可以准备固定版本的 Zsh、Fish 和 PowerShell；Bash 使用系统提供的可执行文件：
+
+```sh
+python scripts/install_test_shells.py
+export PATH="$PWD/.cache/test-shells/zsh/bin:$PWD/.cache/test-shells/fish:$PWD/.cache/test-shells/pwsh:$PATH"
+```
+
+Zsh 构建需要 C 编译器、`make`、`dpkg-deb` 和宿主的 `libtinfo.so.6`。开发头文件来自固定 SHA-256 的官方 Debian ncurses 6.5 开发包，只解包到临时目录，安装器不修改系统软件包状态。脚本使用 Zsh 发布包自带的 `configure`，按该版本支持的 GNU C89 模式编译，保留编译诊断；这使旧版 feature probe 不受新版 GCC 默认 C 标准改变的影响。构建只编译可执行文件与动态模块，再安装补全所需的 autoload 函数；完成或失败时均清理临时源码和开发头文件，保留构建日志。安装后会加载 ZLE、completion 模块及 `compinit` 定义，检查二进制和补全资源能一起使用。安装来源、编译配置、压缩包 SHA-256 和可执行文件 SHA-256 写入 `reports/shells/install.json`。
+
+Zsh 的固定包为官方 [`zsh-5.9.tar.xz`](https://www.zsh.org/pub/old/zsh-5.9.tar.xz)，SHA-256 为 `9b8d1ecedd5b5e81fbf1918e876752a7dd948e05c1a0dba10ab863842d45acd5`。固定版本时已用官方 HTTPS keyring 验证该包的 detached signature，签名指纹为 `7CA7ECAAF06216B90F894146ACF8146CAE8CBBC4`；这不包含额外 Web-of-Trust 身份认证。后续安装按已固定的 SHA-256 检查每次下载的内容。
+
+然后确认四种 Shell 都已进入当前进程的 `PATH` 并执行检查：
 
 ```sh
 command -v bash

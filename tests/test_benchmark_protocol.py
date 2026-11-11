@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import hashlib
 import itertools
+import json
 from pathlib import Path
 import sys
 import zipfile
@@ -64,3 +65,75 @@ def test_snapshot_checks_manifest_files_against_the_actual_wheel(tmp_path, monke
 def test_release_notes_refuse_diagnostic_measurements():
     with pytest.raises(ValueError, match="Diagnostic benchmark"):
         release_notes.render("0.1.2a1", "a" * 40, "LIghtJUNction/zclick", {"diagnostic": True})
+
+
+def test_candidate_must_include_new_python_modules_from_checkout(tmp_path, monkeypatch):
+    package = tmp_path / "python/zclick"
+    package.mkdir(parents=True)
+    (tmp_path / "pyproject.toml").write_text('version = "0.1.1a2"\n', encoding="utf-8")
+    (package / "__init__.py").write_bytes(b"unchanged")
+    (package / "new_module.py").write_bytes(b"new implementation")
+    monkeypatch.setattr(compare, "ROOT", tmp_path)
+    status = compare.source_status({"packages": {"zclick": {
+        "version": "0.1.1a2",
+        "source_files": {"__init__.py": hashlib.sha256(b"unchanged").hexdigest()},
+    }}})
+    assert status["version_matches"]
+    assert not status["wheel_python_source_matches_checkout"]
+    assert status["different_python_files"] == ["new_module.py"]
+
+
+@pytest.fixture
+def three_way_report():
+    """Synthetic units/identity fixture, never a performance-evidence artifact."""
+    return {
+        "schema": 2,
+        "diagnostic": False,
+        "git_commit": "a" * 40,
+        "target": json.loads((ROOT / "compatibility/target.json").read_text(encoding="utf-8")),
+        "measurements": {
+            label: {"version": version, "cases": {"invoke/1": {"median_wall_us": warm}},
+                    "cold_commands": {"command/1": {"median_wall_us": cold}}}
+            for label, version, warm, cold in (
+                ("click", "8.5.1", 40.0, 20000.0),
+                ("zclick-baseline", "0.1.1a1", 80.0, 30000.0),
+                ("zclick", "0.1.1a2", 20.0, 10000.0),
+            )
+        },
+        "ratios": {"invoke/1": {"wall_speedup": 2.0}},
+        "cold_command_ratios": {"command/1": 2.0},
+        "improvement_over_baseline": {"invoke/1": {"wall_speedup": 4.0}},
+        "method": {"repeats": 12, "seed": 20261111},
+        "host_before": {"affinity": [2]},
+    }
+
+
+def test_release_notes_keep_three_way_identity_and_timing_units(three_way_report):
+    text = release_notes.render("0.1.1a2", "a" * 40, "LIghtJUNction/zclick", three_way_report)
+    assert "| `invoke/1` | 40.000 | 20.000 | 2.000× |" in text
+    assert "| `command/1` | 20.000 | 10.000 | 2.000× |" in text
+    assert "Change from published zclick 0.1.1a1" in text
+    assert "| `invoke/1` | 80.000 | 20.000 | 4.000× |" in text
+    assert "fresh isolated processes for 12 rounds, using two minimal wheel environments" in text
+    assert "UNFINISHED: " in text
+
+
+def test_release_notes_keep_legacy_fixed_order_caveat(three_way_report):
+    three_way_report["schema"] = 1
+    del three_way_report["measurements"]["zclick-baseline"]
+    del three_way_report["improvement_over_baseline"]
+    text = release_notes.render("0.1.1a2", "a" * 40, "LIghtJUNction/zclick", three_way_report)
+    assert "Packages run in fixed order on a shared host" in text
+    assert "Change from published zclick" not in text
+
+
+@pytest.mark.parametrize("mismatch", ["commit", "version", "target"])
+def test_three_way_notes_reject_evidence_for_another_release(three_way_report, mismatch):
+    if mismatch == "commit":
+        three_way_report["git_commit"] = "b" * 40
+    elif mismatch == "version":
+        three_way_report["measurements"]["zclick"]["version"] = "0.1.1a1"
+    else:
+        three_way_report["target"]["commit"] = "b" * 40
+    with pytest.raises(ValueError, match="does not match this release and target"):
+        release_notes.render("0.1.1a2", "a" * 40, "LIghtJUNction/zclick", three_way_report)

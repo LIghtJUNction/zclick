@@ -23,7 +23,6 @@ import subprocess
 import sys
 import tempfile
 import time
-import tracemalloc
 
 ROOT = Path(__file__).resolve().parents[1]
 # -I excludes the script directory. This adds only the benchmark helpers; no
@@ -64,6 +63,10 @@ def timing(fn, loops: int) -> dict:
 
 
 def memory(fn) -> dict:
+    # PyPy can import the protocol helpers even when its _tracemalloc extension
+    # is unavailable. Actual measurement still requires allocation accounting.
+    import tracemalloc
+
     gc.collect()
     tracemalloc.start()
     value = fn()
@@ -198,14 +201,13 @@ def cold_ratios(reference: dict, candidate: dict) -> dict:
 
 def source_status(snapshot: dict) -> dict:
     version = re.search(r'^version\s*=\s*"([^"]+)"', (ROOT / "pyproject.toml").read_text(encoding="utf-8"), re.M)[1]
-    differences = []
     package = snapshot["packages"]["zclick"]
-    for relative, expected in package["source_files"].items():
-        if not relative.endswith(".py"):
-            continue
-        path = ROOT / "python/zclick" / relative
-        if not path.is_file() or hashlib.sha256(path.read_bytes()).hexdigest() != expected:
-            differences.append(relative)
+    packaged = {name: digest for name, digest in package["source_files"].items() if name.endswith(".py")}
+    package_root = ROOT / "python/zclick"
+    checkout = {path.relative_to(package_root).as_posix(): hashlib.sha256(path.read_bytes()).hexdigest()
+                for path in package_root.rglob("*.py") if "__pycache__" not in path.parts}
+    differences = sorted(name for name in packaged.keys() | checkout.keys()
+                         if packaged.get(name) != checkout.get(name))
     return {"version_matches": package["version"] == version,
             "wheel_python_source_matches_checkout": not differences, "different_python_files": differences}
 

@@ -1,5 +1,6 @@
 //! Click argument semantics and terminal formatting over a zclap recognition kernel.
-//! All input and definition storage belongs to the invocation. No global cache exists.
+//! Inputs belong to each invocation. Owned immutable schemas may be reused by
+//! their caller; every zclap borrow remains local and no global cache exists.
 #![no_std]
 #![forbid(unsafe_code)]
 extern crate alloc;

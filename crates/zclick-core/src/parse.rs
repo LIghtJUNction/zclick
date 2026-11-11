@@ -186,13 +186,14 @@ fn encode_spelling(s: &[u8], short: bool) -> String {
     out
 }
 
-fn spelling_hash(bytes: &[u8]) -> usize {
+fn spelling_hash(bytes: &[u8]) -> u64 {
     bytes.iter().fold(0xcbf29ce484222325u64, |hash, &byte| {
         (hash ^ u64::from(byte)).wrapping_mul(0x100000001b3)
-    }) as usize
+    })
 }
 struct Recognition {
     names: Vec<String>,
+    hashes: Vec<u64>,
     targets: Vec<usize>,
     buckets: Vec<core::ops::Range<usize>>,
     prefixes: Vec<Vec<u8>>,
@@ -223,7 +224,7 @@ impl Recognition {
         let mut entries: Vec<_> = spellings
             .into_iter()
             .map(|(name, target)| {
-                let bucket = spelling_hash(name.as_bytes()) & (bucket_count - 1);
+                let bucket = spelling_hash(name.as_bytes()) as usize & (bucket_count - 1);
                 (bucket, name, target)
             })
             .collect();
@@ -232,10 +233,14 @@ impl Recognition {
         for &(bucket, _, _) in &entries {
             counts[bucket] += 1;
         }
-        let (names, targets) = entries
+        let (names, targets): (Vec<_>, Vec<_>) = entries
             .into_iter()
             .map(|(_, name, target)| (name, target))
             .unzip();
+        let hashes = names
+            .iter()
+            .map(|name| spelling_hash(name.as_bytes()))
+            .collect();
         let mut start = 0;
         let buckets = counts
             .into_iter()
@@ -248,6 +253,7 @@ impl Recognition {
             .collect();
         Self {
             names,
+            hashes,
             targets,
             buckets,
             prefixes,
@@ -269,9 +275,9 @@ impl Schema {
     pub fn specs(&self) -> &[Spec] {
         &self.specs
     }
-    pub fn parse<'a>(
+    pub fn parse<'a, T: AsRef<[u8]>>(
         &self,
-        argv: &[&'a [u8]],
+        argv: &'a [T],
         interspersed: bool,
         ignore_unknown: bool,
         normalizer: Option<Normalizer<'_>>,
@@ -298,23 +304,22 @@ impl Kernel<'_> {
         encode_into(&mut self.token, spelling, short);
         let argv = [self.token.as_str()];
         let data = self.recognition;
-        let bucket = spelling_hash(&self.token.as_bytes()[2..]) & (data.buckets.len() - 1);
-        const IDS: [&str; 8] = ["0", "1", "2", "3", "4", "5", "6", "7"];
-        let range = data.buckets[bucket].clone();
-        for start in (range.start..range.end).step_by(IDS.len()) {
-            let count = (range.end - start).min(IDS.len());
-            let mut args = [Arg::flag("0"); 8];
-            for i in 0..count {
-                args[i] = Arg::flag(IDS[i]).long(&data.names[start + i]).repeat();
+        let hash = spelling_hash(&self.token.as_bytes()[2..]);
+        let bucket = hash as usize & (data.buckets.len() - 1);
+        for index in data.buckets[bucket].clone() {
+            // The complete hash narrows candidate work without comparing or
+            // accepting an option name. Real collisions still reach zclap.
+            if data.hashes[index] != hash {
+                continue;
             }
-            let command = Command::new("zclick").args(&args[..count]);
+            let args = [Arg::flag("matched").long(&data.names[index]).repeat()];
+            let command = Command::new("zclick").args(&args);
             let mut parser = command.parse(&argv);
-            if let Ok(Some(Event::Flag { arg })) = parser.next()
+            if let Ok(Some(Event::Flag { .. })) = parser.next()
                 && parser.next().ok().flatten().is_none()
                 && parser.finish().is_ok()
             {
-                let index = usize::from(arg.as_bytes()[0] - b'0');
-                return data.targets.get(start + index).copied();
+                return data.targets.get(index).copied();
             }
         }
         None
@@ -357,17 +362,25 @@ impl<'a> From<Token<'a>> for ParsedValue<'a> {
 }
 // One pending slice is sufficient: an attached suffix is consumed before a
 // subsequent option can enqueue another suffix.
-#[derive(Clone)]
-struct Tokens<'v, 'a> {
-    argv: &'v [&'a [u8]],
+struct Tokens<'a, T: AsRef<[u8]>> {
+    argv: &'a [T],
     cursor: usize,
     pending: Option<Token<'a>>,
 }
-impl<'a> Tokens<'_, 'a> {
+impl<T: AsRef<[u8]>> Clone for Tokens<'_, T> {
+    fn clone(&self) -> Self {
+        Self {
+            argv: self.argv,
+            cursor: self.cursor,
+            pending: self.pending,
+        }
+    }
+}
+impl<'a, T: AsRef<[u8]>> Tokens<'a, T> {
     fn peek(&self) -> Option<Token<'a>> {
         self.pending.or_else(|| {
-            self.argv.get(self.cursor).map(|&bytes| Token {
-                bytes,
+            self.argv.get(self.cursor).map(|value| Token {
+                bytes: value.as_ref(),
                 original: Some(self.cursor),
             })
         })
@@ -376,13 +389,13 @@ impl<'a> Tokens<'_, 'a> {
         self.argv.len() - self.cursor + usize::from(self.pending.is_some())
     }
 }
-impl<'a> Iterator for Tokens<'_, 'a> {
+impl<'a, T: AsRef<[u8]>> Iterator for Tokens<'a, T> {
     type Item = Token<'a>;
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(value) = self.pending.take() {
             return Some(value);
         }
-        let &bytes = self.argv.get(self.cursor)?;
+        let bytes = self.argv.get(self.cursor)?.as_ref();
         let value = Token {
             bytes,
             original: Some(self.cursor),
@@ -428,11 +441,10 @@ pub fn parse_with_normalizer<'a>(
     normalizer: Option<Normalizer<'_>>,
 ) -> ParseResult<'a> {
     let recognition = Recognition::new(specs);
-    let argv: Vec<_> = argv.iter().map(Vec::as_slice).collect();
     parse_prepared(
         specs,
         &recognition,
-        &argv,
+        argv,
         interspersed,
         ignore_unknown,
         normalizer,
@@ -440,10 +452,10 @@ pub fn parse_with_normalizer<'a>(
     .into()
 }
 
-fn parse_prepared<'a>(
+fn parse_prepared<'a, T: AsRef<[u8]>>(
     specs: &[Spec],
     recognition: &Recognition,
-    argv: &[&'a [u8]],
+    argv: &'a [T],
     interspersed: bool,
     ignore_unknown: bool,
     mut normalizer: Option<Normalizer<'_>>,
@@ -505,7 +517,7 @@ fn parse_prepared<'a>(
                 &normalized_head,
                 attached,
                 &mut tokens,
-                &prefixes,
+                prefixes,
                 &mut result,
             ) {
                 result.error = Some(error);
@@ -570,7 +582,7 @@ fn parse_prepared<'a>(
                 &normalized_short,
                 attached,
                 &mut tokens,
-                &prefixes,
+                prefixes,
                 &mut result,
             ) {
                 result.error = Some(error);
@@ -596,12 +608,12 @@ fn parse_prepared<'a>(
     result
 }
 
-fn consume<'a>(
+fn consume<'a, T: AsRef<[u8]>>(
     index: usize,
     spec: &Spec,
     spelling: &[u8],
     attached: Option<&'a [u8]>,
-    tokens: &mut Tokens<'_, 'a>,
+    tokens: &mut Tokens<'a, T>,
     prefixes: &[Vec<u8>],
     result: &mut EventResult<'a>,
 ) -> Result<(), ParseError> {
@@ -838,4 +850,33 @@ pub fn select_parameter_value(
         return incoming_source < existing;
     }
     !(existing == 5 && existing_explicit && !incoming_explicit)
+}
+
+#[cfg(test)]
+mod recognition_tests {
+    use super::*;
+
+    #[test]
+    fn a_complete_hash_collision_does_not_bypass_zclap_recognition() {
+        for (query, expected) in [(b"--right".as_slice(), Some(9)), (b"--missing", None)] {
+            let hash = spelling_hash(encode_spelling(query, false).as_bytes());
+            // Deliberately supply colliding fingerprints. Neither the bucket
+            // index nor the full hash may manufacture a successful match.
+            let recognition = Recognition {
+                names: vec![
+                    encode_spelling(b"--wrong", false),
+                    encode_spelling(b"--right", false),
+                ],
+                hashes: vec![hash, hash],
+                targets: vec![4, 9],
+                buckets: core::iter::once(0..2).collect(),
+                prefixes: Vec::new(),
+            };
+            let mut kernel = Kernel {
+                recognition: &recognition,
+                token: String::new(),
+            };
+            assert_eq!(kernel.find(query, false), expected);
+        }
+    }
 }
