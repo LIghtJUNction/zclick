@@ -18,19 +18,32 @@ caches that are not partitioned by interpreter. See the
 is blocked while an open compatibility gap remains.
 
 [Compatibility evidence](COMPATIBILITY.md) · [Performance measurements](docs/performance.md) ·
-[Architecture](docs/architecture.md) · [Build and release](docs/development.md)
+[Architecture](docs/architecture.md) · [Build and release](docs/development.md) ·
+[中文交付记录](docs/DELIVERY.zh-CN.md)
 
 ## Installation and a first command
 
-After PyPI publication, install the preview with:
+The **0.1.1a1** preview is available from
+[GitHub Releases](https://github.com/LIghtJUNction/zclick/releases/tag/v0.1.1a1),
+with 12 wheels, a source archive and the complete validation evidence.
+Its PyPI upload was attempted and returned `invalid-publisher`: a matching
+Trusted Publisher has not been configured. A PyPI installation is therefore
+not yet available from this release workflow.
+
+Install the matching wheel from the release assets, or build the released
+source archive on ordinary CPython with Rust 1.99.1 and the platform build tools:
+
+```sh
+python -m pip install https://github.com/LIghtJUNction/zclick/releases/download/v0.1.1a1/zclick-0.1.1a1.tar.gz
+```
+
+Once PyPI publication is configured, the preview installation is:
 
 ```sh
 pip install --pre zclick
 ```
 
-Published wheels and source archives are also available through
-[GitHub Releases](https://github.com/LIghtJUNction/zclick/releases). Ordinary
-CPython wheels support Python 3.10 and newer; PyPy and free-threaded CPython
+Ordinary CPython wheels support Python 3.10 and newer; PyPy and free-threaded CPython
 require their corresponding wheels or an interpreter-specific source build.
 The intended stable installation is `pip install zclick` once the outstanding
 compatibility gate is satisfied.

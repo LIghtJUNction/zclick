@@ -1,0 +1,1663 @@
+{
+  "schema": 1,
+  "scope": "immutable-release-validation-summary",
+  "implementation_commit": "3281e18f215dec976c3ce0c4b5dd933ad4d62616",
+  "version": "0.1.1a1",
+  "target_commit": "cf19179e8e2fd54c601378cec9e0d21bb12b6fb1",
+  "workflow_url": "https://github.com/LIghtJUNction/zclick/actions/runs/43031862640",
+  "published_release_url": "https://github.com/LIghtJUNction/zclick/releases/tag/v0.1.1a1",
+  "evidence_archive": {
+    "url": "https://github.com/LIghtJUNction/zclick/releases/download/v0.1.1a1/compatibility-evidence.zip",
+    "sha256": "f99d9e5fe2a95c4dd764d25fb381260fcdd7d2cf589845bf321a8e95e5b9db60"
+  },
+  "pinned_inventory": {
+    "unique_cases": 33459,
+    "case_ids_sha256": "2727fa902dc532f6e02472a85de1bfedfa9e951cbd732c946126f394d624bdbc",
+    "normal_cases": 2459,
+    "stress_cases": 31000
+  },
+  "normal_matrix": [
+    {
+      "os": "macos-latest",
+      "runtime": "3.14",
+      "python": "3.14.10 (v3.14.10:b703b2c5e70, Oct 25 2026, 14:17:53) [Clang 21.0.0 (clang-2100.1.1.101)]",
+      "platform": "macOS-26.7.2-arm64-arm-64bit-Mach-O",
+      "original_cases": 2459,
+      "click_counts": {
+        "passed": 2433,
+        "failed": 0,
+        "skipped": 25,
+        "pending": 0,
+        "xfailed": 1,
+        "xpassed": 0
+      },
+      "zclick_counts": {
+        "passed": 2433,
+        "failed": 0,
+        "skipped": 25,
+        "pending": 0,
+        "xfailed": 1,
+        "xpassed": 0
+      },
+      "case_ids_sha256": "6aeb2899e10a29d97fa1214a5c6cf9861c6988ea851e39983a837a27bf597be5",
+      "api": {
+        "objects": 196,
+        "passed": true
+      },
+      "typing": {
+        "source_files": 12,
+        "passed": true,
+        "log_result": "Success: no issues found in 12 source files"
+      },
+      "project_tests": {
+        "tests": 176,
+        "errors": 0,
+        "failures": 0,
+        "skipped": 7,
+        "passed": 169
+      },
+      "job": {
+        "id": 130560816376,
+        "conclusion": "success",
+        "url": "https://github.com/LIghtJUNction/zclick/actions/runs/43031862640/job/130560816376"
+      },
+      "source_report": "evidence/upstream/evidence-macos-latest-3.14/normal/summary.json"
+    },
+    {
+      "os": "ubuntu-latest",
+      "runtime": "3.10",
+      "python": "3.10.22 (main, Oct  1 2026, 14:32:29) [GCC 15.2.0]",
+      "platform": "Linux-7.0.0-1019-azure-x86_64-with-glibc2.43",
+      "original_cases": 2459,
+      "click_counts": {
+        "passed": 2434,
+        "failed": 0,
+        "skipped": 24,
+        "pending": 0,
+        "xfailed": 1,
+        "xpassed": 0
+      },
+      "zclick_counts": {
+        "passed": 2434,
+        "failed": 0,
+        "skipped": 24,
+        "pending": 0,
+        "xfailed": 1,
+        "xpassed": 0
+      },
+      "case_ids_sha256": "6aeb2899e10a29d97fa1214a5c6cf9861c6988ea851e39983a837a27bf597be5",
+      "api": {
+        "objects": 196,
+        "passed": true
+      },
+      "typing": {
+        "source_files": 12,
+        "passed": true,
+        "log_result": "Success: no issues found in 12 source files"
+      },
+      "project_tests": {
+        "tests": 176,
+        "errors": 0,
+        "failures": 0,
+        "skipped": 7,
+        "passed": 169
+      },
+      "job": {
+        "id": 130560816334,
+        "conclusion": "success",
+        "url": "https://github.com/LIghtJUNction/zclick/actions/runs/43031862640/job/130560816334"
+      },
+      "source_report": "evidence/upstream/evidence-ubuntu-latest-3.10/normal/summary.json"
+    },
+    {
+      "os": "ubuntu-latest",
+      "runtime": "3.11",
+      "python": "3.11.18 (main, Oct 26 2026, 02:48:29) [GCC 15.2.0]",
+      "platform": "Linux-7.0.0-1019-azure-x86_64-with-glibc2.43",
+      "original_cases": 2459,
+      "click_counts": {
+        "passed": 2434,
+        "failed": 0,
+        "skipped": 24,
+        "pending": 0,
+        "xfailed": 1,
+        "xpassed": 0
+      },
+      "zclick_counts": {
+        "passed": 2434,
+        "failed": 0,
+        "skipped": 24,
+        "pending": 0,
+        "xfailed": 1,
+        "xpassed": 0
+      },
+      "case_ids_sha256": "6aeb2899e10a29d97fa1214a5c6cf9861c6988ea851e39983a837a27bf597be5",
+      "api": {
+        "objects": 196,
+        "passed": true
+      },
+      "typing": {
+        "source_files": 12,
+        "passed": true,
+        "log_result": "Success: no issues found in 12 source files"
+      },
+      "project_tests": {
+        "tests": 176,
+        "errors": 0,
+        "failures": 0,
+        "skipped": 7,
+        "passed": 169
+      },
+      "job": {
+        "id": 130560816498,
+        "conclusion": "success",
+        "url": "https://github.com/LIghtJUNction/zclick/actions/runs/43031862640/job/130560816498"
+      },
+      "source_report": "evidence/upstream/evidence-ubuntu-latest-3.11/normal/summary.json"
+    },
+    {
+      "os": "ubuntu-latest",
+      "runtime": "3.12",
+      "python": "3.12.16 (main, Oct 26 2026, 02:48:44) [GCC 15.2.0]",
+      "platform": "Linux-7.0.0-1019-azure-x86_64-with-glibc2.43",
+      "original_cases": 2459,
+      "click_counts": {
+        "passed": 2434,
+        "failed": 0,
+        "skipped": 24,
+        "pending": 0,
+        "xfailed": 1,
+        "xpassed": 0
+      },
+      "zclick_counts": {
+        "passed": 2434,
+        "failed": 0,
+        "skipped": 24,
+        "pending": 0,
+        "xfailed": 1,
+        "xpassed": 0
+      },
+      "case_ids_sha256": "6aeb2899e10a29d97fa1214a5c6cf9861c6988ea851e39983a837a27bf597be5",
+      "api": {
+        "objects": 196,
+        "passed": true
+      },
+      "typing": {
+        "source_files": 12,
+        "passed": true,
+        "log_result": "Success: no issues found in 12 source files"
+      },
+      "project_tests": {
+        "tests": 176,
+        "errors": 0,
+        "failures": 0,
+        "skipped": 7,
+        "passed": 169
+      },
+      "job": {
+        "id": 130560816158,
+        "conclusion": "success",
+        "url": "https://github.com/LIghtJUNction/zclick/actions/runs/43031862640/job/130560816158"
+      },
+      "source_report": "evidence/upstream/evidence-ubuntu-latest-3.12/normal/summary.json"
+    },
+    {
+      "os": "ubuntu-latest",
+      "runtime": "3.13",
+      "python": "3.13.18 (main, Oct 26 2026, 14:19:33) [GCC 15.2.0]",
+      "platform": "Linux-7.0.0-1019-azure-x86_64-with-glibc2.43",
+      "original_cases": 2459,
+      "click_counts": {
+        "passed": 2434,
+        "failed": 0,
+        "skipped": 24,
+        "pending": 0,
+        "xfailed": 1,
+        "xpassed": 0
+      },
+      "zclick_counts": {
+        "passed": 2434,
+        "failed": 0,
+        "skipped": 24,
+        "pending": 0,
+        "xfailed": 1,
+        "xpassed": 0
+      },
+      "case_ids_sha256": "6aeb2899e10a29d97fa1214a5c6cf9861c6988ea851e39983a837a27bf597be5",
+      "api": {
+        "objects": 196,
+        "passed": true
+      },
+      "typing": {
+        "source_files": 12,
+        "passed": true,
+        "log_result": "Success: no issues found in 12 source files"
+      },
+      "project_tests": {
+        "tests": 176,
+        "errors": 0,
+        "failures": 0,
+        "skipped": 7,
+        "passed": 169
+      },
+      "job": {
+        "id": 130560816176,
+        "conclusion": "success",
+        "url": "https://github.com/LIghtJUNction/zclick/actions/runs/43031862640/job/130560816176"
+      },
+      "source_report": "evidence/upstream/evidence-ubuntu-latest-3.13/normal/summary.json"
+    },
+    {
+      "os": "ubuntu-latest",
+      "runtime": "3.14",
+      "python": "3.14.10 (main, Oct 26 2026, 14:17:03) [GCC 15.2.0]",
+      "platform": "Linux-7.0.0-1019-azure-x86_64-with-glibc2.43",
+      "original_cases": 2459,
+      "click_counts": {
+        "passed": 2434,
+        "failed": 0,
+        "skipped": 24,
+        "pending": 0,
+        "xfailed": 1,
+        "xpassed": 0
+      },
+      "zclick_counts": {
+        "passed": 2434,
+        "failed": 0,
+        "skipped": 24,
+        "pending": 0,
+        "xfailed": 1,
+        "xpassed": 0
+      },
+      "case_ids_sha256": "6aeb2899e10a29d97fa1214a5c6cf9861c6988ea851e39983a837a27bf597be5",
+      "api": {
+        "objects": 196,
+        "passed": true
+      },
+      "typing": {
+        "source_files": 12,
+        "passed": true,
+        "log_result": "Success: no issues found in 12 source files"
+      },
+      "project_tests": {
+        "tests": 176,
+        "errors": 0,
+        "failures": 0,
+        "skipped": 7,
+        "passed": 169
+      },
+      "job": {
+        "id": 130560816555,
+        "conclusion": "success",
+        "url": "https://github.com/LIghtJUNction/zclick/actions/runs/43031862640/job/130560816555"
+      },
+      "source_report": "evidence/upstream/evidence-ubuntu-latest-3.14/normal/summary.json"
+    },
+    {
+      "os": "ubuntu-latest",
+      "runtime": "3.14t",
+      "python": "3.14.10 free-threading build (main, Oct 26 2026, 14:18:26) [GCC 15.2.0]",
+      "platform": "Linux-7.0.0-1019-azure-x86_64-with-glibc2.43",
+      "original_cases": 2459,
+      "click_counts": {
+        "passed": 2434,
+        "failed": 0,
+        "skipped": 24,
+        "pending": 0,
+        "xfailed": 1,
+        "xpassed": 0
+      },
+      "zclick_counts": {
+        "passed": 2434,
+        "failed": 0,
+        "skipped": 24,
+        "pending": 0,
+        "xfailed": 1,
+        "xpassed": 0
+      },
+      "case_ids_sha256": "6aeb2899e10a29d97fa1214a5c6cf9861c6988ea851e39983a837a27bf597be5",
+      "api": {
+        "objects": 196,
+        "passed": true
+      },
+      "typing": {
+        "source_files": 12,
+        "passed": true,
+        "log_result": "Success: no issues found in 12 source files"
+      },
+      "project_tests": {
+        "tests": 176,
+        "errors": 0,
+        "failures": 0,
+        "skipped": 7,
+        "passed": 169
+      },
+      "job": {
+        "id": 130560816262,
+        "conclusion": "success",
+        "url": "https://github.com/LIghtJUNction/zclick/actions/runs/43031862640/job/130560816262"
+      },
+      "source_report": "evidence/upstream/evidence-ubuntu-latest-3.14t/normal/summary.json"
+    },
+    {
+      "os": "ubuntu-latest",
+      "runtime": "3.15",
+      "python": "3.15.2 (main, Oct 26 2026, 14:39:36) [GCC 15.2.0]",
+      "platform": "Linux-7.0.0-1019-azure-x86_64-with-glibc2.43",
+      "original_cases": 2459,
+      "click_counts": {
+        "passed": 2434,
+        "failed": 0,
+        "skipped": 24,
+        "pending": 0,
+        "xfailed": 1,
+        "xpassed": 0
+      },
+      "zclick_counts": {
+        "passed": 2434,
+        "failed": 0,
+        "skipped": 24,
+        "pending": 0,
+        "xfailed": 1,
+        "xpassed": 0
+      },
+      "case_ids_sha256": "6aeb2899e10a29d97fa1214a5c6cf9861c6988ea851e39983a837a27bf597be5",
+      "api": {
+        "objects": 196,
+        "passed": true
+      },
+      "typing": {
+        "source_files": 12,
+        "passed": true,
+        "log_result": "Success: no issues found in 12 source files"
+      },
+      "project_tests": {
+        "tests": 176,
+        "errors": 0,
+        "failures": 0,
+        "skipped": 7,
+        "passed": 169
+      },
+      "job": {
+        "id": 130560816258,
+        "conclusion": "success",
+        "url": "https://github.com/LIghtJUNction/zclick/actions/runs/43031862640/job/130560816258"
+      },
+      "source_report": "evidence/upstream/evidence-ubuntu-latest-3.15/normal/summary.json"
+    },
+    {
+      "os": "ubuntu-latest",
+      "runtime": "3.15t",
+      "python": "3.15.2 free-threading build (main, Oct 26 2026, 14:42:47) [GCC 15.2.0]",
+      "platform": "Linux-7.0.0-1019-azure-x86_64-with-glibc2.43",
+      "original_cases": 2459,
+      "click_counts": {
+        "passed": 2434,
+        "failed": 0,
+        "skipped": 24,
+        "pending": 0,
+        "xfailed": 1,
+        "xpassed": 0
+      },
+      "zclick_counts": {
+        "passed": 2434,
+        "failed": 0,
+        "skipped": 24,
+        "pending": 0,
+        "xfailed": 1,
+        "xpassed": 0
+      },
+      "case_ids_sha256": "6aeb2899e10a29d97fa1214a5c6cf9861c6988ea851e39983a837a27bf597be5",
+      "api": {
+        "objects": 196,
+        "passed": true
+      },
+      "typing": {
+        "source_files": 12,
+        "passed": true,
+        "log_result": "Success: no issues found in 12 source files"
+      },
+      "project_tests": {
+        "tests": 176,
+        "errors": 0,
+        "failures": 0,
+        "skipped": 7,
+        "passed": 169
+      },
+      "job": {
+        "id": 130560816223,
+        "conclusion": "success",
+        "url": "https://github.com/LIghtJUNction/zclick/actions/runs/43031862640/job/130560816223"
+      },
+      "source_report": "evidence/upstream/evidence-ubuntu-latest-3.15t/normal/summary.json"
+    },
+    {
+      "os": "ubuntu-latest",
+      "runtime": "pypy-3.11",
+      "python": "3.11.17 (ec82f20141cf, Oct 13 2026, 15:02:27)\n[PyPy 8.0.1 with GCC 14.2.1 20250110 (Red Hat 14.2.1-11)]",
+      "platform": "Linux-7.0.0-1019-azure-x86_64-with-glibc2.43",
+      "original_cases": 2459,
+      "click_counts": {
+        "passed": 2434,
+        "failed": 0,
+        "skipped": 24,
+        "pending": 0,
+        "xfailed": 1,
+        "xpassed": 0
+      },
+      "zclick_counts": {
+        "passed": 2434,
+        "failed": 0,
+        "skipped": 24,
+        "pending": 0,
+        "xfailed": 1,
+        "xpassed": 0
+      },
+      "case_ids_sha256": "6aeb2899e10a29d97fa1214a5c6cf9861c6988ea851e39983a837a27bf597be5",
+      "api": {
+        "objects": 196,
+        "passed": true
+      },
+      "typing": {
+        "source_files": 12,
+        "passed": true,
+        "log_result": "Success: no issues found in 12 source files"
+      },
+      "project_tests": {
+        "tests": 176,
+        "errors": 0,
+        "failures": 0,
+        "skipped": 11,
+        "passed": 165
+      },
+      "job": {
+        "id": 130560816279,
+        "conclusion": "success",
+        "url": "https://github.com/LIghtJUNction/zclick/actions/runs/43031862640/job/130560816279"
+      },
+      "source_report": "evidence/upstream/evidence-ubuntu-latest-pypy-3.11/normal/summary.json"
+    },
+    {
+      "os": "ubuntu-latest",
+      "runtime": "pypy-3.12",
+      "python": "3.12.15 (d90944c94ad6, Oct 13 2026, 18:01:21)\n[PyPy 8.0.1 with GCC 14.2.1 20250110 (Red Hat 14.2.1-11)]",
+      "platform": "Linux-7.0.0-1019-azure-x86_64-with-glibc2.43",
+      "original_cases": 2459,
+      "click_counts": {
+        "passed": 2434,
+        "failed": 0,
+        "skipped": 24,
+        "pending": 0,
+        "xfailed": 1,
+        "xpassed": 0
+      },
+      "zclick_counts": {
+        "passed": 2434,
+        "failed": 0,
+        "skipped": 24,
+        "pending": 0,
+        "xfailed": 1,
+        "xpassed": 0
+      },
+      "case_ids_sha256": "6aeb2899e10a29d97fa1214a5c6cf9861c6988ea851e39983a837a27bf597be5",
+      "api": {
+        "objects": 196,
+        "passed": true
+      },
+      "typing": {
+        "source_files": 12,
+        "passed": true,
+        "log_result": "Success: no issues found in 12 source files"
+      },
+      "project_tests": {
+        "tests": 176,
+        "errors": 0,
+        "failures": 0,
+        "skipped": 11,
+        "passed": 165
+      },
+      "job": {
+        "id": 130560816210,
+        "conclusion": "success",
+        "url": "https://github.com/LIghtJUNction/zclick/actions/runs/43031862640/job/130560816210"
+      },
+      "source_report": "evidence/upstream/evidence-ubuntu-latest-pypy-3.12/normal/summary.json"
+    },
+    {
+      "os": "windows-latest",
+      "runtime": "3.14",
+      "python": "3.14.10 (tags/v3.14.10:b703b2c, Oct 25 2026, 17:36:52) [MSC v.1944 64 bit (AMD64)]",
+      "platform": "Windows-2025Server-10.0.26100-SP0",
+      "original_cases": 2459,
+      "click_counts": {
+        "passed": 2357,
+        "failed": 0,
+        "skipped": 101,
+        "pending": 0,
+        "xfailed": 1,
+        "xpassed": 0
+      },
+      "zclick_counts": {
+        "passed": 2357,
+        "failed": 0,
+        "skipped": 101,
+        "pending": 0,
+        "xfailed": 1,
+        "xpassed": 0
+      },
+      "case_ids_sha256": "6aeb2899e10a29d97fa1214a5c6cf9861c6988ea851e39983a837a27bf597be5",
+      "api": {
+        "objects": 196,
+        "passed": true
+      },
+      "typing": {
+        "source_files": 12,
+        "passed": true,
+        "log_result": "Success: no issues found in 12 source files"
+      },
+      "project_tests": {
+        "tests": 176,
+        "errors": 0,
+        "failures": 0,
+        "skipped": 5,
+        "passed": 171
+      },
+      "job": {
+        "id": 130560816215,
+        "conclusion": "success",
+        "url": "https://github.com/LIghtJUNction/zclick/actions/runs/43031862640/job/130560816215"
+      },
+      "source_report": "evidence/upstream/evidence-windows-latest-3.14/normal/summary.json"
+    }
+  ],
+  "stress_matrix": [
+    {
+      "os": "macos-latest",
+      "runtime": "3.14",
+      "families": {
+        "echo_via_pager_exception_cleanup": {
+          "cases": 1000,
+          "job": {
+            "id": 130560817089,
+            "conclusion": "success",
+            "url": "https://github.com/LIghtJUNction/zclick/actions/runs/43031862640/job/130560817089"
+          },
+          "source_report": "evidence/upstream/evidence-stress-macos-latest-3.14-echo_via_pager_exception_cleanup/stress/summary.json",
+          "comparison_passed": true,
+          "click_counts": {
+            "passed": 1000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "zclick_counts": {
+            "passed": 1000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          }
+        },
+        "gc_between_invocations": {
+          "cases": 10000,
+          "job": {
+            "id": 130560817040,
+            "conclusion": "success",
+            "url": "https://github.com/LIghtJUNction/zclick/actions/runs/43031862640/job/130560817040"
+          },
+          "source_report": "evidence/upstream/evidence-stress-macos-latest-3.14-gc_between_invocations/stress/summary.json",
+          "comparison_passed": true,
+          "click_counts": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "zclick_counts": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          }
+        },
+        "logging_sequential_invocations": {
+          "cases": 10000,
+          "job": {
+            "id": 130560817050,
+            "conclusion": "success",
+            "url": "https://github.com/LIghtJUNction/zclick/actions/runs/43031862640/job/130560817050"
+          },
+          "source_report": "evidence/upstream/evidence-stress-macos-latest-3.14-logging_sequential_invocations/stress/summary.json",
+          "comparison_passed": true,
+          "click_counts": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "zclick_counts": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          }
+        },
+        "thread_pool_with_exit": {
+          "cases": 10000,
+          "job": {
+            "id": 130560817006,
+            "conclusion": "success",
+            "url": "https://github.com/LIghtJUNction/zclick/actions/runs/43031862640/job/130560817006"
+          },
+          "source_report": "evidence/upstream/evidence-stress-macos-latest-3.14-thread_pool_with_exit/stress/summary.json",
+          "comparison_passed": true,
+          "click_counts": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "zclick_counts": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          }
+        }
+      },
+      "click_counts": {
+        "passed": 31000,
+        "failed": 0,
+        "skipped": 0,
+        "pending": 0,
+        "xfailed": 0,
+        "xpassed": 0
+      },
+      "zclick_counts": {
+        "passed": 31000,
+        "failed": 0,
+        "skipped": 0,
+        "pending": 0,
+        "xfailed": 0,
+        "xpassed": 0
+      },
+      "original_cases": 31000,
+      "case_ids_sha256": "41721cdd2cdc8245395eb046937570a7d9ce8c8e5945c306ef6e98d7ce8a048a"
+    },
+    {
+      "os": "ubuntu-latest",
+      "runtime": "3.14",
+      "families": {
+        "echo_via_pager_exception_cleanup": {
+          "cases": 1000,
+          "job": {
+            "id": 130560817007,
+            "conclusion": "success",
+            "url": "https://github.com/LIghtJUNction/zclick/actions/runs/43031862640/job/130560817007"
+          },
+          "source_report": "evidence/upstream/evidence-stress-ubuntu-latest-3.14-echo_via_pager_exception_cleanup/stress/summary.json",
+          "comparison_passed": true,
+          "click_counts": {
+            "passed": 1000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "zclick_counts": {
+            "passed": 1000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          }
+        },
+        "gc_between_invocations": {
+          "cases": 10000,
+          "job": {
+            "id": 130560817005,
+            "conclusion": "success",
+            "url": "https://github.com/LIghtJUNction/zclick/actions/runs/43031862640/job/130560817005"
+          },
+          "source_report": "evidence/upstream/evidence-stress-ubuntu-latest-3.14-gc_between_invocations/stress/summary.json",
+          "comparison_passed": true,
+          "click_counts": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "zclick_counts": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          }
+        },
+        "logging_sequential_invocations": {
+          "cases": 10000,
+          "job": {
+            "id": 130560817183,
+            "conclusion": "success",
+            "url": "https://github.com/LIghtJUNction/zclick/actions/runs/43031862640/job/130560817183"
+          },
+          "source_report": "evidence/upstream/evidence-stress-ubuntu-latest-3.14-logging_sequential_invocations/stress/summary.json",
+          "comparison_passed": true,
+          "click_counts": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "zclick_counts": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          }
+        },
+        "thread_pool_with_exit": {
+          "cases": 10000,
+          "job": {
+            "id": 130560817118,
+            "conclusion": "success",
+            "url": "https://github.com/LIghtJUNction/zclick/actions/runs/43031862640/job/130560817118"
+          },
+          "source_report": "evidence/upstream/evidence-stress-ubuntu-latest-3.14-thread_pool_with_exit/stress/summary.json",
+          "comparison_passed": true,
+          "click_counts": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "zclick_counts": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          }
+        }
+      },
+      "click_counts": {
+        "passed": 31000,
+        "failed": 0,
+        "skipped": 0,
+        "pending": 0,
+        "xfailed": 0,
+        "xpassed": 0
+      },
+      "zclick_counts": {
+        "passed": 31000,
+        "failed": 0,
+        "skipped": 0,
+        "pending": 0,
+        "xfailed": 0,
+        "xpassed": 0
+      },
+      "original_cases": 31000,
+      "case_ids_sha256": "41721cdd2cdc8245395eb046937570a7d9ce8c8e5945c306ef6e98d7ce8a048a"
+    },
+    {
+      "os": "ubuntu-latest",
+      "runtime": "3.14t",
+      "families": {
+        "echo_via_pager_exception_cleanup": {
+          "cases": 1000,
+          "job": {
+            "id": 130560817137,
+            "conclusion": "success",
+            "url": "https://github.com/LIghtJUNction/zclick/actions/runs/43031862640/job/130560817137"
+          },
+          "source_report": "evidence/upstream/evidence-stress-ubuntu-latest-3.14t-echo_via_pager_exception_cleanup/stress/summary.json",
+          "comparison_passed": true,
+          "click_counts": {
+            "passed": 1000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "zclick_counts": {
+            "passed": 1000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          }
+        },
+        "gc_between_invocations": {
+          "cases": 10000,
+          "job": {
+            "id": 130560817255,
+            "conclusion": "success",
+            "url": "https://github.com/LIghtJUNction/zclick/actions/runs/43031862640/job/130560817255"
+          },
+          "source_report": "evidence/upstream/evidence-stress-ubuntu-latest-3.14t-gc_between_invocations/stress/summary.json",
+          "comparison_passed": true,
+          "click_counts": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "zclick_counts": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          }
+        },
+        "logging_sequential_invocations": {
+          "cases": 10000,
+          "job": {
+            "id": 130560817149,
+            "conclusion": "success",
+            "url": "https://github.com/LIghtJUNction/zclick/actions/runs/43031862640/job/130560817149"
+          },
+          "source_report": "evidence/upstream/evidence-stress-ubuntu-latest-3.14t-logging_sequential_invocations/stress/summary.json",
+          "comparison_passed": true,
+          "click_counts": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "zclick_counts": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          }
+        },
+        "thread_pool_with_exit": {
+          "cases": 10000,
+          "job": {
+            "id": 130560817340,
+            "conclusion": "success",
+            "url": "https://github.com/LIghtJUNction/zclick/actions/runs/43031862640/job/130560817340"
+          },
+          "source_report": "evidence/upstream/evidence-stress-ubuntu-latest-3.14t-thread_pool_with_exit/stress/summary.json",
+          "comparison_passed": true,
+          "click_counts": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "zclick_counts": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          }
+        }
+      },
+      "click_counts": {
+        "passed": 31000,
+        "failed": 0,
+        "skipped": 0,
+        "pending": 0,
+        "xfailed": 0,
+        "xpassed": 0
+      },
+      "zclick_counts": {
+        "passed": 31000,
+        "failed": 0,
+        "skipped": 0,
+        "pending": 0,
+        "xfailed": 0,
+        "xpassed": 0
+      },
+      "original_cases": 31000,
+      "case_ids_sha256": "41721cdd2cdc8245395eb046937570a7d9ce8c8e5945c306ef6e98d7ce8a048a"
+    },
+    {
+      "os": "ubuntu-latest",
+      "runtime": "3.15t",
+      "families": {
+        "echo_via_pager_exception_cleanup": {
+          "cases": 1000,
+          "job": {
+            "id": 130560817173,
+            "conclusion": "success",
+            "url": "https://github.com/LIghtJUNction/zclick/actions/runs/43031862640/job/130560817173"
+          },
+          "source_report": "evidence/upstream/evidence-stress-ubuntu-latest-3.15t-echo_via_pager_exception_cleanup/stress/summary.json",
+          "comparison_passed": true,
+          "click_counts": {
+            "passed": 1000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "zclick_counts": {
+            "passed": 1000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          }
+        },
+        "gc_between_invocations": {
+          "cases": 10000,
+          "job": {
+            "id": 130560817129,
+            "conclusion": "success",
+            "url": "https://github.com/LIghtJUNction/zclick/actions/runs/43031862640/job/130560817129"
+          },
+          "source_report": "evidence/upstream/evidence-stress-ubuntu-latest-3.15t-gc_between_invocations/stress/summary.json",
+          "comparison_passed": true,
+          "click_counts": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "zclick_counts": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          }
+        },
+        "logging_sequential_invocations": {
+          "cases": 10000,
+          "job": {
+            "id": 130560817177,
+            "conclusion": "success",
+            "url": "https://github.com/LIghtJUNction/zclick/actions/runs/43031862640/job/130560817177"
+          },
+          "source_report": "evidence/upstream/evidence-stress-ubuntu-latest-3.15t-logging_sequential_invocations/stress/summary.json",
+          "comparison_passed": true,
+          "click_counts": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "zclick_counts": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          }
+        },
+        "thread_pool_with_exit": {
+          "cases": 10000,
+          "job": {
+            "id": 130560817119,
+            "conclusion": "success",
+            "url": "https://github.com/LIghtJUNction/zclick/actions/runs/43031862640/job/130560817119"
+          },
+          "source_report": "evidence/upstream/evidence-stress-ubuntu-latest-3.15t-thread_pool_with_exit/stress/summary.json",
+          "comparison_passed": true,
+          "click_counts": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "zclick_counts": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          }
+        }
+      },
+      "click_counts": {
+        "passed": 31000,
+        "failed": 0,
+        "skipped": 0,
+        "pending": 0,
+        "xfailed": 0,
+        "xpassed": 0
+      },
+      "zclick_counts": {
+        "passed": 31000,
+        "failed": 0,
+        "skipped": 0,
+        "pending": 0,
+        "xfailed": 0,
+        "xpassed": 0
+      },
+      "original_cases": 31000,
+      "case_ids_sha256": "41721cdd2cdc8245395eb046937570a7d9ce8c8e5945c306ef6e98d7ce8a048a"
+    },
+    {
+      "os": "ubuntu-latest",
+      "runtime": "pypy-3.11",
+      "families": {
+        "echo_via_pager_exception_cleanup": {
+          "cases": 1000,
+          "job": {
+            "id": 130560817039,
+            "conclusion": "success",
+            "url": "https://github.com/LIghtJUNction/zclick/actions/runs/43031862640/job/130560817039"
+          },
+          "source_report": "evidence/upstream/evidence-stress-ubuntu-latest-pypy-3.11-echo_via_pager_exception_cleanup/stress/summary.json",
+          "comparison_passed": true,
+          "click_counts": {
+            "passed": 1000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "zclick_counts": {
+            "passed": 1000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          }
+        },
+        "gc_between_invocations": {
+          "cases": 10000,
+          "job": {
+            "id": 130560816970,
+            "conclusion": "success",
+            "url": "https://github.com/LIghtJUNction/zclick/actions/runs/43031862640/job/130560816970"
+          },
+          "source_report": "evidence/upstream/evidence-stress-ubuntu-latest-pypy-3.11-gc_between_invocations/stress/summary.json",
+          "comparison_passed": true,
+          "click_counts": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "zclick_counts": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          }
+        },
+        "logging_sequential_invocations": {
+          "cases": 10000,
+          "job": {
+            "id": 130560817125,
+            "conclusion": "success",
+            "url": "https://github.com/LIghtJUNction/zclick/actions/runs/43031862640/job/130560817125"
+          },
+          "source_report": "evidence/upstream/evidence-stress-ubuntu-latest-pypy-3.11-logging_sequential_invocations/stress/summary.json",
+          "comparison_passed": true,
+          "click_counts": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "zclick_counts": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          }
+        },
+        "thread_pool_with_exit": {
+          "cases": 10000,
+          "job": {
+            "id": 130560817112,
+            "conclusion": "success",
+            "url": "https://github.com/LIghtJUNction/zclick/actions/runs/43031862640/job/130560817112"
+          },
+          "source_report": "evidence/upstream/evidence-stress-ubuntu-latest-pypy-3.11-thread_pool_with_exit/stress/summary.json",
+          "comparison_passed": true,
+          "click_counts": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "zclick_counts": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          }
+        }
+      },
+      "click_counts": {
+        "passed": 31000,
+        "failed": 0,
+        "skipped": 0,
+        "pending": 0,
+        "xfailed": 0,
+        "xpassed": 0
+      },
+      "zclick_counts": {
+        "passed": 31000,
+        "failed": 0,
+        "skipped": 0,
+        "pending": 0,
+        "xfailed": 0,
+        "xpassed": 0
+      },
+      "original_cases": 31000,
+      "case_ids_sha256": "41721cdd2cdc8245395eb046937570a7d9ce8c8e5945c306ef6e98d7ce8a048a"
+    },
+    {
+      "os": "ubuntu-latest",
+      "runtime": "pypy-3.12",
+      "families": {
+        "echo_via_pager_exception_cleanup": {
+          "cases": 1000,
+          "job": {
+            "id": 130560817199,
+            "conclusion": "success",
+            "url": "https://github.com/LIghtJUNction/zclick/actions/runs/43031862640/job/130560817199"
+          },
+          "source_report": "evidence/upstream/evidence-stress-ubuntu-latest-pypy-3.12-echo_via_pager_exception_cleanup/stress/summary.json",
+          "comparison_passed": true,
+          "click_counts": {
+            "passed": 1000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "zclick_counts": {
+            "passed": 1000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          }
+        },
+        "gc_between_invocations": {
+          "cases": 10000,
+          "job": {
+            "id": 130560817148,
+            "conclusion": "success",
+            "url": "https://github.com/LIghtJUNction/zclick/actions/runs/43031862640/job/130560817148"
+          },
+          "source_report": "evidence/upstream/evidence-stress-ubuntu-latest-pypy-3.12-gc_between_invocations/stress/summary.json",
+          "comparison_passed": true,
+          "click_counts": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "zclick_counts": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          }
+        },
+        "logging_sequential_invocations": {
+          "cases": 10000,
+          "job": {
+            "id": 130560817189,
+            "conclusion": "success",
+            "url": "https://github.com/LIghtJUNction/zclick/actions/runs/43031862640/job/130560817189"
+          },
+          "source_report": "evidence/upstream/evidence-stress-ubuntu-latest-pypy-3.12-logging_sequential_invocations/stress/summary.json",
+          "comparison_passed": true,
+          "click_counts": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "zclick_counts": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          }
+        },
+        "thread_pool_with_exit": {
+          "cases": 10000,
+          "job": {
+            "id": 130560817453,
+            "conclusion": "success",
+            "url": "https://github.com/LIghtJUNction/zclick/actions/runs/43031862640/job/130560817453"
+          },
+          "source_report": "evidence/upstream/evidence-stress-ubuntu-latest-pypy-3.12-thread_pool_with_exit/stress/summary.json",
+          "comparison_passed": true,
+          "click_counts": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "zclick_counts": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          }
+        }
+      },
+      "click_counts": {
+        "passed": 31000,
+        "failed": 0,
+        "skipped": 0,
+        "pending": 0,
+        "xfailed": 0,
+        "xpassed": 0
+      },
+      "zclick_counts": {
+        "passed": 31000,
+        "failed": 0,
+        "skipped": 0,
+        "pending": 0,
+        "xfailed": 0,
+        "xpassed": 0
+      },
+      "original_cases": 31000,
+      "case_ids_sha256": "41721cdd2cdc8245395eb046937570a7d9ce8c8e5945c306ef6e98d7ce8a048a"
+    },
+    {
+      "os": "windows-latest",
+      "runtime": "3.14",
+      "families": {
+        "echo_via_pager_exception_cleanup": {
+          "cases": 1000,
+          "job": {
+            "id": 130560817174,
+            "conclusion": "success",
+            "url": "https://github.com/LIghtJUNction/zclick/actions/runs/43031862640/job/130560817174"
+          },
+          "source_report": "evidence/upstream/evidence-stress-windows-latest-3.14-echo_via_pager_exception_cleanup/stress/summary.json",
+          "comparison_passed": true,
+          "click_counts": {
+            "passed": 0,
+            "failed": 0,
+            "skipped": 1000,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "zclick_counts": {
+            "passed": 0,
+            "failed": 0,
+            "skipped": 1000,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          }
+        },
+        "gc_between_invocations": {
+          "cases": 10000,
+          "job": {
+            "id": 130560816966,
+            "conclusion": "success",
+            "url": "https://github.com/LIghtJUNction/zclick/actions/runs/43031862640/job/130560816966"
+          },
+          "source_report": "evidence/upstream/evidence-stress-windows-latest-3.14-gc_between_invocations/stress/summary.json",
+          "comparison_passed": true,
+          "click_counts": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "zclick_counts": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          }
+        },
+        "logging_sequential_invocations": {
+          "cases": 10000,
+          "job": {
+            "id": 130560817071,
+            "conclusion": "success",
+            "url": "https://github.com/LIghtJUNction/zclick/actions/runs/43031862640/job/130560817071"
+          },
+          "source_report": "evidence/upstream/evidence-stress-windows-latest-3.14-logging_sequential_invocations/stress/summary.json",
+          "comparison_passed": true,
+          "click_counts": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "zclick_counts": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          }
+        },
+        "thread_pool_with_exit": {
+          "cases": 10000,
+          "job": {
+            "id": 130560817017,
+            "conclusion": "success",
+            "url": "https://github.com/LIghtJUNction/zclick/actions/runs/43031862640/job/130560817017"
+          },
+          "source_report": "evidence/upstream/evidence-stress-windows-latest-3.14-thread_pool_with_exit/stress/summary.json",
+          "comparison_passed": true,
+          "click_counts": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "zclick_counts": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          }
+        }
+      },
+      "click_counts": {
+        "passed": 30000,
+        "failed": 0,
+        "skipped": 1000,
+        "pending": 0,
+        "xfailed": 0,
+        "xpassed": 0
+      },
+      "zclick_counts": {
+        "passed": 30000,
+        "failed": 0,
+        "skipped": 1000,
+        "pending": 0,
+        "xfailed": 0,
+        "xpassed": 0
+      },
+      "original_cases": 31000,
+      "case_ids_sha256": "41721cdd2cdc8245395eb046937570a7d9ce8c8e5945c306ef6e98d7ce8a048a",
+      "upstream_platform_skip": {
+        "cases": 1000,
+        "family": "echo_via_pager_exception_cleanup",
+        "condition": "WIN",
+        "reason": "Different behavior on windows.",
+        "source": "https://github.com/pallets/click/blob/cf19179e8e2fd54c601378cec9e0d21bb12b6fb1/tests/test_utils/test_echo_via_pager.py#L229"
+      }
+    }
+  ],
+  "shells": {
+    "passed": true,
+    "tests": 9,
+    "runtimes": [
+      {
+        "name": "bash",
+        "executable": "/usr/bin/bash",
+        "version": "GNU bash, version 5.3.9(1)-release (x86_64-pc-linux-gnu)"
+      },
+      {
+        "name": "zsh",
+        "executable": "/usr/bin/zsh",
+        "version": "zsh 5.9 (x86_64-ubuntu-linux-gnu)"
+      },
+      {
+        "name": "fish",
+        "executable": "/home/runner/work/zclick/zclick/.cache/test-shells/fish/fish",
+        "version": "fish, version 4.9.3"
+      },
+      {
+        "name": "pwsh",
+        "executable": "/home/runner/work/zclick/zclick/.cache/test-shells/pwsh/pwsh",
+        "version": "7.7.0"
+      }
+    ],
+    "scope_limits": {
+      "bash": "Real generated function and compgen; noninteractive compopt recording hook.",
+      "zsh": "Real generated function and child process; noninteractive ZLE recording hooks.",
+      "fish": "Real complete -C completion engine.",
+      "pwsh": "Real CommandCompletion.CompleteInput completion engine."
+    },
+    "job": {
+      "id": 130560815932,
+      "conclusion": "success",
+      "url": "https://github.com/LIghtJUNction/zclick/actions/runs/43031862640/job/130560815932"
+    }
+  },
+  "subinterpreters": {
+    "python": "3.12.16 (main, Oct 26 2026, 02:48:44) [GCC 15.2.0]",
+    "reference_passed": false,
+    "reference_control_passed": true,
+    "reference_environment_failures": [
+      {
+        "isolated": true,
+        "main_first": false,
+        "returncode": -6
+      }
+    ],
+    "safe_rejection": true,
+    "safety_passed": true,
+    "compatibility_passed": false,
+    "unfinished": [
+      "subinterpreters"
+    ],
+    "reference_scope": "Main-first Click controls establish the compatibility difference. Child-first results and independent datetime-only controls are preserved, including interpreter crashes."
+  },
+  "distribution_checks": {
+    "wheels": 12,
+    "source_archive_rebuilt": true,
+    "passed_installation_reports": 13
+  },
+  "release_gate": {
+    "id": 130565817963,
+    "conclusion": "success",
+    "url": "https://github.com/LIghtJUNction/zclick/actions/runs/43031862640/job/130565817963"
+  },
+  "github_release": {
+    "id": 130565922406,
+    "conclusion": "success",
+    "url": "https://github.com/LIghtJUNction/zclick/actions/runs/43031862640/job/130565922406"
+  },
+  "pypi_publish": {
+    "id": 130565922326,
+    "conclusion": "failure",
+    "url": "https://github.com/LIghtJUNction/zclick/actions/runs/43031862640/job/130565922326",
+    "reason": "invalid-publisher: valid token, but no corresponding publisher"
+  },
+  "full_compatibility_complete": false,
+  "unfinished_compatibility": [
+    "subinterpreters"
+  ],
+  "notes": [
+    "Original platform skips and expected failures are preserved; no extra skips.",
+    "Typing is checked in every normal matrix job; PyPy declarations are checked using a CPython-hosted mypy executable.",
+    "Test-suite coverage and safe rejection are distinct from full compatibility.",
+    "Workflow conclusion is failure solely because PyPI Trusted Publisher exchange failed; GitHub prerelease succeeded."
+  ],
+  "public_download_installation": {
+    "passed": true,
+    "version": "0.1.1a1",
+    "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+    "platform": "Linux-6.18.57-x86_64-with-glibc2.41",
+    "zclap": "0.1.4",
+    "source": "public GitHub Release asset",
+    "commit": "3281e18f215dec976c3ce0c4b5dd933ad4d62616",
+    "original_click_installed": false,
+    "click_module_injected": false,
+    "wheel": "zclick-0.1.1a1-cp310-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.whl",
+    "sha256": "457e6d01343ccc39cc925ac86ab0e43b6c85e45a165af14e06f37c827ee13a98"
+  },
+  "public_asset_download_verification": {
+    "tag": "v0.1.1a1",
+    "files": [
+      {
+        "name": "benchmarks.json",
+        "bytes": 46103,
+        "sha256": "8f5cedaaa688caf4fbf242124142bc5cff78791301b6bafa9575a8c15319f6e3"
+      },
+      {
+        "name": "compatibility-evidence.zip",
+        "bytes": 22112735,
+        "sha256": "f99d9e5fe2a95c4dd764d25fb381260fcdd7d2cf589845bf321a8e95e5b9db60"
+      },
+      {
+        "name": "RELEASE_NOTES.md",
+        "bytes": 4800,
+        "sha256": "59c4e9e022d69d422ee6a8d695caeee0d7e457bab562a6c3ac232c757d5a91da"
+      },
+      {
+        "name": "zclick-0.1.1a1-cp310-abi3-macosx_10_12_x86_64.whl",
+        "bytes": 604763,
+        "sha256": "34ec4c16a8d2670937e4c878776fe9f1fc7dbe9d862432fac956b72b8c144dab"
+      },
+      {
+        "name": "zclick-0.1.1a1-cp310-abi3-macosx_11_0_arm64.whl",
+        "bytes": 598387,
+        "sha256": "5eb368ea6fe01b407ed255e692361384db31d20ee3c371454839dc80f3b53515"
+      },
+      {
+        "name": "zclick-0.1.1a1-cp310-abi3-manylinux2014_aarch64.manylinux_2_17_aarch64.whl",
+        "bytes": 623785,
+        "sha256": "e86b07022018c15df6baa9e59a803b8ae5367651e37936d2c14f948e1ec83536"
+      },
+      {
+        "name": "zclick-0.1.1a1-cp310-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.whl",
+        "bytes": 632200,
+        "sha256": "457e6d01343ccc39cc925ac86ab0e43b6c85e45a165af14e06f37c827ee13a98"
+      },
+      {
+        "name": "zclick-0.1.1a1-cp310-abi3-musllinux_1_2_aarch64.whl",
+        "bytes": 802525,
+        "sha256": "daa463ecee2adc2b74e579f8c81a25773f437972c9dabdb93bea90d677532ccb"
+      },
+      {
+        "name": "zclick-0.1.1a1-cp310-abi3-musllinux_1_2_x86_64.whl",
+        "bytes": 844926,
+        "sha256": "c308f9b241c0b8cc66940e202b86446039457b5e98d181d3d4ad089ab9229dfd"
+      },
+      {
+        "name": "zclick-0.1.1a1-cp310-abi3-win_amd64.whl",
+        "bytes": 511398,
+        "sha256": "355779cc84e7fb4890f8e8579fc580a98a939bd210c13cf2477ab3806df63d62"
+      },
+      {
+        "name": "zclick-0.1.1a1-cp310-abi3-win_arm64.whl",
+        "bytes": 503079,
+        "sha256": "b5ec2cd570ac97744459f373fffad48f43413c00525378ad682f85f5a3dcebce"
+      },
+      {
+        "name": "zclick-0.1.1a1-cp314-cp314t-manylinux_2_34_x86_64.whl",
+        "bytes": 624601,
+        "sha256": "27e64507f1b46d37d50e636026cbcc1d0379f4ca25f8a85e14683efc7937891e"
+      },
+      {
+        "name": "zclick-0.1.1a1-cp315-cp315t-manylinux_2_34_x86_64.whl",
+        "bytes": 624638,
+        "sha256": "b641b61129ec25a70d8272cd58e07c22479d4c1183742e6e712cee7e9909f015"
+      },
+      {
+        "name": "zclick-0.1.1a1-pp311-pypy311_pp80-manylinux_2_34_x86_64.whl",
+        "bytes": 628278,
+        "sha256": "3fe5afe1e54e22ed9d5f568ecac29fde35a1e69f121eb0f368df2d46cdb68256"
+      },
+      {
+        "name": "zclick-0.1.1a1-pp312-pypy312_pp80-manylinux_2_34_x86_64.whl",
+        "bytes": 626568,
+        "sha256": "3e6dc314b9b414a224598be9a90e3d7acb9c2a2344a5764d0407191d5acdd51b"
+      },
+      {
+        "name": "zclick-0.1.1a1.tar.gz",
+        "bytes": 219507,
+        "sha256": "9d86ba424eb8f0ecef8740639461e0e2f7ee9c76fcac13dcb2fe2c4dcf3a795c"
+      }
+    ]
+  }
+}

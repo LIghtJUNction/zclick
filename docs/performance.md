@@ -109,7 +109,7 @@ The driver verifies outputs before warm timing and validates every fresh-process
 
 Packages run in a fixed order: Click, then zclick. The shared host is not isolated with CPU affinity or frequency locking, and package order is not randomized or interleaved. A quiet interval was used, but other host activity remains possible. Nine samples show variability; they are not a statistical guarantee. Small differences and differences between the earlier and final snapshot can reflect both code and measurement conditions. Release CI independently runs this driver on its immutable commit and publishes its raw JSON.
 
-## Independent release CI comparison
+## Earlier release CI comparison (a8bc735)
 
 The release pipeline measured commit [`a8bc735a3df168b62b2e11d99b34e7ab40530ba7`](https://github.com/LIghtJUNction/zclick/commit/a8bc735a3df168b62b2e11d99b34e7ab40530ba7) on a separate runner. Its runtime code is the same as the locally measured `86bab2a` snapshot; the release-trigger commit adds documentation and release-note generation. The host and interpreter differ, so the two sets remain separate measurements.
 
@@ -140,3 +140,26 @@ The larger warm invocation and text-wrapping gains appear on both hosts. The reu
 On CI, the 1,000-option warm invocation was 14.713 ms for Click and 7.309 ms for zclick. Whole-process invocation was 71.540 ms and 67.020 ms respectively; whole-process help was 73.347 ms and 76.995 ms. The approximately 6.7% invocation difference is small relative to the scheduling and frequency limitations of this method and is not claimed to be statistically significant.
 
 Neither host's results replace the other. The source archives and release assets retain the original measurements, including regressions.
+
+## Final release commit (3281e18)
+
+The release pipeline for [`3281e18f215dec976c3ce0c4b5dd933ad4d62616`](https://github.com/LIghtJUNction/zclick/commit/3281e18f215dec976c3ce0c4b5dd933ad4d62616) generated another complete measurement as part of its required validation. This commit fixes the report-only normalization of five Python 3.10 Enum test IDs and permits independent builds to run alongside validation. It does not change the zclick runtime from either the local `86bab2a` measurement or the earlier `a8bc735` CI attempt. The earlier release attempt stopped at evidence aggregation; its benchmark remains archived above.
+
+The final runner reports CPython 3.14.10, GCC 15.2.0, Linux 7.0.0-1019-azure, glibc 2.43 and four logical CPUs. [Final CI raw JSON](../benchmarks/results/cpython314-linux-3281e18.json) retains every sample, memory observation, source hash and environment field; the [release workflow](https://github.com/LIghtJUNction/zclick/actions/runs/43031862640) records how it was produced. This is a separate automatically required run, not a replacement chosen for a better result.
+
+| Boundary | Local 86bab2a ratio | Earlier CI a8bc735 ratio | Final CI 3281e18 ratio |
+| --- | ---: | ---: | ---: |
+| Warm Command.main / 1 option | 0.694× | 0.939× | 1.058× |
+| Warm Command.main / 10 options | 0.822× | 1.006× | 1.151× |
+| Warm Command.main / 100 options | 1.148× | 1.185× | 1.169× |
+| Warm Command.main / 1,000 options | 1.706× | 2.013× | 1.997× |
+| Reused parser / 1 option | 0.403× | 0.464× | 0.520× |
+| Reused parser / 1,000 options | 0.660× | 0.425× | 0.435× |
+| Nested command | 0.970× | 0.886× | 0.889× |
+| Unicode/ANSI wrapping | 7.344× | 9.038× | 8.724× |
+| Fresh-process command / 1,000 options | 1.183× | 1.067× | 1.148× |
+| Fresh-process help / 1,000 options | 1.288× | 0.953× | 1.017× |
+
+On this final CI runner, the warm 1,000-option invocation measured 11.149 ms for Click and 5.582 ms for zclick. Whole-process invocation measured 63.205 ms and 55.066 ms; whole-process help measured 63.471 ms and 62.415 ms. The warm interval reuses the command definition; the whole-process interval includes interpreter startup, import, command construction, invocation or help rendering, output capture and process exit.
+
+The same runtime code shows different small-workload ratios across these runs, including changes from slower to faster. Neither CPU model and frequency nor process affinity and host activity are controlled, the local interpreter differs from CI, and package timing order is fixed. Even identical CI platform strings do not establish identical machine conditions. The final 1.017× cold-help result does not turn the earlier mixed cold-help measurements into a reliable improvement. Large warm invocation and wrapping gains, slower reused parsing, and variable small or cold workloads are the conclusions supported by the complete record; the best individual ratio must not be generalized to every Click application.
