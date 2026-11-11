@@ -1,0 +1,151 @@
+{
+  "url": "https://pypi.org/pypi/zclick/0.1.1a2/json",
+  "version": "0.1.1a2",
+  "source_commit": "7e3d597873b737bbfc8c2df090773aad56d9bd73",
+  "project_url": "https://pypi.org/project/zclick/0.1.1a2/",
+  "artifact_count": 13,
+  "all_match_github_release": true,
+  "verified_at": "2026-11-11T16:06:24.368503+00:00",
+  "workflow_run": 43052475382,
+  "workflow_attempt": 1,
+  "publish_job": 130639366379,
+  "publish_job_url": "https://github.com/LIghtJUNction/zclick/actions/runs/43052475382/job/130639366379",
+  "completed_at": "2026-11-11T16:03:19Z",
+  "artifacts": [
+    {
+      "filename": "zclick-0.1.1a2-cp310-abi3-macosx_10_12_x86_64.whl",
+      "sha256": "7a38540778c040f9d4121c91d2faa2d5fa86841a9c3f8b96cb07694b5c9146c3",
+      "size": 630006,
+      "upload_time": "2026-11-11T16:02:59.831836Z",
+      "pypi_url": "https://files.pythonhosted.org/packages/92/d4/0f788a1fc13abd3aaf7f4056c455168595e20c88dbe4ea79b0238e7194a5/zclick-0.1.1a2-cp310-abi3-macosx_10_12_x86_64.whl",
+      "github_url": "https://github.com/LIghtJUNction/zclick/releases/download/v0.1.1a2/zclick-0.1.1a2-cp310-abi3-macosx_10_12_x86_64.whl"
+    },
+    {
+      "filename": "zclick-0.1.1a2-cp310-abi3-macosx_11_0_arm64.whl",
+      "sha256": "98a235572c69015f3045fc8556a24c0e860fa30958974eed684a67caa6867e74",
+      "size": 623169,
+      "upload_time": "2026-11-11T16:03:01.326063Z",
+      "pypi_url": "https://files.pythonhosted.org/packages/80/91/7ef8e050c0617016cd345f126d793a307b8986058dd05c250a41540b8dae/zclick-0.1.1a2-cp310-abi3-macosx_11_0_arm64.whl",
+      "github_url": "https://github.com/LIghtJUNction/zclick/releases/download/v0.1.1a2/zclick-0.1.1a2-cp310-abi3-macosx_11_0_arm64.whl"
+    },
+    {
+      "filename": "zclick-0.1.1a2-cp310-abi3-manylinux2014_aarch64.manylinux_2_17_aarch64.whl",
+      "sha256": "860b5b4299cd6d640c081ffa0e6e9803aa1a3cd323fcc6d3e540d6931a311762",
+      "size": 649316,
+      "upload_time": "2026-11-11T16:03:02.672093Z",
+      "pypi_url": "https://files.pythonhosted.org/packages/23/63/52a397db66ab3ee36fad319715b3b812efc8f2209b16ab884605a47f951f/zclick-0.1.1a2-cp310-abi3-manylinux2014_aarch64.manylinux_2_17_aarch64.whl",
+      "github_url": "https://github.com/LIghtJUNction/zclick/releases/download/v0.1.1a2/zclick-0.1.1a2-cp310-abi3-manylinux2014_aarch64.manylinux_2_17_aarch64.whl"
+    },
+    {
+      "filename": "zclick-0.1.1a2-cp310-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.whl",
+      "sha256": "dd69bc1b014559a0c77319f52334811951e49fb134f916a3e76f5b7abd493a0c",
+      "size": 658546,
+      "upload_time": "2026-11-11T16:03:04.223051Z",
+      "pypi_url": "https://files.pythonhosted.org/packages/52/04/e6aedfe36b67cd4ea04281eaed5ecabb785d8856ce54aa22c02adad00b11/zclick-0.1.1a2-cp310-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.whl",
+      "github_url": "https://github.com/LIghtJUNction/zclick/releases/download/v0.1.1a2/zclick-0.1.1a2-cp310-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.whl"
+    },
+    {
+      "filename": "zclick-0.1.1a2-cp310-abi3-musllinux_1_2_aarch64.whl",
+      "sha256": "bf32da47ee0e788d681af5cb07d8a7155a86757c0f82fad8d0c1c1dbce91f97f",
+      "size": 828927,
+      "upload_time": "2026-11-11T16:03:05.763305Z",
+      "pypi_url": "https://files.pythonhosted.org/packages/6e/7e/96b940faff4c3feda0c21900b533b139c11e1ea47f1f3b28b342443b60b7/zclick-0.1.1a2-cp310-abi3-musllinux_1_2_aarch64.whl",
+      "github_url": "https://github.com/LIghtJUNction/zclick/releases/download/v0.1.1a2/zclick-0.1.1a2-cp310-abi3-musllinux_1_2_aarch64.whl"
+    },
+    {
+      "filename": "zclick-0.1.1a2-cp310-abi3-musllinux_1_2_x86_64.whl",
+      "sha256": "d7d051fbae80ef35f8a0a8bf472ca8b7837a8f258b739e6a1c3dad77f5a78c79",
+      "size": 871532,
+      "upload_time": "2026-11-11T16:03:07.266147Z",
+      "pypi_url": "https://files.pythonhosted.org/packages/9c/ca/b159e547ec50e589b80d5a582e72f81cef93a90cb0ad1912977f5da2544b/zclick-0.1.1a2-cp310-abi3-musllinux_1_2_x86_64.whl",
+      "github_url": "https://github.com/LIghtJUNction/zclick/releases/download/v0.1.1a2/zclick-0.1.1a2-cp310-abi3-musllinux_1_2_x86_64.whl"
+    },
+    {
+      "filename": "zclick-0.1.1a2-cp310-abi3-win_amd64.whl",
+      "sha256": "17727a9519392ae69187fcda7de57ff54fbd695359b9af235fc3eb981565945b",
+      "size": 536237,
+      "upload_time": "2026-11-11T16:03:08.544578Z",
+      "pypi_url": "https://files.pythonhosted.org/packages/3d/c9/7ff97280bd005a9914d72d9f717e1409f5eb7701f550861636f053fd1617/zclick-0.1.1a2-cp310-abi3-win_amd64.whl",
+      "github_url": "https://github.com/LIghtJUNction/zclick/releases/download/v0.1.1a2/zclick-0.1.1a2-cp310-abi3-win_amd64.whl"
+    },
+    {
+      "filename": "zclick-0.1.1a2-cp310-abi3-win_arm64.whl",
+      "sha256": "fef6ce2b2a8affb342519f42e5bae1348b906fe6c0c9bd75f7f18d970e66159b",
+      "size": 526362,
+      "upload_time": "2026-11-11T16:03:09.805329Z",
+      "pypi_url": "https://files.pythonhosted.org/packages/6e/f5/d6b2b11ec0101cf12feb47e8264a739ff5a8d5250ada3d50d810b64940b8/zclick-0.1.1a2-cp310-abi3-win_arm64.whl",
+      "github_url": "https://github.com/LIghtJUNction/zclick/releases/download/v0.1.1a2/zclick-0.1.1a2-cp310-abi3-win_arm64.whl"
+    },
+    {
+      "filename": "zclick-0.1.1a2-cp314-cp314t-manylinux_2_34_x86_64.whl",
+      "sha256": "cc47dc715506323b67585d0d550bfce0bf85b0ccc845472377c363881eaff7e8",
+      "size": 650962,
+      "upload_time": "2026-11-11T16:03:11.234885Z",
+      "pypi_url": "https://files.pythonhosted.org/packages/bd/de/61e89ad4bda15178093bd17fddc06b5f27f2f659c873fc6164fdc06e97ee/zclick-0.1.1a2-cp314-cp314t-manylinux_2_34_x86_64.whl",
+      "github_url": "https://github.com/LIghtJUNction/zclick/releases/download/v0.1.1a2/zclick-0.1.1a2-cp314-cp314t-manylinux_2_34_x86_64.whl"
+    },
+    {
+      "filename": "zclick-0.1.1a2-cp315-cp315t-manylinux_2_34_x86_64.whl",
+      "sha256": "a0ca120be8518181a9cd886b4c3f772f52f1be327f4eca911322ebbd343afc5a",
+      "size": 650906,
+      "upload_time": "2026-11-11T16:03:12.663310Z",
+      "pypi_url": "https://files.pythonhosted.org/packages/32/6c/25812ce27a02ef69ad66e566359cd911fc07e6d03900b7142fa033fe3726/zclick-0.1.1a2-cp315-cp315t-manylinux_2_34_x86_64.whl",
+      "github_url": "https://github.com/LIghtJUNction/zclick/releases/download/v0.1.1a2/zclick-0.1.1a2-cp315-cp315t-manylinux_2_34_x86_64.whl"
+    },
+    {
+      "filename": "zclick-0.1.1a2-pp311-pypy311_pp80-manylinux_2_34_x86_64.whl",
+      "sha256": "61e17f6b5c801f9bf46d56385716ab22df0369792aba083d3796238e6d9515ac",
+      "size": 635639,
+      "upload_time": "2026-11-11T16:03:14.002244Z",
+      "pypi_url": "https://files.pythonhosted.org/packages/a9/c9/4ff8c55bca7c09b79ad2ff6bb7635e5706165e7d37521e5aa986e555bf03/zclick-0.1.1a2-pp311-pypy311_pp80-manylinux_2_34_x86_64.whl",
+      "github_url": "https://github.com/LIghtJUNction/zclick/releases/download/v0.1.1a2/zclick-0.1.1a2-pp311-pypy311_pp80-manylinux_2_34_x86_64.whl"
+    },
+    {
+      "filename": "zclick-0.1.1a2-pp312-pypy312_pp80-manylinux_2_34_x86_64.whl",
+      "sha256": "c73246215b4969c7dcf603969a9da18908fd75a6f1a50a1632559db1fe917fc8",
+      "size": 634665,
+      "upload_time": "2026-11-11T16:03:15.325298Z",
+      "pypi_url": "https://files.pythonhosted.org/packages/d4/42/c9a157a90bf846035b9eed90ba43fe5f9b7c3cf3bed2d941b8f2454c6f99/zclick-0.1.1a2-pp312-pypy312_pp80-manylinux_2_34_x86_64.whl",
+      "github_url": "https://github.com/LIghtJUNction/zclick/releases/download/v0.1.1a2/zclick-0.1.1a2-pp312-pypy312_pp80-manylinux_2_34_x86_64.whl"
+    },
+    {
+      "filename": "zclick-0.1.1a2.tar.gz",
+      "sha256": "ebeb4a952f188edcd2289f099f919d004fd2897add914cd7569b9732b27ae877",
+      "size": 227266,
+      "upload_time": "2026-11-11T16:03:16.716015Z",
+      "pypi_url": "https://files.pythonhosted.org/packages/0a/be/6d97172ee831467bcb793fb893b54960efd862571533bcd872af1ac10924/zclick-0.1.1a2.tar.gz",
+      "github_url": "https://github.com/LIghtJUNction/zclick/releases/download/v0.1.1a2/zclick-0.1.1a2.tar.gz"
+    }
+  ],
+  "trusted_publisher": {
+    "provenance_url": "https://pypi.org/integrity/zclick/0.1.1a2/zclick-0.1.1a2-cp310-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.whl/provenance",
+    "publisher": {
+      "environment": "pypi",
+      "kind": "GitHub",
+      "repository": "LIghtJUNction/zclick",
+      "workflow": "release.yml"
+    },
+    "response_sha256": "ba40092ff3abcbd90b1a7fe7b583f3c69e3b75b77b85908c3033566c195a09e8"
+  },
+  "clean_pypi_installation": {
+    "version": "0.1.1a2",
+    "original_click_installed": false,
+    "module": "/workspace/scratch/9891e6e3b679/zclick/.cache/pypi-a2-smoke/lib/python3.12/site-packages/zclick/__init__.py",
+    "native": "/workspace/scratch/9891e6e3b679/zclick/.cache/pypi-a2-smoke/lib/python3.12/site-packages/zclick/_native.abi3.so",
+    "native_sha256": "c87443a4805193f89d243f87c21bdc92480a79cee796899c47591851c0131746",
+    "exit_code": 0,
+    "output": "Your name: Ada\nHello, Ada!\nHello, Ada!\n",
+    "download": {
+      "url": "https://files.pythonhosted.org/packages/52/04/e6aedfe36b67cd4ea04281eaed5ecabb785d8856ce54aa22c02adad00b11/zclick-0.1.1a2-cp310-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.whl",
+      "archive_info": {
+        "hash": "sha256=dd69bc1b014559a0c77319f52334811951e49fb134f916a3e76f5b7abd493a0c",
+        "hashes": {
+          "sha256": "dd69bc1b014559a0c77319f52334811951e49fb134f916a3e76f5b7abd493a0c"
+        }
+      }
+    },
+    "verified_at": "2026-11-11T16:07:34.690994+00:00",
+    "isolated_mode": true,
+    "working_directory_outside_checkout": true
+  }
+}

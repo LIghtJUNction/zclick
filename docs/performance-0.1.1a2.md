@@ -1,25 +1,33 @@
 # Measured performance: 0.1.1a2
 
-The largest measured improvement over published zclick 0.1.1a1 was reused
-parsing: with 1,000 options, median latency decreased from **1,602.245 µs to
-632.171 µs**, a **2.535×** ratio. Click 8.5.1 took 781.337 µs in the same run,
-giving **1.236×** relative to Click. The complete warm 1,000-option invocation
-measured **1.771×** relative to Click and **1.042×** relative to 0.1.1a1; the latter
-is a small median change with overlapping samples.
+Two independently recorded Linux hosts show a large improvement over published
+zclick 0.1.1a1 in reused parsing: the 1,000-option median ratios are **2.535×**
+locally and **2.354×** in release CI. Complete warm invocation at that size
+measured **1.771×** and **2.017×** relative to Click 8.5.1. Its improvement over
+a1 is much smaller: **1.042×** locally and **1.050×** in CI.
 
-The results remain workload-specific. Reused parsing with 1, 10 and 100 options,
-the one-option warm invocation and the nested-command case had higher median
-latency than Click. Unicode/ANSI wrapping measured **7.404×** relative to Click
-and **1.113×** relative to 0.1.1a1. The tables retain every warm and cold workload,
-including those that remain slower than Click.
+The parser comparison with Click differs between hosts. The local
+1,000-option ratio of **1.236×** was **not reproduced** in CI, which measured
+**0.975×**. Parsing with 1, 10 and 100 options, the one-option warm invocation
+and the nested-command case remained slower than Click on both hosts.
+Unicode/ANSI wrapping measured **7.404×** locally and **9.314×** in CI relative
+to Click. These are workload comparisons, not a universal application speedup.
 
-All values below come from the [complete schema-2 report](../benchmarks/results/cpython312-linux-c949d30.json), which preserves
-all samples and distribution identities. The [0.1.1a1 report](performance.md)
-retains its original historical measurements and protocol. The published a1
-wheel was measured again alongside this candidate; historical timings are not
-substituted for that control.
+The [local schema-2 report](../benchmarks/results/cpython312-linux-c949d30.json)
+and [release-CI schema-2 report](../benchmarks/results/cpython314-linux-7e3d597.json)
+preserve all samples and distribution identities. Their results are presented
+separately below; neither replaces the other. The published a1 wheel was
+measured again alongside the candidate in each run. The
+[0.1.1a1 report](performance.md) retains its original historical measurements.
 
-## Source, distributions and environment
+![All eighteen warm workloads on both hosts, showing reference median divided by candidate median](assets/performance-0.1.1a2.svg)
+
+The chart shows all eighteen warm workloads from both reports. A ratio above
+one means lower a2 latency. Its source is
+[`plot_results.py`](../benchmarks/plot_results.py); exact values and boundaries
+remain in the tables below.
+
+## Local source, distributions and environment
 
 - Measured source: [`c949d301f815c882acce9a96fe2a0c3b8da9bded`](https://github.com/LIghtJUNction/zclick/commit/c949d301f815c882acce9a96fe2a0c3b8da9bded), version 0.1.1a2. The working tree was clean before and after measurement.
 - Reference: Click 8.5.1 at the [fixed target](../compatibility/target.json); published baseline: zclick 0.1.1a1 from commit `3281e18f215dec976c3ce0c4b5dd933ad4d62616`.
@@ -33,8 +41,8 @@ The published baseline is a `manylinux_2_17` wheel; the candidate was built on
 this host as `manylinux_2_34`. Python, measurement host and execution ordering
 were controlled, while the wheel build environments were not identical.
 **This is a comparison of these distributions; their entire difference cannot
-be attributed to source changes alone.** A subsequent release-CI measurement
-using the distribution build environment belongs in a separate result section.
+be attributed to source changes alone.** The separate release-CI section below
+uses the distribution build environment and keeps this local result intact.
 
 | Distribution | Wheel SHA-256 |
 | --- | --- |
@@ -42,7 +50,7 @@ using the distribution build environment belongs in a separate result section.
 | zclick 0.1.1a1, `cp310-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64` | `457e6d01343ccc39cc925ac86ab0e43b6c85e45a165af14e06f37c827ee13a98` |
 | zclick 0.1.1a2, `cp310-abi3-manylinux_2_34_x86_64` | `c4ca0d46e04d23647f9798c823bd65464a2a46312bed650f13bebc30ef39aaa2` |
 
-## Complete warm measurements
+## Local complete warm measurements
 
 Times are median **microseconds per call** across the twelve rounds. Ratios are
 reference median divided by a2 median: **above one means lower a2 latency**.
@@ -119,7 +127,7 @@ all eighteen rows are retained here.
 | Nested command | 43.632 | 53.973 | 49.198 | 0.887× | 1.097× |
 | Unicode/ANSI wrapping | 444.235 | 66.835 | 60.049 | 7.398× | 1.113× |
 
-## Complete fresh-process measurements
+## Local complete fresh-process measurements
 
 These median **milliseconds per process** include interpreter startup, package
 import, public command construction, invocation or help, output capture and
@@ -159,7 +167,7 @@ The a2 import interval ranged from 13.826 to 19.960 ms, compared with
 ranges were 25.148–38.470 ms, 32.285–45.852 ms and 31.643–51.145 ms respectively.
 Operating-system caches were not flushed.
 
-## Python allocation observations and process RSS
+## Local Python allocation observations and process RSS
 
 Each cell below is **current / peak Python-managed bytes**, taking the median
 of the twelve observations. `tracemalloc` starts after a collection, observes
@@ -209,7 +217,7 @@ The candidate's median worker peak RSS was higher than both references:
 allocation readings in some rows therefore do not establish lower overall
 process memory use.
 
-## Variability and limits of the comparison
+## Local variability and limits of the comparison
 
 The following ranges preserve all twelve warm samples for representative
 large, small and regressing workloads. Paired ratios divide a1 by a2 within
@@ -263,8 +271,179 @@ The build-target difference is another attribution limit. Comparing the
 published a1 `manylinux_2_17` wheel with a host-built a2 `manylinux_2_34` wheel
 measures their delivered behavior under this interpreter, including build
 differences. Component-level attribution and portability require their own
-comparisons. The historical report and this local run remain intact when a
-separate release-CI result is added.
+comparisons. The historical report and this local run remain intact alongside
+the separate release-CI result below.
+
+## Independent release-CI measurement
+
+The second run used the release build environment and a different host and
+Python version. It confirms the direction of the large parser improvement
+over a1, the large full-invocation advantage over Click, and faster wrapping.
+It **does not reproduce the local 1,000-option parser advantage over Click**:
+the CI median ratio is 0.975×, versus 1.236× locally. The two runs are retained
+separately because a change of processor, interpreter and build environment
+prevents attributing that difference to any one factor.
+
+### CI source and distribution identity
+
+- Source: [`7e3d597873b737bbfc8c2df090773aad56d9bd73`](https://github.com/LIghtJUNction/zclick/commit/7e3d597873b737bbfc8c2df090773aad56d9bd73), version 0.1.1a2, from [Release run 43052475382](https://github.com/LIghtJUNction/zclick/actions/runs/43052475382). The tree was clean before and after timing.
+- Time: 2026-11-11, 15:54:30–15:55:42 UTC, approximately 72.64 seconds for the complete run.
+- Host: AMD EPYC 7763 64-Core Processor, Linux 7.0.0-1019-azure x86-64, glibc 2.43; four logical CPUs were available and all recorded measurement workers used CPU 0.
+- Interpreter: ordinary-GIL CPython 3.14.10, built with GCC 15.2.0. The same interpreter was used for Click, the published a1 wheel and a2.
+- Build: pinned Maturin 1.16.0 and Rust 1.99.1 through the release's manylinux build configuration. Both zclick distributions use `cp310-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64` wheels.
+- Protocol: the same twelve rounds, two balanced order blocks, seed `20261111`, five warmup calls, normal GC and separately ordered fresh-process boundaries as the local run.
+- Raw evidence: [complete CI JSON](../benchmarks/results/cpython314-linux-7e3d597.json), SHA-256 `4e6fcaddeae2e2c0c3d932b000d649e622408f64261b895d0b81c31a7505afbd`.
+
+The independently built benchmark wheel and release Linux GNU wheel have
+different archive hashes. Their **18 Python and native runtime files have
+identical content**, including the native binary. This connects the measured
+runtime to the release artifact without claiming byte-identical wheel archives.
+The [file-by-file comparison](../compatibility/releases/0.1.1a2-benchmark-payload.json)
+retains every matched runtime hash and the comparison scope. It does not by
+itself establish publication or performance on another architecture.
+
+| Artifact | SHA-256 |
+| --- | --- |
+| CI benchmark wheel | `3d1834c08c5072faafa23e6e172404ce8fab90e0dbd0120eb1398aec14c539c4` |
+| Release Linux GNU wheel archive | `dd69bc1b014559a0c77319f52334811951e49fb134f916a3e76f5b7abd493a0c` |
+| Native binary in both wheels | `c87443a4805193f89d243f87c21bdc92480a79cee796899c47591851c0131746` |
+
+### All eighteen CI warm workloads
+
+These are median **microseconds per call**, with the same workload boundaries
+and iteration scaling as the local table. Both reference ratios use the CI
+medians; no values are mixed between hosts.
+
+| Workload (options) | Click µs | a1 µs | a2 µs | Click / a2 | a1 / a2 |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Construct (1) | 6.199 | 6.847 | 5.981 | 1.036× | 1.145× |
+| Reuse parser (1) | 2.907 | 5.987 | 4.711 | 0.617× | 1.271× |
+| Command.main (1) | 68.058 | 73.169 | 69.487 | 0.979× | 1.053× |
+| Render help (1) | 160.319 | 69.845 | 57.461 | 2.790× | 1.216× |
+| Construct (10) | 51.102 | 56.406 | 48.681 | 1.050× | 1.159× |
+| Reuse parser (10) | 8.576 | 22.096 | 13.192 | 0.650× | 1.675× |
+| Command.main (10) | 147.040 | 144.753 | 129.905 | 1.132× | 1.114× |
+| Render help (10) | 232.380 | 138.535 | 111.570 | 2.083× | 1.242× |
+| Construct (100) | 509.940 | 561.699 | 487.971 | 1.045× | 1.151× |
+| Reuse parser (100) | 68.096 | 200.341 | 92.697 | 0.735× | 2.161× |
+| Command.main (100) | 928.616 | 803.018 | 720.583 | 1.289× | 1.114× |
+| Render help (100) | 896.932 | 788.245 | 611.180 | 1.468× | 1.290× |
+| Construct (1,000) | 5,273.717 | 5,711.841 | 4,959.468 | 1.063× | 1.152× |
+| Reuse parser (1,000) | 836.866 | 2,019.259 | 857.956 | 0.975× | 2.354× |
+| Command.main (1,000) | 14,169.504 | 7,377.726 | 7,023.316 | 2.017× | 1.050× |
+| Render help (1,000) | 7,243.400 | 7,158.829 | 5,486.346 | 1.320× | 1.305× |
+| Nested command | 119.839 | 135.448 | 131.907 | 0.909× | 1.027× |
+| Unicode/ANSI wrapping | 650.213 | 72.940 | 69.811 | 9.314× | 1.045× |
+
+At 1,000 options, the parser improved from 2,019.259 µs in a1 to 857.956 µs in
+a2, a 2.354× ratio. Click took 836.866 µs, so a2's parser median was slightly
+higher. Complete invocation took 7,023.316 µs versus Click's 14,169.504 µs and
+a1's 7,377.726 µs: 2.017× relative to Click, but only 1.050× over a1. Reducing
+one part of invocation does not give the complete command the same ratio.
+
+All four parser sizes, the one-option invocation and the nested-command case
+remain slower than Click in this CI run. Help and wrapping retain lower
+medians: wrapping took 69.811 µs versus Click's 650.213 µs, a 9.314× ratio. Its
+ratio over a1 is 1.045×, which separates the project's existing advantage over
+Click from this version's smaller additional change.
+
+The process-CPU measurements use the same **microseconds per call** boundary:
+
+| Workload (options) | Click CPU µs | a1 CPU µs | a2 CPU µs | Click / a2 | a1 / a2 |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Construct (1) | 6.205 | 6.853 | 5.988 | 1.036× | 1.144× |
+| Reuse parser (1) | 2.911 | 5.994 | 4.718 | 0.617× | 1.270× |
+| Command.main (1) | 68.059 | 73.175 | 69.492 | 0.979× | 1.053× |
+| Render help (1) | 160.315 | 69.872 | 57.480 | 2.789× | 1.216× |
+| Construct (10) | 50.993 | 56.421 | 48.687 | 1.047× | 1.159× |
+| Reuse parser (10) | 8.581 | 22.101 | 13.195 | 0.650× | 1.675× |
+| Command.main (10) | 147.035 | 144.759 | 129.907 | 1.132× | 1.114× |
+| Render help (10) | 232.399 | 138.558 | 111.594 | 2.083× | 1.242× |
+| Construct (100) | 509.984 | 561.756 | 487.978 | 1.045× | 1.151× |
+| Reuse parser (100) | 68.132 | 200.388 | 92.737 | 0.735× | 2.161× |
+| Command.main (100) | 928.631 | 803.069 | 720.598 | 1.289× | 1.114× |
+| Render help (100) | 897.150 | 788.537 | 611.386 | 1.467× | 1.290× |
+| Construct (1,000) | 5,273.917 | 5,712.415 | 4,960.191 | 1.063× | 1.152× |
+| Reuse parser (1,000) | 836.913 | 2,019.739 | 858.365 | 0.975× | 2.353× |
+| Command.main (1,000) | 14,145.645 | 7,378.331 | 7,021.754 | 2.015× | 1.051× |
+| Render help (1,000) | 7,243.795 | 7,159.815 | 5,487.554 | 1.320× | 1.305× |
+| Nested command | 119.835 | 135.441 | 131.909 | 0.908× | 1.027× |
+| Unicode/ANSI wrapping | 650.206 | 72.948 | 69.812 | 9.314× | 1.045× |
+
+### All eight CI fresh-process workloads
+
+Values are median **milliseconds per process**, including startup, import,
+construction, command or help execution, output capture and exit.
+
+| Fresh-process workload (options) | Click ms | a1 ms | a2 ms | Click / a2 | a1 / a2 |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Command (1) | 47.971 | 46.302 | 39.650 | 1.210× | 1.168× |
+| Render help (1) | 54.821 | 51.443 | 45.123 | 1.215× | 1.140× |
+| Command (10) | 48.305 | 47.054 | 39.811 | 1.213× | 1.182× |
+| Render help (10) | 55.592 | 51.767 | 45.297 | 1.227× | 1.143× |
+| Command (100) | 49.844 | 48.244 | 41.480 | 1.202× | 1.163× |
+| Render help (100) | 56.866 | 53.410 | 46.616 | 1.220× | 1.146× |
+| Command (1,000) | 74.481 | 65.616 | 57.698 | 1.291× | 1.137× |
+| Render help (1,000) | 74.790 | 74.878 | 65.037 | 1.150× | 1.151× |
+
+All eight medians were lower than both references. The 1,000-option command
+ratio against Click was 1.291×; the corresponding help ratio was 1.150×.
+For a2, those observed ranges were 56.739–63.557 ms and 63.850–67.351 ms.
+These ranges describe the retained samples, not a guarantee for every startup.
+
+| Import boundary | Click ms | a1 ms | a2 ms | Click / a2 | a1 / a2 |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Import interval | 28.171 | 27.430 | 21.891 | 1.287× | 1.253× |
+| Whole import-only process | 46.214 | 45.181 | 38.873 | 1.189× | 1.162× |
+
+### CI memory and variability
+
+Whole-worker peak RSS includes imports, package hash validation, the complete
+workload sequence and `tracemalloc`. It is not the memory cost of one parser
+call. Median a2 RSS remained above Click's; the a2 and a1 observed ranges
+overlap. Cross-host absolute RSS values are not directly comparable because
+the interpreter and environment differ.
+
+| Implementation | Median peak RSS MiB | Observed range MiB |
+| --- | ---: | ---: |
+| Click 8.5.1 | 32.039 | 31.957–32.082 |
+| zclick 0.1.1a1 | 33.287 | 33.066–33.355 |
+| zclick 0.1.1a2 | 33.324 | 33.102–34.270 |
+
+For the 1,000-option parser, median Python peak allocation was **54,355 bytes**
+for a2, **175,010 bytes** for a1 and **54,552 bytes** for Click. Complete
+invocation instead recorded **840,650.5**, **941,589** and **797,559 bytes**
+respectively; the fractional median comes from averaging the middle two
+observations. The report retains all eighteen current/peak observations.
+`tracemalloc` does not account for all Rust allocation or total process memory.
+
+The table below gives a2's observed warm ranges and coefficient of variation,
+and each reference's within-round ratio range. The much smaller dispersion in
+this CI run does not erase the local outliers or turn two hosts into a general
+performance guarantee.
+
+| Warm workload | a2 range µs | a2 CV | Paired Click/a2 range | Paired a1/a2 range |
+| --- | ---: | ---: | ---: | ---: |
+| Reuse parser (1) | 4.543–4.847 | 1.99% | 0.602–0.659 | 1.228–1.334 |
+| Reuse parser (1,000) | 830.166–895.415 | 2.04% | 0.938–1.065 | 2.240–2.463 |
+| Command.main (1) | 68.330–71.134 | 1.19% | 0.957–1.028 | 1.015–1.083 |
+| Command.main (1,000) | 7,000.795–7,101.010 | 0.53% | 1.955–2.111 | 1.034–1.075 |
+| Nested command | 128.380–135.708 | 1.57% | 0.880–0.954 | 1.005–1.062 |
+| Unicode/ANSI wrapping | 68.172–72.966 | 1.97% | 8.884–10.063 | 0.999–1.110 |
+
+The CI 1,000-option parser's paired Click/a2 ratios cross one, from 0.938 to
+1.065. Every paired a1/a2 ratio for that parser remained above one, from
+2.240 to 2.463. The full-invocation a1/a2 ratios were 1.034–1.075, a modest
+change alongside the larger Click comparison. These are observed ranges, not
+confidence intervals.
+
+Affinity selected CPU 0; frequency was not locked and no frequency readings
+were available. One-minute host load changed from about 1.53 to 1.40. Isolated
+process hash seeds, GC, scheduling and file caches still affect measurement.
+Both hosts support faster reused parsing than a1 and faster large full
+invocation than Click for these workloads. They do not establish uniformly
+faster parsing than Click, lower process memory, or a speedup for all existing
+Click applications.
 
 ## Reusing parser structure
 
@@ -420,12 +599,23 @@ mechanism evidence from the numerical conclusions.
 | Current definitions are checked before an owned schema is reused | `plan.rs`, `test_native_plan.py`, `test_cached_command_semantics.py` | Implemented mechanism and focused regression cases |
 | Python callbacks, comparisons and conversion changes remain observable | `test_dynamic_semantics.py`, `test_native_ordering.py`, `test_native_parameter_hooks.py`, `test_native_parameter_guard_edges.py` | Specific covered behaviors; release verification is tied to its source commit |
 | Input handling preserves surrogate data and argument identity | `test_native_kernel.py`, `test_native_plan.py` | Covered native-boundary cases |
-| Reused parsing at 1,000 options improved relative to the published a1 wheel | Formal report `parse/1000`: 1,602.245 µs to 632.171 µs; 2.535× median ratio | This local distribution comparison; all paired a1/a2 rounds favored a2 |
-| Warm invocation at 1,000 options has a lower median than Click | Formal report `invoke/1000`: 9,990.399 µs to 5,642.273 µs; 1.771× median ratio | The improvement over a1 is only 1.042×, with overlapping samples |
+| Reused parsing at 1,000 options improved relative to the published a1 wheel | Local `parse/1000`: 1,602.245 µs to 632.171 µs, 2.535×; CI: 2,019.259 µs to 857.956 µs, 2.354× | All paired a1/a2 rounds favored a2 on both recorded hosts |
+| Warm invocation at 1,000 options has a lower median than Click | Local `invoke/1000`: 1.771×; CI: 2.017× | The change over a1 is much smaller, at 1.042× locally and 1.050× in CI |
+| Reused parsing at 1,000 options is consistently faster than Click | Local `parse/1000`: 1.236×; CI: 0.975× | Unsupported across these two hosts; the local advantage did not reproduce |
+| The measured CI runtime corresponds to the release GNU wheel | File-by-file comparison of all 18 Python/native runtime files | Identical runtime contents; different wheel archive SHA-256 values |
 | Every Click application becomes substantially faster | Small parser, one-option invocation and nested-command results; cold outliers | Unsupported; no universal speedup is claimed |
 
 Performance conclusions remain separate from compatibility completion.
 The [subinterpreter compatibility gap](../compatibility/known-gaps.json) remains
-open, so 0.1.1a2 is a prerelease. Its release evidence must still include the
-fixed upstream inventory, API contracts, platform behavior and actual shell
-completion checks described in [COMPATIBILITY.md](../COMPATIBILITY.md).
+open, so 0.1.1a2 is a prerelease. The release completed its full validation
+workflow and is available on
+[GitHub](https://github.com/LIghtJUNction/zclick/releases/tag/v0.1.1a2) and
+[PyPI](https://pypi.org/project/zclick/0.1.1a2/), with tag `v0.1.1a2` fixed to
+`7e3d597873b737bbfc8c2df090773aad56d9bd73`.
+The [release validation record](../compatibility/releases/0.1.1a2.json) records
+the fixed upstream inventory, API contracts, original platform skips and
+actual shell checks. The [publication verification](../compatibility/releases/0.1.1a2-pypi.json)
+records the 12 wheels and source archive, their matching PyPI/GitHub hashes,
+and an isolated PyPI installation. Passing these checks does not close the
+disclosed subinterpreter gap or expand the performance conclusions beyond
+the measured workloads.

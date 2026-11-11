@@ -1,0 +1,2540 @@
+{
+  "schema": 2,
+  "version": "0.1.1a2",
+  "source_commit": "7e3d597873b737bbfc8c2df090773aad56d9bd73",
+  "tag": "v0.1.1a2",
+  "generated_at": "2026-11-11T16:13:51.588975+00:00",
+  "scope": "Observed validation and publication evidence for this immutable prerelease only. No reports from an earlier release are merged.",
+  "release_validation_passed": true,
+  "unrestricted_click_compatibility_complete": false,
+  "target": {
+    "schema": 1,
+    "verified_at": "2026-11-11",
+    "distribution": "click",
+    "version": "8.5.1",
+    "released_at": "2026-11-06",
+    "requires_python": ">=3.10",
+    "repository": "https://github.com/pallets/click.git",
+    "tag": "8.5.1",
+    "tag_object": "57292a92a56908efe3fd1e5bfaaea4a658181aa8",
+    "commit": "cf19179e8e2fd54c601378cec9e0d21bb12b6fb1",
+    "documentation": "https://github.com/pallets/click/tree/cf19179e8e2fd54c601378cec9e0d21bb12b6fb1/docs",
+    "api_reference": "docs/api.md",
+    "tests": "https://github.com/pallets/click/tree/cf19179e8e2fd54c601378cec9e0d21bb12b6fb1/tests",
+    "pypi": "https://pypi.org/project/click/8.5.1/",
+    "wheel_sha256": "8bb5376d2006950386f8c6427613334a2acadc5f559cb80e638d00b4df957e37",
+    "sdist_sha256": "9bbfada76703fd1d784b83eea012e3e8c6a001a876543ef104fa56aaaeb072b4",
+    "moving_stable_docs_used": false
+  },
+  "workflow": {
+    "id": 43052475382,
+    "html_url": "https://github.com/LIghtJUNction/zclick/actions/runs/43052475382",
+    "head_sha": "7e3d597873b737bbfc8c2df090773aad56d9bd73",
+    "status": "completed",
+    "conclusion": "success",
+    "run_attempt": 1,
+    "created_at": "2026-11-11T15:51:16Z",
+    "updated_at": "2026-11-11T16:03:20Z",
+    "jobs": 61,
+    "successful_jobs": 61,
+    "validation_jobs": 45
+  },
+  "published_evidence": {
+    "url": "https://github.com/LIghtJUNction/zclick/releases/download/v0.1.1a2/compatibility-evidence.zip",
+    "sha256": "5b1bd49fa1dffc73f20102d3105caac06244a4b87ac31909217d9e5319bf2566",
+    "archive_entries": 1266,
+    "read_only_source": true
+  },
+  "upstream_inventory": {
+    "schema": 1,
+    "target_commit": "cf19179e8e2fd54c601378cec9e0d21bb12b6fb1",
+    "canonicalization": "scripts/compat_report_plugin.py:key; sorted UTF-8 IDs joined with one LF and a final LF",
+    "test_count": 33459,
+    "test_ids_sha256": "2727fa902dc532f6e02472a85de1bfedfa9e951cbd732c946126f394d624bdbc",
+    "counts_by_file": {
+      "tests/test_abort_interrupt.py": 8,
+      "tests/test_arguments.py": 116,
+      "tests/test_basic.py": 109,
+      "tests/test_chain.py": 16,
+      "tests/test_command_decorators.py": 9,
+      "tests/test_commands.py": 104,
+      "tests/test_compat.py": 175,
+      "tests/test_context.py": 30,
+      "tests/test_custom_classes.py": 6,
+      "tests/test_defaults.py": 46,
+      "tests/test_deprecations.py": 28,
+      "tests/test_exceptions/test_FileError.py": 1,
+      "tests/test_formatting.py": 37,
+      "tests/test_imports.py": 1,
+      "tests/test_info_dict.py": 38,
+      "tests/test_normalization.py": 3,
+      "tests/test_options.py": 676,
+      "tests/test_parser.py": 7,
+      "tests/test_shell_completion.py": 58,
+      "tests/test_stream_lifecycle.py": 30024,
+      "tests/test_termui.py": 282,
+      "tests/test_testing.py": 45,
+      "tests/test_types/test_Choice.py": 1,
+      "tests/test_types/test_File.py": 2,
+      "tests/test_types/test_FloatRange.py": 8,
+      "tests/test_types/test_FuncParamType.py": 2,
+      "tests/test_types/test_IntRange.py": 14,
+      "tests/test_types/test_ParamType.py": 2,
+      "tests/test_types/test_Path.py": 9,
+      "tests/test_types/test_convert_type.py": 30,
+      "tests/test_utils/test_KeepOpenFile.py": 1,
+      "tests/test_utils/test_LazyFile.py": 1,
+      "tests/test_utils/test__detect_program_name.py": 6,
+      "tests/test_utils/test__expand_args.py": 1,
+      "tests/test_utils/test_confirm.py": 2,
+      "tests/test_utils/test_echo.py": 6,
+      "tests/test_utils/test_echo_via_pager.py": 1061,
+      "tests/test_utils/test_format_filename.py": 1,
+      "tests/test_utils/test_make_default_short_help.py": 36,
+      "tests/test_utils/test_open_file.py": 11,
+      "tests/test_utils/test_prompt.py": 9,
+      "tests/test_utils/test_sentinel.py": 10,
+      "tests/test_utils/test_style.py": 427
+    },
+    "observed_union_test_count": 33459,
+    "observed_union_test_ids_sha256": "2727fa902dc532f6e02472a85de1bfedfa9e951cbd732c946126f394d624bdbc",
+    "normal_tests_per_environment": 2459,
+    "stress_tests_per_environment": 31000,
+    "normal_environments": 12,
+    "full_normal_plus_stress_environments": 7,
+    "no_added_skips_or_changed_assertions": true,
+    "count_semantics": "passed counts actual successful executions; skipped and xfailed retain fixed upstream conditions. comparison_passed means the zclick and Click per-node outcomes agree, including original skips."
+  },
+  "normal_environments": [
+    {
+      "runner": "macos-latest",
+      "python_selector": "3.14",
+      "python": "3.14.10 (v3.14.10:b703b2c5e70, Oct 25 2026, 14:17:53) [Clang 21.0.0 (clang-2100.1.1.101)]",
+      "platform": "macOS-26.7.2-arm64-arm-64bit-Mach-O",
+      "job": {
+        "id": 130633214993,
+        "name": "validate / macos-latest / Python 3.14",
+        "conclusion": "success",
+        "html_url": "https://github.com/LIghtJUNction/zclick/actions/runs/43052475382/job/130633214993",
+        "started_at": "2026-11-11T15:53:03Z",
+        "completed_at": "2026-11-11T15:54:12Z"
+      },
+      "upstream": {
+        "comparison_passed": true,
+        "collected_tests_per_package": 2459,
+        "click": {
+          "passed": 2433,
+          "failed": 0,
+          "skipped": 25,
+          "pending": 0,
+          "xfailed": 1,
+          "xpassed": 0
+        },
+        "zclick": {
+          "passed": 2433,
+          "failed": 0,
+          "skipped": 25,
+          "pending": 0,
+          "xfailed": 1,
+          "xpassed": 0
+        },
+        "missing_tests": 0,
+        "extra_tests": 0,
+        "unexpected_skips": 0,
+        "canonical_test_ids_sha256": "6aeb2899e10a29d97fa1214a5c6cf9861c6988ea851e39983a837a27bf597be5",
+        "archive_member": "evidence/upstream/evidence-macos-latest-3.14/normal/summary.json",
+        "archive_member_sha256": "1774fbd95f637c239a74f75d90db8430c5f9b5837c7a460257765258d85455e1"
+      },
+      "public_api": {
+        "items": 196,
+        "complete": true,
+        "archive_member": "evidence/upstream/evidence-macos-latest-3.14/api.json"
+      },
+      "typing": {
+        "passed": true,
+        "source_files": 12,
+        "log_excerpt": "2026-11-11T15:54:05.7407800Z Success: no issues found in 12 source files"
+      },
+      "project_tests": {
+        "tests": 321,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 7,
+        "passed": 314,
+        "archive_member": "evidence/upstream/evidence-macos-latest-3.14/project.xml"
+      }
+    },
+    {
+      "runner": "ubuntu-latest",
+      "python_selector": "3.10",
+      "python": "3.10.22 (main, Oct  1 2026, 14:32:29) [GCC 15.2.0]",
+      "platform": "Linux-7.0.0-1019-azure-x86_64-with-glibc2.43",
+      "job": {
+        "id": 130633214962,
+        "name": "validate / ubuntu-latest / Python 3.10",
+        "conclusion": "success",
+        "html_url": "https://github.com/LIghtJUNction/zclick/actions/runs/43052475382/job/130633214962",
+        "started_at": "2026-11-11T15:53:35Z",
+        "completed_at": "2026-11-11T15:54:48Z"
+      },
+      "upstream": {
+        "comparison_passed": true,
+        "collected_tests_per_package": 2459,
+        "click": {
+          "passed": 2434,
+          "failed": 0,
+          "skipped": 24,
+          "pending": 0,
+          "xfailed": 1,
+          "xpassed": 0
+        },
+        "zclick": {
+          "passed": 2434,
+          "failed": 0,
+          "skipped": 24,
+          "pending": 0,
+          "xfailed": 1,
+          "xpassed": 0
+        },
+        "missing_tests": 0,
+        "extra_tests": 0,
+        "unexpected_skips": 0,
+        "canonical_test_ids_sha256": "6aeb2899e10a29d97fa1214a5c6cf9861c6988ea851e39983a837a27bf597be5",
+        "archive_member": "evidence/upstream/evidence-ubuntu-latest-3.10/normal/summary.json",
+        "archive_member_sha256": "acfcb8c6a632ab90e2472af7529bdfc2b00197eb994f4692e3ed8eb0ba2b202a"
+      },
+      "public_api": {
+        "items": 196,
+        "complete": true,
+        "archive_member": "evidence/upstream/evidence-ubuntu-latest-3.10/api.json"
+      },
+      "typing": {
+        "passed": true,
+        "source_files": 12,
+        "log_excerpt": "2026-11-11T15:54:42.6757033Z Success: no issues found in 12 source files"
+      },
+      "project_tests": {
+        "tests": 321,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 7,
+        "passed": 314,
+        "archive_member": "evidence/upstream/evidence-ubuntu-latest-3.10/project.xml"
+      }
+    },
+    {
+      "runner": "ubuntu-latest",
+      "python_selector": "3.11",
+      "python": "3.11.18 (main, Oct 26 2026, 02:48:29) [GCC 15.2.0]",
+      "platform": "Linux-7.0.0-1019-azure-x86_64-with-glibc2.43",
+      "job": {
+        "id": 130633215244,
+        "name": "validate / ubuntu-latest / Python 3.11",
+        "conclusion": "success",
+        "html_url": "https://github.com/LIghtJUNction/zclick/actions/runs/43052475382/job/130633215244",
+        "started_at": "2026-11-11T15:53:36Z",
+        "completed_at": "2026-11-11T15:54:36Z"
+      },
+      "upstream": {
+        "comparison_passed": true,
+        "collected_tests_per_package": 2459,
+        "click": {
+          "passed": 2434,
+          "failed": 0,
+          "skipped": 24,
+          "pending": 0,
+          "xfailed": 1,
+          "xpassed": 0
+        },
+        "zclick": {
+          "passed": 2434,
+          "failed": 0,
+          "skipped": 24,
+          "pending": 0,
+          "xfailed": 1,
+          "xpassed": 0
+        },
+        "missing_tests": 0,
+        "extra_tests": 0,
+        "unexpected_skips": 0,
+        "canonical_test_ids_sha256": "6aeb2899e10a29d97fa1214a5c6cf9861c6988ea851e39983a837a27bf597be5",
+        "archive_member": "evidence/upstream/evidence-ubuntu-latest-3.11/normal/summary.json",
+        "archive_member_sha256": "243bbae311d741cb129666e3127f2b0ff7333d817602b708506dc45c392dcce9"
+      },
+      "public_api": {
+        "items": 196,
+        "complete": true,
+        "archive_member": "evidence/upstream/evidence-ubuntu-latest-3.11/api.json"
+      },
+      "typing": {
+        "passed": true,
+        "source_files": 12,
+        "log_excerpt": "2026-11-11T15:54:33.1189424Z Success: no issues found in 12 source files"
+      },
+      "project_tests": {
+        "tests": 321,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 7,
+        "passed": 314,
+        "archive_member": "evidence/upstream/evidence-ubuntu-latest-3.11/project.xml"
+      }
+    },
+    {
+      "runner": "ubuntu-latest",
+      "python_selector": "3.12",
+      "python": "3.12.16 (main, Oct 26 2026, 02:48:44) [GCC 15.2.0]",
+      "platform": "Linux-7.0.0-1019-azure-x86_64-with-glibc2.43",
+      "job": {
+        "id": 130633215107,
+        "name": "validate / ubuntu-latest / Python 3.12",
+        "conclusion": "success",
+        "html_url": "https://github.com/LIghtJUNction/zclick/actions/runs/43052475382/job/130633215107",
+        "started_at": "2026-11-11T15:53:16Z",
+        "completed_at": "2026-11-11T15:54:25Z"
+      },
+      "upstream": {
+        "comparison_passed": true,
+        "collected_tests_per_package": 2459,
+        "click": {
+          "passed": 2434,
+          "failed": 0,
+          "skipped": 24,
+          "pending": 0,
+          "xfailed": 1,
+          "xpassed": 0
+        },
+        "zclick": {
+          "passed": 2434,
+          "failed": 0,
+          "skipped": 24,
+          "pending": 0,
+          "xfailed": 1,
+          "xpassed": 0
+        },
+        "missing_tests": 0,
+        "extra_tests": 0,
+        "unexpected_skips": 0,
+        "canonical_test_ids_sha256": "6aeb2899e10a29d97fa1214a5c6cf9861c6988ea851e39983a837a27bf597be5",
+        "archive_member": "evidence/upstream/evidence-ubuntu-latest-3.12/normal/summary.json",
+        "archive_member_sha256": "c7cb59fd3b8bd757a6e9b24ea704e0a428e490ff4ee86ca76cfea7864f70482d"
+      },
+      "public_api": {
+        "items": 196,
+        "complete": true,
+        "archive_member": "evidence/upstream/evidence-ubuntu-latest-3.12/api.json"
+      },
+      "typing": {
+        "passed": true,
+        "source_files": 12,
+        "log_excerpt": "2026-11-11T15:54:23.0674127Z Success: no issues found in 12 source files"
+      },
+      "project_tests": {
+        "tests": 321,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 7,
+        "passed": 314,
+        "archive_member": "evidence/upstream/evidence-ubuntu-latest-3.12/project.xml"
+      }
+    },
+    {
+      "runner": "ubuntu-latest",
+      "python_selector": "3.13",
+      "python": "3.13.18 (main, Oct 26 2026, 14:19:33) [GCC 15.2.0]",
+      "platform": "Linux-7.0.0-1019-azure-x86_64-with-glibc2.43",
+      "job": {
+        "id": 130633214951,
+        "name": "validate / ubuntu-latest / Python 3.13",
+        "conclusion": "success",
+        "html_url": "https://github.com/LIghtJUNction/zclick/actions/runs/43052475382/job/130633214951",
+        "started_at": "2026-11-11T15:53:21Z",
+        "completed_at": "2026-11-11T15:54:19Z"
+      },
+      "upstream": {
+        "comparison_passed": true,
+        "collected_tests_per_package": 2459,
+        "click": {
+          "passed": 2434,
+          "failed": 0,
+          "skipped": 24,
+          "pending": 0,
+          "xfailed": 1,
+          "xpassed": 0
+        },
+        "zclick": {
+          "passed": 2434,
+          "failed": 0,
+          "skipped": 24,
+          "pending": 0,
+          "xfailed": 1,
+          "xpassed": 0
+        },
+        "missing_tests": 0,
+        "extra_tests": 0,
+        "unexpected_skips": 0,
+        "canonical_test_ids_sha256": "6aeb2899e10a29d97fa1214a5c6cf9861c6988ea851e39983a837a27bf597be5",
+        "archive_member": "evidence/upstream/evidence-ubuntu-latest-3.13/normal/summary.json",
+        "archive_member_sha256": "08843d01122a244de4dcf1149c68a712421c8636905afa15ae4d53833af83d8f"
+      },
+      "public_api": {
+        "items": 196,
+        "complete": true,
+        "archive_member": "evidence/upstream/evidence-ubuntu-latest-3.13/api.json"
+      },
+      "typing": {
+        "passed": true,
+        "source_files": 12,
+        "log_excerpt": "2026-11-11T15:54:16.4106413Z Success: no issues found in 12 source files"
+      },
+      "project_tests": {
+        "tests": 321,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 7,
+        "passed": 314,
+        "archive_member": "evidence/upstream/evidence-ubuntu-latest-3.13/project.xml"
+      }
+    },
+    {
+      "runner": "ubuntu-latest",
+      "python_selector": "3.14",
+      "python": "3.14.10 (main, Oct 26 2026, 14:17:03) [GCC 15.2.0]",
+      "platform": "Linux-7.0.0-1019-azure-x86_64-with-glibc2.43",
+      "job": {
+        "id": 130633215103,
+        "name": "validate / ubuntu-latest / Python 3.14",
+        "conclusion": "success",
+        "html_url": "https://github.com/LIghtJUNction/zclick/actions/runs/43052475382/job/130633215103",
+        "started_at": "2026-11-11T15:53:22Z",
+        "completed_at": "2026-11-11T15:54:34Z"
+      },
+      "upstream": {
+        "comparison_passed": true,
+        "collected_tests_per_package": 2459,
+        "click": {
+          "passed": 2434,
+          "failed": 0,
+          "skipped": 24,
+          "pending": 0,
+          "xfailed": 1,
+          "xpassed": 0
+        },
+        "zclick": {
+          "passed": 2434,
+          "failed": 0,
+          "skipped": 24,
+          "pending": 0,
+          "xfailed": 1,
+          "xpassed": 0
+        },
+        "missing_tests": 0,
+        "extra_tests": 0,
+        "unexpected_skips": 0,
+        "canonical_test_ids_sha256": "6aeb2899e10a29d97fa1214a5c6cf9861c6988ea851e39983a837a27bf597be5",
+        "archive_member": "evidence/upstream/evidence-ubuntu-latest-3.14/normal/summary.json",
+        "archive_member_sha256": "ad04dd6ed2dbef49128ba853a1bc2f1a946dc236ed5d1c371f116dc885a69497"
+      },
+      "public_api": {
+        "items": 196,
+        "complete": true,
+        "archive_member": "evidence/upstream/evidence-ubuntu-latest-3.14/api.json"
+      },
+      "typing": {
+        "passed": true,
+        "source_files": 12,
+        "log_excerpt": "2026-11-11T15:54:29.4716238Z Success: no issues found in 12 source files"
+      },
+      "project_tests": {
+        "tests": 321,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 7,
+        "passed": 314,
+        "archive_member": "evidence/upstream/evidence-ubuntu-latest-3.14/project.xml"
+      }
+    },
+    {
+      "runner": "ubuntu-latest",
+      "python_selector": "3.14t",
+      "python": "3.14.10 free-threading build (main, Oct 26 2026, 14:18:26) [GCC 15.2.0]",
+      "platform": "Linux-7.0.0-1019-azure-x86_64-with-glibc2.43",
+      "job": {
+        "id": 130633215017,
+        "name": "validate / ubuntu-latest / Python 3.14t",
+        "conclusion": "success",
+        "html_url": "https://github.com/LIghtJUNction/zclick/actions/runs/43052475382/job/130633215017",
+        "started_at": "2026-11-11T15:53:13Z",
+        "completed_at": "2026-11-11T15:54:39Z"
+      },
+      "upstream": {
+        "comparison_passed": true,
+        "collected_tests_per_package": 2459,
+        "click": {
+          "passed": 2434,
+          "failed": 0,
+          "skipped": 24,
+          "pending": 0,
+          "xfailed": 1,
+          "xpassed": 0
+        },
+        "zclick": {
+          "passed": 2434,
+          "failed": 0,
+          "skipped": 24,
+          "pending": 0,
+          "xfailed": 1,
+          "xpassed": 0
+        },
+        "missing_tests": 0,
+        "extra_tests": 0,
+        "unexpected_skips": 0,
+        "canonical_test_ids_sha256": "6aeb2899e10a29d97fa1214a5c6cf9861c6988ea851e39983a837a27bf597be5",
+        "archive_member": "evidence/upstream/evidence-ubuntu-latest-3.14t/normal/summary.json",
+        "archive_member_sha256": "ea71febc3bdf396e85fb58a4df825404affd249efdfc9c625897c9958cba7fff"
+      },
+      "public_api": {
+        "items": 196,
+        "complete": true,
+        "archive_member": "evidence/upstream/evidence-ubuntu-latest-3.14t/api.json"
+      },
+      "typing": {
+        "passed": true,
+        "source_files": 12,
+        "log_excerpt": "2026-11-11T15:54:34.8821031Z Success: no issues found in 12 source files"
+      },
+      "project_tests": {
+        "tests": 321,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 7,
+        "passed": 314,
+        "archive_member": "evidence/upstream/evidence-ubuntu-latest-3.14t/project.xml"
+      }
+    },
+    {
+      "runner": "ubuntu-latest",
+      "python_selector": "3.15",
+      "python": "3.15.2 (main, Oct 26 2026, 14:39:36) [GCC 15.2.0]",
+      "platform": "Linux-7.0.0-1019-azure-x86_64-with-glibc2.43",
+      "job": {
+        "id": 130633214971,
+        "name": "validate / ubuntu-latest / Python 3.15",
+        "conclusion": "success",
+        "html_url": "https://github.com/LIghtJUNction/zclick/actions/runs/43052475382/job/130633214971",
+        "started_at": "2026-11-11T15:52:37Z",
+        "completed_at": "2026-11-11T15:54:09Z"
+      },
+      "upstream": {
+        "comparison_passed": true,
+        "collected_tests_per_package": 2459,
+        "click": {
+          "passed": 2434,
+          "failed": 0,
+          "skipped": 24,
+          "pending": 0,
+          "xfailed": 1,
+          "xpassed": 0
+        },
+        "zclick": {
+          "passed": 2434,
+          "failed": 0,
+          "skipped": 24,
+          "pending": 0,
+          "xfailed": 1,
+          "xpassed": 0
+        },
+        "missing_tests": 0,
+        "extra_tests": 0,
+        "unexpected_skips": 0,
+        "canonical_test_ids_sha256": "6aeb2899e10a29d97fa1214a5c6cf9861c6988ea851e39983a837a27bf597be5",
+        "archive_member": "evidence/upstream/evidence-ubuntu-latest-3.15/normal/summary.json",
+        "archive_member_sha256": "8e148244b68cb1f3cfeba05ce0b1c9b1d847be79055fbfb91b03312ed1121b80"
+      },
+      "public_api": {
+        "items": 196,
+        "complete": true,
+        "archive_member": "evidence/upstream/evidence-ubuntu-latest-3.15/api.json"
+      },
+      "typing": {
+        "passed": true,
+        "source_files": 12,
+        "log_excerpt": "2026-11-11T15:54:05.6112262Z Success: no issues found in 12 source files"
+      },
+      "project_tests": {
+        "tests": 321,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 7,
+        "passed": 314,
+        "archive_member": "evidence/upstream/evidence-ubuntu-latest-3.15/project.xml"
+      }
+    },
+    {
+      "runner": "ubuntu-latest",
+      "python_selector": "3.15t",
+      "python": "3.15.2 free-threading build (main, Oct 26 2026, 14:42:47) [GCC 15.2.0]",
+      "platform": "Linux-7.0.0-1019-azure-x86_64-with-glibc2.43",
+      "job": {
+        "id": 130633215151,
+        "name": "validate / ubuntu-latest / Python 3.15t",
+        "conclusion": "success",
+        "html_url": "https://github.com/LIghtJUNction/zclick/actions/runs/43052475382/job/130633215151",
+        "started_at": "2026-11-11T15:53:28Z",
+        "completed_at": "2026-11-11T15:55:30Z"
+      },
+      "upstream": {
+        "comparison_passed": true,
+        "collected_tests_per_package": 2459,
+        "click": {
+          "passed": 2434,
+          "failed": 0,
+          "skipped": 24,
+          "pending": 0,
+          "xfailed": 1,
+          "xpassed": 0
+        },
+        "zclick": {
+          "passed": 2434,
+          "failed": 0,
+          "skipped": 24,
+          "pending": 0,
+          "xfailed": 1,
+          "xpassed": 0
+        },
+        "missing_tests": 0,
+        "extra_tests": 0,
+        "unexpected_skips": 0,
+        "canonical_test_ids_sha256": "6aeb2899e10a29d97fa1214a5c6cf9861c6988ea851e39983a837a27bf597be5",
+        "archive_member": "evidence/upstream/evidence-ubuntu-latest-3.15t/normal/summary.json",
+        "archive_member_sha256": "3bcaa4d65a4cc69234f7a9d06ed284f5daf7b0b5004bada76466d352eb1b1c8d"
+      },
+      "public_api": {
+        "items": 196,
+        "complete": true,
+        "archive_member": "evidence/upstream/evidence-ubuntu-latest-3.15t/api.json"
+      },
+      "typing": {
+        "passed": true,
+        "source_files": 12,
+        "log_excerpt": "2026-11-11T15:55:24.7270715Z Success: no issues found in 12 source files"
+      },
+      "project_tests": {
+        "tests": 321,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 7,
+        "passed": 314,
+        "archive_member": "evidence/upstream/evidence-ubuntu-latest-3.15t/project.xml"
+      }
+    },
+    {
+      "runner": "ubuntu-latest",
+      "python_selector": "pypy-3.11",
+      "python": "3.11.17 (ec82f20141cf, Oct 13 2026, 15:02:27)\n[PyPy 8.0.1 with GCC 14.2.1 20250110 (Red Hat 14.2.1-11)]",
+      "platform": "Linux-7.0.0-1019-azure-x86_64-with-glibc2.43",
+      "job": {
+        "id": 130633214999,
+        "name": "validate / ubuntu-latest / Python pypy-3.11",
+        "conclusion": "success",
+        "html_url": "https://github.com/LIghtJUNction/zclick/actions/runs/43052475382/job/130633214999",
+        "started_at": "2026-11-11T15:52:44Z",
+        "completed_at": "2026-11-11T15:55:49Z"
+      },
+      "upstream": {
+        "comparison_passed": true,
+        "collected_tests_per_package": 2459,
+        "click": {
+          "passed": 2434,
+          "failed": 0,
+          "skipped": 24,
+          "pending": 0,
+          "xfailed": 1,
+          "xpassed": 0
+        },
+        "zclick": {
+          "passed": 2434,
+          "failed": 0,
+          "skipped": 24,
+          "pending": 0,
+          "xfailed": 1,
+          "xpassed": 0
+        },
+        "missing_tests": 0,
+        "extra_tests": 0,
+        "unexpected_skips": 0,
+        "canonical_test_ids_sha256": "6aeb2899e10a29d97fa1214a5c6cf9861c6988ea851e39983a837a27bf597be5",
+        "archive_member": "evidence/upstream/evidence-ubuntu-latest-pypy-3.11/normal/summary.json",
+        "archive_member_sha256": "61ce3bb054d5f519fc4c8b60770721fef1ca38743d751feebd4d11279b6c2c3d"
+      },
+      "public_api": {
+        "items": 196,
+        "complete": true,
+        "archive_member": "evidence/upstream/evidence-ubuntu-latest-pypy-3.11/api.json"
+      },
+      "typing": {
+        "passed": true,
+        "source_files": 12,
+        "log_excerpt": "2026-11-11T15:55:44.5884868Z Success: no issues found in 12 source files"
+      },
+      "project_tests": {
+        "tests": 321,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 11,
+        "passed": 310,
+        "archive_member": "evidence/upstream/evidence-ubuntu-latest-pypy-3.11/project.xml"
+      }
+    },
+    {
+      "runner": "ubuntu-latest",
+      "python_selector": "pypy-3.12",
+      "python": "3.12.15 (d90944c94ad6, Oct 13 2026, 18:01:21)\n[PyPy 8.0.1 with GCC 14.2.1 20250110 (Red Hat 14.2.1-11)]",
+      "platform": "Linux-7.0.0-1019-azure-x86_64-with-glibc2.43",
+      "job": {
+        "id": 130633214877,
+        "name": "validate / ubuntu-latest / Python pypy-3.12",
+        "conclusion": "success",
+        "html_url": "https://github.com/LIghtJUNction/zclick/actions/runs/43052475382/job/130633214877",
+        "started_at": "2026-11-11T15:52:25Z",
+        "completed_at": "2026-11-11T15:55:30Z"
+      },
+      "upstream": {
+        "comparison_passed": true,
+        "collected_tests_per_package": 2459,
+        "click": {
+          "passed": 2434,
+          "failed": 0,
+          "skipped": 24,
+          "pending": 0,
+          "xfailed": 1,
+          "xpassed": 0
+        },
+        "zclick": {
+          "passed": 2434,
+          "failed": 0,
+          "skipped": 24,
+          "pending": 0,
+          "xfailed": 1,
+          "xpassed": 0
+        },
+        "missing_tests": 0,
+        "extra_tests": 0,
+        "unexpected_skips": 0,
+        "canonical_test_ids_sha256": "6aeb2899e10a29d97fa1214a5c6cf9861c6988ea851e39983a837a27bf597be5",
+        "archive_member": "evidence/upstream/evidence-ubuntu-latest-pypy-3.12/normal/summary.json",
+        "archive_member_sha256": "750784db68f17df8f6b4c7e980d9d12c56a9fdc6e2c7c803f11bc67e443f7f7c"
+      },
+      "public_api": {
+        "items": 196,
+        "complete": true,
+        "archive_member": "evidence/upstream/evidence-ubuntu-latest-pypy-3.12/api.json"
+      },
+      "typing": {
+        "passed": true,
+        "source_files": 12,
+        "log_excerpt": "2026-11-11T15:55:27.8753221Z Success: no issues found in 12 source files"
+      },
+      "project_tests": {
+        "tests": 321,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 11,
+        "passed": 310,
+        "archive_member": "evidence/upstream/evidence-ubuntu-latest-pypy-3.12/project.xml"
+      }
+    },
+    {
+      "runner": "windows-latest",
+      "python_selector": "3.14",
+      "python": "3.14.10 (tags/v3.14.10:b703b2c, Oct 25 2026, 17:36:52) [MSC v.1944 64 bit (AMD64)]",
+      "platform": "Windows-2025Server-10.0.26100-SP0",
+      "job": {
+        "id": 130633215051,
+        "name": "validate / windows-latest / Python 3.14",
+        "conclusion": "success",
+        "html_url": "https://github.com/LIghtJUNction/zclick/actions/runs/43052475382/job/130633215051",
+        "started_at": "2026-11-11T15:52:20Z",
+        "completed_at": "2026-11-11T15:54:13Z"
+      },
+      "upstream": {
+        "comparison_passed": true,
+        "collected_tests_per_package": 2459,
+        "click": {
+          "passed": 2357,
+          "failed": 0,
+          "skipped": 101,
+          "pending": 0,
+          "xfailed": 1,
+          "xpassed": 0
+        },
+        "zclick": {
+          "passed": 2357,
+          "failed": 0,
+          "skipped": 101,
+          "pending": 0,
+          "xfailed": 1,
+          "xpassed": 0
+        },
+        "missing_tests": 0,
+        "extra_tests": 0,
+        "unexpected_skips": 0,
+        "canonical_test_ids_sha256": "6aeb2899e10a29d97fa1214a5c6cf9861c6988ea851e39983a837a27bf597be5",
+        "archive_member": "evidence/upstream/evidence-windows-latest-3.14/normal/summary.json",
+        "archive_member_sha256": "a548d0be6fdedeb47c4131a74f87f119ff844ddf3e557f74f0eed9ec0398b69f"
+      },
+      "public_api": {
+        "items": 196,
+        "complete": true,
+        "archive_member": "evidence/upstream/evidence-windows-latest-3.14/api.json"
+      },
+      "typing": {
+        "passed": true,
+        "source_files": 12,
+        "log_excerpt": "2026-11-11T15:54:08.8812496Z Success: no issues found in 12 source files"
+      },
+      "project_tests": {
+        "tests": 321,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 5,
+        "passed": 316,
+        "archive_member": "evidence/upstream/evidence-windows-latest-3.14/project.xml"
+      }
+    }
+  ],
+  "stress_environments": [
+    {
+      "runner": "macos-latest",
+      "python_selector": "3.14",
+      "python": "3.14.10 (v3.14.10:b703b2c5e70, Oct 25 2026, 14:17:53) [Clang 21.0.0 (clang-2100.1.1.101)]",
+      "platform": "macOS-26.7.2-arm64-arm-64bit-Mach-O",
+      "families": [
+        {
+          "name": "echo_via_pager_exception_cleanup",
+          "job": {
+            "id": 130633215568,
+            "name": "validate / Stress / macos-latest / 3.14 / echo_via_pager_exception_cleanup",
+            "conclusion": "success",
+            "html_url": "https://github.com/LIghtJUNction/zclick/actions/runs/43052475382/job/130633215568",
+            "started_at": "2026-11-11T15:54:41Z",
+            "completed_at": "2026-11-11T15:55:58Z"
+          },
+          "comparison_passed": true,
+          "collected_tests_per_package": 1000,
+          "click": {
+            "passed": 1000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "zclick": {
+            "passed": 1000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "missing_tests": 0,
+          "extra_tests": 0,
+          "unexpected_skips": 0,
+          "canonical_test_ids_sha256": "b72f031faccdb49158794c4ca1255caa4699a71ea4bc6fd86591e76cf2e33c76",
+          "archive_member": "evidence/upstream/evidence-stress-macos-latest-3.14-echo_via_pager_exception_cleanup/stress/summary.json",
+          "archive_member_sha256": "a74984db6f290ed73f154ae00f32bacedcbc8c25235410535040ab4912193097"
+        },
+        {
+          "name": "gc_between_invocations",
+          "job": {
+            "id": 130633215462,
+            "name": "validate / Stress / macos-latest / 3.14 / gc_between_invocations",
+            "conclusion": "success",
+            "html_url": "https://github.com/LIghtJUNction/zclick/actions/runs/43052475382/job/130633215462",
+            "started_at": "2026-11-11T15:54:53Z",
+            "completed_at": "2026-11-11T16:01:24Z"
+          },
+          "comparison_passed": true,
+          "collected_tests_per_package": 10000,
+          "click": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "zclick": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "missing_tests": 0,
+          "extra_tests": 0,
+          "unexpected_skips": 0,
+          "canonical_test_ids_sha256": "3562e6a0f3b722172dd43afc3127c547ab41c3259fdf1252ea5f9bfa531b61b3",
+          "archive_member": "evidence/upstream/evidence-stress-macos-latest-3.14-gc_between_invocations/stress/summary.json",
+          "archive_member_sha256": "c97f4596923d2df8370056a663b74b348202ce0d17ea3f820e652d38cfc2a50c"
+        },
+        {
+          "name": "logging_sequential_invocations",
+          "job": {
+            "id": 130633215353,
+            "name": "validate / Stress / macos-latest / 3.14 / logging_sequential_invocations",
+            "conclusion": "success",
+            "html_url": "https://github.com/LIghtJUNction/zclick/actions/runs/43052475382/job/130633215353",
+            "started_at": "2026-11-11T15:53:48Z",
+            "completed_at": "2026-11-11T15:54:49Z"
+          },
+          "comparison_passed": true,
+          "collected_tests_per_package": 10000,
+          "click": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "zclick": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "missing_tests": 0,
+          "extra_tests": 0,
+          "unexpected_skips": 0,
+          "canonical_test_ids_sha256": "7ccbb9dbc749e72700e304915afa1b348eba67b6c57d65b89ce6ca3f9184114a",
+          "archive_member": "evidence/upstream/evidence-stress-macos-latest-3.14-logging_sequential_invocations/stress/summary.json",
+          "archive_member_sha256": "ceeaa20a458bb20621fc4506c8afffdeb76c19ab2e8fbed490aa1d1932b9d23b"
+        },
+        {
+          "name": "thread_pool_with_exit",
+          "job": {
+            "id": 130633215565,
+            "name": "validate / Stress / macos-latest / 3.14 / thread_pool_with_exit",
+            "conclusion": "success",
+            "html_url": "https://github.com/LIghtJUNction/zclick/actions/runs/43052475382/job/130633215565",
+            "started_at": "2026-11-11T15:53:59Z",
+            "completed_at": "2026-11-11T15:55:10Z"
+          },
+          "comparison_passed": true,
+          "collected_tests_per_package": 10000,
+          "click": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "zclick": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "missing_tests": 0,
+          "extra_tests": 0,
+          "unexpected_skips": 0,
+          "canonical_test_ids_sha256": "fe2fe831334a0ebd8ecf402945dfc6848054bd491bffc6f88701783af95ea2b3",
+          "archive_member": "evidence/upstream/evidence-stress-macos-latest-3.14-thread_pool_with_exit/stress/summary.json",
+          "archive_member_sha256": "fb45b94a25aa1fc57ffe37b817092efebe94371acf896652e32ed7e738727b58"
+        }
+      ],
+      "comparison_passed": true,
+      "collected_tests_per_package": 31000,
+      "click": {
+        "passed": 31000,
+        "failed": 0,
+        "skipped": 0,
+        "pending": 0,
+        "xfailed": 0,
+        "xpassed": 0
+      },
+      "zclick": {
+        "passed": 31000,
+        "failed": 0,
+        "skipped": 0,
+        "pending": 0,
+        "xfailed": 0,
+        "xpassed": 0
+      },
+      "canonical_stress_test_ids_sha256": "41721cdd2cdc8245395eb046937570a7d9ce8c8e5945c306ef6e98d7ce8a048a",
+      "normal_plus_stress_test_count": 33459,
+      "normal_plus_stress_test_ids_sha256": "2727fa902dc532f6e02472a85de1bfedfa9e951cbd732c946126f394d624bdbc"
+    },
+    {
+      "runner": "ubuntu-latest",
+      "python_selector": "3.14",
+      "python": "3.14.10 (main, Oct 26 2026, 14:17:03) [GCC 15.2.0]",
+      "platform": "Linux-7.0.0-1019-azure-x86_64-with-glibc2.43",
+      "families": [
+        {
+          "name": "echo_via_pager_exception_cleanup",
+          "job": {
+            "id": 130633215351,
+            "name": "validate / Stress / ubuntu-latest / 3.14 / echo_via_pager_exception_cleanup",
+            "conclusion": "success",
+            "html_url": "https://github.com/LIghtJUNction/zclick/actions/runs/43052475382/job/130633215351",
+            "started_at": "2026-11-11T15:53:39Z",
+            "completed_at": "2026-11-11T15:54:19Z"
+          },
+          "comparison_passed": true,
+          "collected_tests_per_package": 1000,
+          "click": {
+            "passed": 1000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "zclick": {
+            "passed": 1000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "missing_tests": 0,
+          "extra_tests": 0,
+          "unexpected_skips": 0,
+          "canonical_test_ids_sha256": "b72f031faccdb49158794c4ca1255caa4699a71ea4bc6fd86591e76cf2e33c76",
+          "archive_member": "evidence/upstream/evidence-stress-ubuntu-latest-3.14-echo_via_pager_exception_cleanup/stress/summary.json",
+          "archive_member_sha256": "525a9ca7ee9f2fbb64899898c73ff3258c05276a93f3eff0bec7c789a40c9dd6"
+        },
+        {
+          "name": "gc_between_invocations",
+          "job": {
+            "id": 130633215412,
+            "name": "validate / Stress / ubuntu-latest / 3.14 / gc_between_invocations",
+            "conclusion": "success",
+            "html_url": "https://github.com/LIghtJUNction/zclick/actions/runs/43052475382/job/130633215412",
+            "started_at": "2026-11-11T15:54:14Z",
+            "completed_at": "2026-11-11T15:57:51Z"
+          },
+          "comparison_passed": true,
+          "collected_tests_per_package": 10000,
+          "click": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "zclick": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "missing_tests": 0,
+          "extra_tests": 0,
+          "unexpected_skips": 0,
+          "canonical_test_ids_sha256": "3562e6a0f3b722172dd43afc3127c547ab41c3259fdf1252ea5f9bfa531b61b3",
+          "archive_member": "evidence/upstream/evidence-stress-ubuntu-latest-3.14-gc_between_invocations/stress/summary.json",
+          "archive_member_sha256": "dfa325a267d660460dda07ebf97ff71fa509f96be061f5ea40bf06cf8b8661f6"
+        },
+        {
+          "name": "logging_sequential_invocations",
+          "job": {
+            "id": 130633215387,
+            "name": "validate / Stress / ubuntu-latest / 3.14 / logging_sequential_invocations",
+            "conclusion": "success",
+            "html_url": "https://github.com/LIghtJUNction/zclick/actions/runs/43052475382/job/130633215387",
+            "started_at": "2026-11-11T15:54:22Z",
+            "completed_at": "2026-11-11T15:55:22Z"
+          },
+          "comparison_passed": true,
+          "collected_tests_per_package": 10000,
+          "click": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "zclick": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "missing_tests": 0,
+          "extra_tests": 0,
+          "unexpected_skips": 0,
+          "canonical_test_ids_sha256": "7ccbb9dbc749e72700e304915afa1b348eba67b6c57d65b89ce6ca3f9184114a",
+          "archive_member": "evidence/upstream/evidence-stress-ubuntu-latest-3.14-logging_sequential_invocations/stress/summary.json",
+          "archive_member_sha256": "dc5bf9ee8462bf2b109f1a406d16b11e00bbadd16a8964aa93f7ab89125bc485"
+        },
+        {
+          "name": "thread_pool_with_exit",
+          "job": {
+            "id": 130633215591,
+            "name": "validate / Stress / ubuntu-latest / 3.14 / thread_pool_with_exit",
+            "conclusion": "success",
+            "html_url": "https://github.com/LIghtJUNction/zclick/actions/runs/43052475382/job/130633215591",
+            "started_at": "2026-11-11T15:55:33Z",
+            "completed_at": "2026-11-11T15:56:36Z"
+          },
+          "comparison_passed": true,
+          "collected_tests_per_package": 10000,
+          "click": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "zclick": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "missing_tests": 0,
+          "extra_tests": 0,
+          "unexpected_skips": 0,
+          "canonical_test_ids_sha256": "fe2fe831334a0ebd8ecf402945dfc6848054bd491bffc6f88701783af95ea2b3",
+          "archive_member": "evidence/upstream/evidence-stress-ubuntu-latest-3.14-thread_pool_with_exit/stress/summary.json",
+          "archive_member_sha256": "2b285c3b5b4ac1fd1af710ac45ab1e20fef185202b8e761d0092c2439682104c"
+        }
+      ],
+      "comparison_passed": true,
+      "collected_tests_per_package": 31000,
+      "click": {
+        "passed": 31000,
+        "failed": 0,
+        "skipped": 0,
+        "pending": 0,
+        "xfailed": 0,
+        "xpassed": 0
+      },
+      "zclick": {
+        "passed": 31000,
+        "failed": 0,
+        "skipped": 0,
+        "pending": 0,
+        "xfailed": 0,
+        "xpassed": 0
+      },
+      "canonical_stress_test_ids_sha256": "41721cdd2cdc8245395eb046937570a7d9ce8c8e5945c306ef6e98d7ce8a048a",
+      "normal_plus_stress_test_count": 33459,
+      "normal_plus_stress_test_ids_sha256": "2727fa902dc532f6e02472a85de1bfedfa9e951cbd732c946126f394d624bdbc"
+    },
+    {
+      "runner": "ubuntu-latest",
+      "python_selector": "3.14t",
+      "python": "3.14.10 free-threading build (main, Oct 26 2026, 14:18:26) [GCC 15.2.0]",
+      "platform": "Linux-7.0.0-1019-azure-x86_64-with-glibc2.43",
+      "families": [
+        {
+          "name": "echo_via_pager_exception_cleanup",
+          "job": {
+            "id": 130633215411,
+            "name": "validate / Stress / ubuntu-latest / 3.14t / echo_via_pager_exception_cleanup",
+            "conclusion": "success",
+            "html_url": "https://github.com/LIghtJUNction/zclick/actions/runs/43052475382/job/130633215411",
+            "started_at": "2026-11-11T15:54:21Z",
+            "completed_at": "2026-11-11T15:55:16Z"
+          },
+          "comparison_passed": true,
+          "collected_tests_per_package": 1000,
+          "click": {
+            "passed": 1000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "zclick": {
+            "passed": 1000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "missing_tests": 0,
+          "extra_tests": 0,
+          "unexpected_skips": 0,
+          "canonical_test_ids_sha256": "b72f031faccdb49158794c4ca1255caa4699a71ea4bc6fd86591e76cf2e33c76",
+          "archive_member": "evidence/upstream/evidence-stress-ubuntu-latest-3.14t-echo_via_pager_exception_cleanup/stress/summary.json",
+          "archive_member_sha256": "dce8ad9981dfa427889e59d8583d367630e569ba8769fc45bc8dd7b4f2cf1860"
+        },
+        {
+          "name": "gc_between_invocations",
+          "job": {
+            "id": 130633215467,
+            "name": "validate / Stress / ubuntu-latest / 3.14t / gc_between_invocations",
+            "conclusion": "success",
+            "html_url": "https://github.com/LIghtJUNction/zclick/actions/runs/43052475382/job/130633215467",
+            "started_at": "2026-11-11T15:55:13Z",
+            "completed_at": "2026-11-11T15:58:17Z"
+          },
+          "comparison_passed": true,
+          "collected_tests_per_package": 10000,
+          "click": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "zclick": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "missing_tests": 0,
+          "extra_tests": 0,
+          "unexpected_skips": 0,
+          "canonical_test_ids_sha256": "3562e6a0f3b722172dd43afc3127c547ab41c3259fdf1252ea5f9bfa531b61b3",
+          "archive_member": "evidence/upstream/evidence-stress-ubuntu-latest-3.14t-gc_between_invocations/stress/summary.json",
+          "archive_member_sha256": "3ec614ca9c31d489c5d7e7b612b67ae1750a62749edec8093715d13e6fa8dcd3"
+        },
+        {
+          "name": "logging_sequential_invocations",
+          "job": {
+            "id": 130633215424,
+            "name": "validate / Stress / ubuntu-latest / 3.14t / logging_sequential_invocations",
+            "conclusion": "success",
+            "html_url": "https://github.com/LIghtJUNction/zclick/actions/runs/43052475382/job/130633215424",
+            "started_at": "2026-11-11T15:54:13Z",
+            "completed_at": "2026-11-11T15:55:02Z"
+          },
+          "comparison_passed": true,
+          "collected_tests_per_package": 10000,
+          "click": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "zclick": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "missing_tests": 0,
+          "extra_tests": 0,
+          "unexpected_skips": 0,
+          "canonical_test_ids_sha256": "7ccbb9dbc749e72700e304915afa1b348eba67b6c57d65b89ce6ca3f9184114a",
+          "archive_member": "evidence/upstream/evidence-stress-ubuntu-latest-3.14t-logging_sequential_invocations/stress/summary.json",
+          "archive_member_sha256": "e04e3f915815dd4f4e9f85aa2da1f306f92bb780660ddc7fee11c55d4dd75af6"
+        },
+        {
+          "name": "thread_pool_with_exit",
+          "job": {
+            "id": 130633215435,
+            "name": "validate / Stress / ubuntu-latest / 3.14t / thread_pool_with_exit",
+            "conclusion": "success",
+            "html_url": "https://github.com/LIghtJUNction/zclick/actions/runs/43052475382/job/130633215435",
+            "started_at": "2026-11-11T15:55:53Z",
+            "completed_at": "2026-11-11T15:57:02Z"
+          },
+          "comparison_passed": true,
+          "collected_tests_per_package": 10000,
+          "click": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "zclick": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "missing_tests": 0,
+          "extra_tests": 0,
+          "unexpected_skips": 0,
+          "canonical_test_ids_sha256": "fe2fe831334a0ebd8ecf402945dfc6848054bd491bffc6f88701783af95ea2b3",
+          "archive_member": "evidence/upstream/evidence-stress-ubuntu-latest-3.14t-thread_pool_with_exit/stress/summary.json",
+          "archive_member_sha256": "57e3d273799f97d85105b61fe542f0d31f8b5eb591bdb454011acf190caa3a65"
+        }
+      ],
+      "comparison_passed": true,
+      "collected_tests_per_package": 31000,
+      "click": {
+        "passed": 31000,
+        "failed": 0,
+        "skipped": 0,
+        "pending": 0,
+        "xfailed": 0,
+        "xpassed": 0
+      },
+      "zclick": {
+        "passed": 31000,
+        "failed": 0,
+        "skipped": 0,
+        "pending": 0,
+        "xfailed": 0,
+        "xpassed": 0
+      },
+      "canonical_stress_test_ids_sha256": "41721cdd2cdc8245395eb046937570a7d9ce8c8e5945c306ef6e98d7ce8a048a",
+      "normal_plus_stress_test_count": 33459,
+      "normal_plus_stress_test_ids_sha256": "2727fa902dc532f6e02472a85de1bfedfa9e951cbd732c946126f394d624bdbc"
+    },
+    {
+      "runner": "ubuntu-latest",
+      "python_selector": "3.15t",
+      "python": "3.15.2 free-threading build (main, Oct 26 2026, 14:42:47) [GCC 15.2.0]",
+      "platform": "Linux-7.0.0-1019-azure-x86_64-with-glibc2.43",
+      "families": [
+        {
+          "name": "echo_via_pager_exception_cleanup",
+          "job": {
+            "id": 130633215608,
+            "name": "validate / Stress / ubuntu-latest / 3.15t / echo_via_pager_exception_cleanup",
+            "conclusion": "success",
+            "html_url": "https://github.com/LIghtJUNction/zclick/actions/runs/43052475382/job/130633215608",
+            "started_at": "2026-11-11T15:54:41Z",
+            "completed_at": "2026-11-11T15:56:13Z"
+          },
+          "comparison_passed": true,
+          "collected_tests_per_package": 1000,
+          "click": {
+            "passed": 1000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "zclick": {
+            "passed": 1000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "missing_tests": 0,
+          "extra_tests": 0,
+          "unexpected_skips": 0,
+          "canonical_test_ids_sha256": "b72f031faccdb49158794c4ca1255caa4699a71ea4bc6fd86591e76cf2e33c76",
+          "archive_member": "evidence/upstream/evidence-stress-ubuntu-latest-3.15t-echo_via_pager_exception_cleanup/stress/summary.json",
+          "archive_member_sha256": "779db77fa5110254189cadfb0149280dd18a1870277561cd8978999896022315"
+        },
+        {
+          "name": "gc_between_invocations",
+          "job": {
+            "id": 130633215977,
+            "name": "validate / Stress / ubuntu-latest / 3.15t / gc_between_invocations",
+            "conclusion": "success",
+            "html_url": "https://github.com/LIghtJUNction/zclick/actions/runs/43052475382/job/130633215977",
+            "started_at": "2026-11-11T15:55:32Z",
+            "completed_at": "2026-11-11T15:58:47Z"
+          },
+          "comparison_passed": true,
+          "collected_tests_per_package": 10000,
+          "click": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "zclick": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "missing_tests": 0,
+          "extra_tests": 0,
+          "unexpected_skips": 0,
+          "canonical_test_ids_sha256": "3562e6a0f3b722172dd43afc3127c547ab41c3259fdf1252ea5f9bfa531b61b3",
+          "archive_member": "evidence/upstream/evidence-stress-ubuntu-latest-3.15t-gc_between_invocations/stress/summary.json",
+          "archive_member_sha256": "fab4f25db98039ac6095ba4afef8b820359a49ae7935e51518e67053f57e6db4"
+        },
+        {
+          "name": "logging_sequential_invocations",
+          "job": {
+            "id": 130633215657,
+            "name": "validate / Stress / ubuntu-latest / 3.15t / logging_sequential_invocations",
+            "conclusion": "success",
+            "html_url": "https://github.com/LIghtJUNction/zclick/actions/runs/43052475382/job/130633215657",
+            "started_at": "2026-11-11T15:55:35Z",
+            "completed_at": "2026-11-11T15:57:10Z"
+          },
+          "comparison_passed": true,
+          "collected_tests_per_package": 10000,
+          "click": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "zclick": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "missing_tests": 0,
+          "extra_tests": 0,
+          "unexpected_skips": 0,
+          "canonical_test_ids_sha256": "7ccbb9dbc749e72700e304915afa1b348eba67b6c57d65b89ce6ca3f9184114a",
+          "archive_member": "evidence/upstream/evidence-stress-ubuntu-latest-3.15t-logging_sequential_invocations/stress/summary.json",
+          "archive_member_sha256": "329729ec183b50f0390f2d129a902d553e512b07e414f1a290a174f87e0cea5f"
+        },
+        {
+          "name": "thread_pool_with_exit",
+          "job": {
+            "id": 130633216091,
+            "name": "validate / Stress / ubuntu-latest / 3.15t / thread_pool_with_exit",
+            "conclusion": "success",
+            "html_url": "https://github.com/LIghtJUNction/zclick/actions/runs/43052475382/job/130633216091",
+            "started_at": "2026-11-11T15:55:52Z",
+            "completed_at": "2026-11-11T15:57:38Z"
+          },
+          "comparison_passed": true,
+          "collected_tests_per_package": 10000,
+          "click": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "zclick": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "missing_tests": 0,
+          "extra_tests": 0,
+          "unexpected_skips": 0,
+          "canonical_test_ids_sha256": "fe2fe831334a0ebd8ecf402945dfc6848054bd491bffc6f88701783af95ea2b3",
+          "archive_member": "evidence/upstream/evidence-stress-ubuntu-latest-3.15t-thread_pool_with_exit/stress/summary.json",
+          "archive_member_sha256": "3d483bb4f865de541bc3c5c25f28c8a2c6327ee99b64febb519ec41b5ebd60fa"
+        }
+      ],
+      "comparison_passed": true,
+      "collected_tests_per_package": 31000,
+      "click": {
+        "passed": 31000,
+        "failed": 0,
+        "skipped": 0,
+        "pending": 0,
+        "xfailed": 0,
+        "xpassed": 0
+      },
+      "zclick": {
+        "passed": 31000,
+        "failed": 0,
+        "skipped": 0,
+        "pending": 0,
+        "xfailed": 0,
+        "xpassed": 0
+      },
+      "canonical_stress_test_ids_sha256": "41721cdd2cdc8245395eb046937570a7d9ce8c8e5945c306ef6e98d7ce8a048a",
+      "normal_plus_stress_test_count": 33459,
+      "normal_plus_stress_test_ids_sha256": "2727fa902dc532f6e02472a85de1bfedfa9e951cbd732c946126f394d624bdbc"
+    },
+    {
+      "runner": "ubuntu-latest",
+      "python_selector": "pypy-3.11",
+      "python": "3.11.17 (ec82f20141cf, Oct 13 2026, 15:02:27)\n[PyPy 8.0.1 with GCC 14.2.1 20250110 (Red Hat 14.2.1-11)]",
+      "platform": "Linux-7.0.0-1019-azure-x86_64-with-glibc2.43",
+      "families": [
+        {
+          "name": "echo_via_pager_exception_cleanup",
+          "job": {
+            "id": 130633215528,
+            "name": "validate / Stress / ubuntu-latest / pypy-3.11 / echo_via_pager_exception_cleanup",
+            "conclusion": "success",
+            "html_url": "https://github.com/LIghtJUNction/zclick/actions/runs/43052475382/job/130633215528",
+            "started_at": "2026-11-11T15:55:18Z",
+            "completed_at": "2026-11-11T15:57:57Z"
+          },
+          "comparison_passed": true,
+          "collected_tests_per_package": 1000,
+          "click": {
+            "passed": 1000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "zclick": {
+            "passed": 1000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "missing_tests": 0,
+          "extra_tests": 0,
+          "unexpected_skips": 0,
+          "canonical_test_ids_sha256": "b72f031faccdb49158794c4ca1255caa4699a71ea4bc6fd86591e76cf2e33c76",
+          "archive_member": "evidence/upstream/evidence-stress-ubuntu-latest-pypy-3.11-echo_via_pager_exception_cleanup/stress/summary.json",
+          "archive_member_sha256": "731a1a7ace4f707292e118b37060b650ac7ab8317f9603b356ffc300751aa73b"
+        },
+        {
+          "name": "gc_between_invocations",
+          "job": {
+            "id": 130633215497,
+            "name": "validate / Stress / ubuntu-latest / pypy-3.11 / gc_between_invocations",
+            "conclusion": "success",
+            "html_url": "https://github.com/LIghtJUNction/zclick/actions/runs/43052475382/job/130633215497",
+            "started_at": "2026-11-11T15:55:04Z",
+            "completed_at": "2026-11-11T16:01:37Z"
+          },
+          "comparison_passed": true,
+          "collected_tests_per_package": 10000,
+          "click": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "zclick": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "missing_tests": 0,
+          "extra_tests": 0,
+          "unexpected_skips": 0,
+          "canonical_test_ids_sha256": "3562e6a0f3b722172dd43afc3127c547ab41c3259fdf1252ea5f9bfa531b61b3",
+          "archive_member": "evidence/upstream/evidence-stress-ubuntu-latest-pypy-3.11-gc_between_invocations/stress/summary.json",
+          "archive_member_sha256": "93851cf5d38313843c66b4235df3d207d10c17c8e9a13c56490c455d9eadf2d7"
+        },
+        {
+          "name": "logging_sequential_invocations",
+          "job": {
+            "id": 130633215416,
+            "name": "validate / Stress / ubuntu-latest / pypy-3.11 / logging_sequential_invocations",
+            "conclusion": "success",
+            "html_url": "https://github.com/LIghtJUNction/zclick/actions/runs/43052475382/job/130633215416",
+            "started_at": "2026-11-11T15:54:28Z",
+            "completed_at": "2026-11-11T15:56:28Z"
+          },
+          "comparison_passed": true,
+          "collected_tests_per_package": 10000,
+          "click": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "zclick": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "missing_tests": 0,
+          "extra_tests": 0,
+          "unexpected_skips": 0,
+          "canonical_test_ids_sha256": "7ccbb9dbc749e72700e304915afa1b348eba67b6c57d65b89ce6ca3f9184114a",
+          "archive_member": "evidence/upstream/evidence-stress-ubuntu-latest-pypy-3.11-logging_sequential_invocations/stress/summary.json",
+          "archive_member_sha256": "1b27f69adaf92dbd277079e122237733cc990c3760e53caaedb1d7600427c947"
+        },
+        {
+          "name": "thread_pool_with_exit",
+          "job": {
+            "id": 130633215517,
+            "name": "validate / Stress / ubuntu-latest / pypy-3.11 / thread_pool_with_exit",
+            "conclusion": "success",
+            "html_url": "https://github.com/LIghtJUNction/zclick/actions/runs/43052475382/job/130633215517",
+            "started_at": "2026-11-11T15:55:25Z",
+            "completed_at": "2026-11-11T15:58:05Z"
+          },
+          "comparison_passed": true,
+          "collected_tests_per_package": 10000,
+          "click": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "zclick": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "missing_tests": 0,
+          "extra_tests": 0,
+          "unexpected_skips": 0,
+          "canonical_test_ids_sha256": "fe2fe831334a0ebd8ecf402945dfc6848054bd491bffc6f88701783af95ea2b3",
+          "archive_member": "evidence/upstream/evidence-stress-ubuntu-latest-pypy-3.11-thread_pool_with_exit/stress/summary.json",
+          "archive_member_sha256": "257dffc220b641df18348799f213d08efeb66c5cba3248dcf9a6d4cb8f96c653"
+        }
+      ],
+      "comparison_passed": true,
+      "collected_tests_per_package": 31000,
+      "click": {
+        "passed": 31000,
+        "failed": 0,
+        "skipped": 0,
+        "pending": 0,
+        "xfailed": 0,
+        "xpassed": 0
+      },
+      "zclick": {
+        "passed": 31000,
+        "failed": 0,
+        "skipped": 0,
+        "pending": 0,
+        "xfailed": 0,
+        "xpassed": 0
+      },
+      "canonical_stress_test_ids_sha256": "41721cdd2cdc8245395eb046937570a7d9ce8c8e5945c306ef6e98d7ce8a048a",
+      "normal_plus_stress_test_count": 33459,
+      "normal_plus_stress_test_ids_sha256": "2727fa902dc532f6e02472a85de1bfedfa9e951cbd732c946126f394d624bdbc"
+    },
+    {
+      "runner": "ubuntu-latest",
+      "python_selector": "pypy-3.12",
+      "python": "3.12.15 (d90944c94ad6, Oct 13 2026, 18:01:21)\n[PyPy 8.0.1 with GCC 14.2.1 20250110 (Red Hat 14.2.1-11)]",
+      "platform": "Linux-7.0.0-1019-azure-x86_64-with-glibc2.43",
+      "families": [
+        {
+          "name": "echo_via_pager_exception_cleanup",
+          "job": {
+            "id": 130633215560,
+            "name": "validate / Stress / ubuntu-latest / pypy-3.12 / echo_via_pager_exception_cleanup",
+            "conclusion": "success",
+            "html_url": "https://github.com/LIghtJUNction/zclick/actions/runs/43052475382/job/130633215560",
+            "started_at": "2026-11-11T15:55:18Z",
+            "completed_at": "2026-11-11T15:57:53Z"
+          },
+          "comparison_passed": true,
+          "collected_tests_per_package": 1000,
+          "click": {
+            "passed": 1000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "zclick": {
+            "passed": 1000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "missing_tests": 0,
+          "extra_tests": 0,
+          "unexpected_skips": 0,
+          "canonical_test_ids_sha256": "b72f031faccdb49158794c4ca1255caa4699a71ea4bc6fd86591e76cf2e33c76",
+          "archive_member": "evidence/upstream/evidence-stress-ubuntu-latest-pypy-3.12-echo_via_pager_exception_cleanup/stress/summary.json",
+          "archive_member_sha256": "2022a338c1c505715629690ee9e7a9c288aae7349e41034fdbca251838dc34ea"
+        },
+        {
+          "name": "gc_between_invocations",
+          "job": {
+            "id": 130633215375,
+            "name": "validate / Stress / ubuntu-latest / pypy-3.12 / gc_between_invocations",
+            "conclusion": "success",
+            "html_url": "https://github.com/LIghtJUNction/zclick/actions/runs/43052475382/job/130633215375",
+            "started_at": "2026-11-11T15:55:32Z",
+            "completed_at": "2026-11-11T16:01:56Z"
+          },
+          "comparison_passed": true,
+          "collected_tests_per_package": 10000,
+          "click": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "zclick": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "missing_tests": 0,
+          "extra_tests": 0,
+          "unexpected_skips": 0,
+          "canonical_test_ids_sha256": "3562e6a0f3b722172dd43afc3127c547ab41c3259fdf1252ea5f9bfa531b61b3",
+          "archive_member": "evidence/upstream/evidence-stress-ubuntu-latest-pypy-3.12-gc_between_invocations/stress/summary.json",
+          "archive_member_sha256": "b191e1640bf0735d9b85147c4633bf81eee9264b7a0e44cd3e73752925f8d1b0"
+        },
+        {
+          "name": "logging_sequential_invocations",
+          "job": {
+            "id": 130633215385,
+            "name": "validate / Stress / ubuntu-latest / pypy-3.12 / logging_sequential_invocations",
+            "conclusion": "success",
+            "html_url": "https://github.com/LIghtJUNction/zclick/actions/runs/43052475382/job/130633215385",
+            "started_at": "2026-11-11T15:54:52Z",
+            "completed_at": "2026-11-11T15:56:59Z"
+          },
+          "comparison_passed": true,
+          "collected_tests_per_package": 10000,
+          "click": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "zclick": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "missing_tests": 0,
+          "extra_tests": 0,
+          "unexpected_skips": 0,
+          "canonical_test_ids_sha256": "7ccbb9dbc749e72700e304915afa1b348eba67b6c57d65b89ce6ca3f9184114a",
+          "archive_member": "evidence/upstream/evidence-stress-ubuntu-latest-pypy-3.12-logging_sequential_invocations/stress/summary.json",
+          "archive_member_sha256": "a661c36b6f9d4166aa637e902b87e77d204563c56392f7c3f8a07debb0bd878c"
+        },
+        {
+          "name": "thread_pool_with_exit",
+          "job": {
+            "id": 130633215474,
+            "name": "validate / Stress / ubuntu-latest / pypy-3.12 / thread_pool_with_exit",
+            "conclusion": "success",
+            "html_url": "https://github.com/LIghtJUNction/zclick/actions/runs/43052475382/job/130633215474",
+            "started_at": "2026-11-11T15:54:27Z",
+            "completed_at": "2026-11-11T15:56:03Z"
+          },
+          "comparison_passed": true,
+          "collected_tests_per_package": 10000,
+          "click": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "zclick": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "missing_tests": 0,
+          "extra_tests": 0,
+          "unexpected_skips": 0,
+          "canonical_test_ids_sha256": "fe2fe831334a0ebd8ecf402945dfc6848054bd491bffc6f88701783af95ea2b3",
+          "archive_member": "evidence/upstream/evidence-stress-ubuntu-latest-pypy-3.12-thread_pool_with_exit/stress/summary.json",
+          "archive_member_sha256": "a87da8633633298e8cee07f592e8ff3a79894228b77f7bb3c511e7195be3dc5e"
+        }
+      ],
+      "comparison_passed": true,
+      "collected_tests_per_package": 31000,
+      "click": {
+        "passed": 31000,
+        "failed": 0,
+        "skipped": 0,
+        "pending": 0,
+        "xfailed": 0,
+        "xpassed": 0
+      },
+      "zclick": {
+        "passed": 31000,
+        "failed": 0,
+        "skipped": 0,
+        "pending": 0,
+        "xfailed": 0,
+        "xpassed": 0
+      },
+      "canonical_stress_test_ids_sha256": "41721cdd2cdc8245395eb046937570a7d9ce8c8e5945c306ef6e98d7ce8a048a",
+      "normal_plus_stress_test_count": 33459,
+      "normal_plus_stress_test_ids_sha256": "2727fa902dc532f6e02472a85de1bfedfa9e951cbd732c946126f394d624bdbc"
+    },
+    {
+      "runner": "windows-latest",
+      "python_selector": "3.14",
+      "python": "3.14.10 (tags/v3.14.10:b703b2c, Oct 25 2026, 17:36:52) [MSC v.1944 64 bit (AMD64)]",
+      "platform": "Windows-2025Server-10.0.26100-SP0",
+      "families": [
+        {
+          "name": "echo_via_pager_exception_cleanup",
+          "job": {
+            "id": 130633215446,
+            "name": "validate / Stress / windows-latest / 3.14 / echo_via_pager_exception_cleanup",
+            "conclusion": "success",
+            "html_url": "https://github.com/LIghtJUNction/zclick/actions/runs/43052475382/job/130633215446",
+            "started_at": "2026-11-11T15:54:15Z",
+            "completed_at": "2026-11-11T15:55:29Z"
+          },
+          "comparison_passed": true,
+          "collected_tests_per_package": 1000,
+          "click": {
+            "passed": 0,
+            "failed": 0,
+            "skipped": 1000,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "zclick": {
+            "passed": 0,
+            "failed": 0,
+            "skipped": 1000,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "missing_tests": 0,
+          "extra_tests": 0,
+          "unexpected_skips": 0,
+          "canonical_test_ids_sha256": "b72f031faccdb49158794c4ca1255caa4699a71ea4bc6fd86591e76cf2e33c76",
+          "archive_member": "evidence/upstream/evidence-stress-windows-latest-3.14-echo_via_pager_exception_cleanup/stress/summary.json",
+          "archive_member_sha256": "5cd73b849e3b4d0081d026059628ad2395a3aaa6a2bee85e2d51450d7b6341c2"
+        },
+        {
+          "name": "gc_between_invocations",
+          "job": {
+            "id": 130633215407,
+            "name": "validate / Stress / windows-latest / 3.14 / gc_between_invocations",
+            "conclusion": "success",
+            "html_url": "https://github.com/LIghtJUNction/zclick/actions/runs/43052475382/job/130633215407",
+            "started_at": "2026-11-11T15:54:39Z",
+            "completed_at": "2026-11-11T15:59:02Z"
+          },
+          "comparison_passed": true,
+          "collected_tests_per_package": 10000,
+          "click": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "zclick": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "missing_tests": 0,
+          "extra_tests": 0,
+          "unexpected_skips": 0,
+          "canonical_test_ids_sha256": "3562e6a0f3b722172dd43afc3127c547ab41c3259fdf1252ea5f9bfa531b61b3",
+          "archive_member": "evidence/upstream/evidence-stress-windows-latest-3.14-gc_between_invocations/stress/summary.json",
+          "archive_member_sha256": "76b6a09bdaba18db418975277cdb3dffa1f403e59e8dde7d350f0f0d3858e3b2"
+        },
+        {
+          "name": "logging_sequential_invocations",
+          "job": {
+            "id": 130633215442,
+            "name": "validate / Stress / windows-latest / 3.14 / logging_sequential_invocations",
+            "conclusion": "success",
+            "html_url": "https://github.com/LIghtJUNction/zclick/actions/runs/43052475382/job/130633215442",
+            "started_at": "2026-11-11T15:54:12Z",
+            "completed_at": "2026-11-11T15:55:57Z"
+          },
+          "comparison_passed": true,
+          "collected_tests_per_package": 10000,
+          "click": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "zclick": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "missing_tests": 0,
+          "extra_tests": 0,
+          "unexpected_skips": 0,
+          "canonical_test_ids_sha256": "7ccbb9dbc749e72700e304915afa1b348eba67b6c57d65b89ce6ca3f9184114a",
+          "archive_member": "evidence/upstream/evidence-stress-windows-latest-3.14-logging_sequential_invocations/stress/summary.json",
+          "archive_member_sha256": "ad44b94ed875722c3bb4a507b73dc481d1ca319fefdd5fc3bb9348c6e2c33bdf"
+        },
+        {
+          "name": "thread_pool_with_exit",
+          "job": {
+            "id": 130633215363,
+            "name": "validate / Stress / windows-latest / 3.14 / thread_pool_with_exit",
+            "conclusion": "success",
+            "html_url": "https://github.com/LIghtJUNction/zclick/actions/runs/43052475382/job/130633215363",
+            "started_at": "2026-11-11T15:53:24Z",
+            "completed_at": "2026-11-11T15:55:15Z"
+          },
+          "comparison_passed": true,
+          "collected_tests_per_package": 10000,
+          "click": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "zclick": {
+            "passed": 10000,
+            "failed": 0,
+            "skipped": 0,
+            "pending": 0,
+            "xfailed": 0,
+            "xpassed": 0
+          },
+          "missing_tests": 0,
+          "extra_tests": 0,
+          "unexpected_skips": 0,
+          "canonical_test_ids_sha256": "fe2fe831334a0ebd8ecf402945dfc6848054bd491bffc6f88701783af95ea2b3",
+          "archive_member": "evidence/upstream/evidence-stress-windows-latest-3.14-thread_pool_with_exit/stress/summary.json",
+          "archive_member_sha256": "fb551ddbae232f303e2e9e2e55806f33936992e7a29baff7bc23ab6b28dee123"
+        }
+      ],
+      "comparison_passed": true,
+      "collected_tests_per_package": 31000,
+      "click": {
+        "passed": 30000,
+        "failed": 0,
+        "skipped": 1000,
+        "pending": 0,
+        "xfailed": 0,
+        "xpassed": 0
+      },
+      "zclick": {
+        "passed": 30000,
+        "failed": 0,
+        "skipped": 1000,
+        "pending": 0,
+        "xfailed": 0,
+        "xpassed": 0
+      },
+      "canonical_stress_test_ids_sha256": "41721cdd2cdc8245395eb046937570a7d9ce8c8e5945c306ef6e98d7ce8a048a",
+      "normal_plus_stress_test_count": 33459,
+      "normal_plus_stress_test_ids_sha256": "2727fa902dc532f6e02472a85de1bfedfa9e951cbd732c946126f394d624bdbc"
+    }
+  ],
+  "public_api": {
+    "environments": 12,
+    "items_per_environment": 196,
+    "all_complete": true,
+    "scope": "Fixed official API inventory, public signatures and member contracts, and deprecated API warning categories."
+  },
+  "typing": {
+    "environments": 12,
+    "source_files_per_environment": 12,
+    "all_passed": true,
+    "evidence": "Each normal job's Target typing examples step and its exact success log excerpt above."
+  },
+  "rust": {
+    "job": {
+      "id": 130633214713,
+      "name": "validate / rust",
+      "conclusion": "success",
+      "html_url": "https://github.com/LIghtJUNction/zclick/actions/runs/43052475382/job/130633214713",
+      "started_at": "2026-11-11T15:53:04Z",
+      "completed_at": "2026-11-11T15:53:32Z"
+    },
+    "toolchain": "1.99.1",
+    "tests": {
+      "unit_passed": 1,
+      "integration_passed": 22,
+      "failed": 0,
+      "ignored": 0
+    },
+    "log_excerpts": [
+      "2026-11-11T15:53:22.5356961Z test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+      "2026-11-11T15:53:22.5392816Z test result: ok. 22 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+      "2026-11-11T15:53:22.5649835Z test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+      "2026-11-11T15:53:29.9525525Z Verified 37 license inventory files; Cargo.lock unchanged"
+    ],
+    "checks": [
+      {
+        "name": "Run cargo fmt --all -- --check",
+        "conclusion": "success"
+      },
+      {
+        "name": "Run cargo test --locked -p zclick-core --release",
+        "conclusion": "success"
+      },
+      {
+        "name": "Run cargo check --locked -p zclick-core --target wasm32-unknown-unknown",
+        "conclusion": "success"
+      },
+      {
+        "name": "Run cargo clippy --locked --workspace --all-targets -- -D warnings",
+        "conclusion": "success"
+      },
+      {
+        "name": "Run python scripts/audit_dependencies.py",
+        "conclusion": "success"
+      },
+      {
+        "name": "Run python scripts/vendor_licenses.py --check",
+        "conclusion": "success"
+      }
+    ]
+  },
+  "shells": {
+    "job": {
+      "id": 130633214656,
+      "name": "validate / Four real Shell runtimes",
+      "conclusion": "success",
+      "html_url": "https://github.com/LIghtJUNction/zclick/actions/runs/43052475382/job/130633214656",
+      "started_at": "2026-11-11T15:53:08Z",
+      "completed_at": "2026-11-11T15:54:50Z"
+    },
+    "archive_member": "evidence/shells/summary.json",
+    "tests": 9,
+    "counts": {
+      "passed": 9,
+      "failed": 0,
+      "skipped": 0,
+      "pending": 0,
+      "xfailed": 0,
+      "xpassed": 0
+    },
+    "runtimes": [
+      {
+        "name": "bash",
+        "version": "GNU bash, version 5.3.9(1)-release (x86_64-pc-linux-gnu)"
+      },
+      {
+        "name": "zsh",
+        "version": "zsh 5.9 (x86_64-pc-linux-gnu)"
+      },
+      {
+        "name": "fish",
+        "version": "fish, version 4.9.3"
+      },
+      {
+        "name": "pwsh",
+        "version": "7.7.0"
+      }
+    ],
+    "limits": {
+      "bash": "Real generated function and compgen; noninteractive compopt recording hook.",
+      "zsh": "Real generated function and child process; noninteractive ZLE recording hooks.",
+      "fish": "Real complete -C completion engine.",
+      "pwsh": "Real CommandCompletion.CompleteInput completion engine."
+    }
+  },
+  "interpreter_boundary": {
+    "job": {
+      "id": 130633214756,
+      "name": "validate / Subinterpreter gap and safety",
+      "conclusion": "success",
+      "html_url": "https://github.com/LIghtJUNction/zclick/actions/runs/43052475382/job/130633214756",
+      "started_at": "2026-11-11T15:54:51Z",
+      "completed_at": "2026-11-11T15:55:33Z"
+    },
+    "archive_member": "evidence/interpreters/summary.json",
+    "python": "3.12.16 (main, Oct 26 2026, 02:48:44) [GCC 15.2.0]",
+    "safe_rejection": true,
+    "safety_passed": true,
+    "reference_passed": false,
+    "reference_control_passed": true,
+    "reference_environment_failures": [
+      {
+        "isolated": true,
+        "main_first": false,
+        "returncode": -6
+      }
+    ],
+    "reference_scope": "Main-first Click controls establish the compatibility difference. Child-first results and independent datetime-only controls are preserved, including interpreter crashes.",
+    "observable_equivalence": false,
+    "compatibility_passed": false,
+    "unfinished": [
+      "subinterpreters"
+    ],
+    "subinterpreter_cases": 8,
+    "independent_stdlib_controls": 2
+  },
+  "known_gaps": [
+    {
+      "id": "subinterpreters",
+      "status": "UNFINISHED",
+      "area": "Import and command invocation in Python subinterpreters",
+      "reference": "Click 8.5.1 imports and invokes commands in CPython 3.12 isolated and shared-GIL subinterpreters after initialization in the main interpreter.",
+      "reference_environment_limit": "Child-first experiments can expose a CPython 3.12 datetime-extension teardown crash on the local host, also reproduced without Click or zclick. Raw return codes and independent datetime-only controls remain in the diagnostic report; no imports are preheated to hide this behavior.",
+      "candidate": "zclick requires the main interpreter. Its native module rejects initialization in subinterpreters with ImportError.",
+      "reason": "The pinned PyO3 0.30.1 binding does not support independent subinterpreter module and type state. Bypassing its isolation checks would risk sharing Python objects across interpreters.",
+      "safety_requirement": "Reject both isolated and shared-GIL subinterpreters before initializing PyO3 caches; keep the main interpreter usable afterward.",
+      "disclosure": "This is an unfinished compatibility item. Passing the fixed upstream suite does not establish unrestricted Click compatibility. Releases with this gap remain explicitly disclosed prereleases.",
+      "reproduce": "python3.12 scripts/check_subinterpreters.py --output reports/subinterpreters",
+      "evidence": "reports/subinterpreters/summary.json",
+      "sources": [
+        "https://github.com/PyO3/pyo3/blob/f168538672f2c32e32f7c1b702a502ee92de1edf/src/impl_/pymodule.rs",
+        "https://github.com/PyO3/pyo3/issues/3451"
+      ]
+    }
+  ],
+  "builds": {
+    "wheel_installation_smokes": 12,
+    "sdist_build_and_installation_smokes": 1,
+    "all_passed": true,
+    "scope": "Actual installed artifacts executed on the recorded runners. Compatibility tags describe wheel support; they are not claims that every minimum OS version was directly tested. The source-distribution smoke builds and installs a fresh wheel from the sdist.",
+    "artifacts": [
+      {
+        "artifact_kind": "wheel",
+        "target": "3.14t-linux-x86_64",
+        "job": {
+          "id": 130633214285,
+          "name": "alternative-wheels (3.14t)",
+          "conclusion": "success",
+          "html_url": "https://github.com/LIghtJUNction/zclick/actions/runs/43052475382/job/130633214285",
+          "started_at": "2026-11-11T15:52:32Z",
+          "completed_at": "2026-11-11T15:53:18Z"
+        },
+        "archive_member": "evidence/built-artifacts/smoke-3.14t-linux-x86_64/wheel-smoke.json",
+        "passed": true,
+        "version": "0.1.1a2",
+        "python": "3.14.10 free-threading build (main, Oct 26 2026, 14:18:26) [GCC 15.2.0]",
+        "platform": "Linux-7.0.0-1019-azure-x86_64-with-glibc2.43",
+        "native": "/opt/hostedtoolcache/Python/3.14.10/x64-freethreaded/lib/python3.14t/site-packages/zclick/_native.cpython-314t-x86_64-linux-gnu.so",
+        "zclap": "0.1.4",
+        "wheel": "zclick-0.1.1a2-cp314-cp314t-manylinux_2_34_x86_64.whl",
+        "wheel_sha256": "cc47dc715506323b67585d0d550bfce0bf85b0ccc845472377c363881eaff7e8"
+      },
+      {
+        "artifact_kind": "wheel",
+        "target": "3.15t-linux-x86_64",
+        "job": {
+          "id": 130633214227,
+          "name": "alternative-wheels (3.15t)",
+          "conclusion": "success",
+          "html_url": "https://github.com/LIghtJUNction/zclick/actions/runs/43052475382/job/130633214227",
+          "started_at": "2026-11-11T15:52:20Z",
+          "completed_at": "2026-11-11T15:53:00Z"
+        },
+        "archive_member": "evidence/built-artifacts/smoke-3.15t-linux-x86_64/wheel-smoke.json",
+        "passed": true,
+        "version": "0.1.1a2",
+        "python": "3.15.2 free-threading build (main, Oct 26 2026, 14:42:47) [GCC 15.2.0]",
+        "platform": "Linux-7.0.0-1019-azure-x86_64-with-glibc2.43",
+        "native": "/opt/hostedtoolcache/Python/3.15.2/x64-freethreaded/lib/python3.15t/site-packages/zclick/_native.cpython-315t-x86_64-linux-gnu.so",
+        "zclap": "0.1.4",
+        "wheel": "zclick-0.1.1a2-cp315-cp315t-manylinux_2_34_x86_64.whl",
+        "wheel_sha256": "a0ca120be8518181a9cd886b4c3f772f52f1be327f4eca911322ebbd343afc5a"
+      },
+      {
+        "artifact_kind": "wheel",
+        "target": "aarch64-apple-darwin",
+        "job": {
+          "id": 130633214159,
+          "name": "wheels (macos-latest, aarch64-apple-darwin, auto)",
+          "conclusion": "success",
+          "html_url": "https://github.com/LIghtJUNction/zclick/actions/runs/43052475382/job/130633214159",
+          "started_at": "2026-11-11T15:52:03Z",
+          "completed_at": "2026-11-11T15:53:25Z"
+        },
+        "archive_member": "evidence/built-artifacts/smoke-aarch64-apple-darwin/wheel-smoke.json",
+        "passed": true,
+        "version": "0.1.1a2",
+        "python": "3.10.11 (v3.10.11:7d4cc5aa85, Apr  4 2023, 19:05:19) [Clang 13.0.0 (clang-1300.0.29.30)]",
+        "platform": "macOS-26.7.2-arm64-arm-64bit",
+        "native": "/Library/Frameworks/Python.framework/Versions/3.10/lib/python3.10/site-packages/zclick/_native.abi3.so",
+        "zclap": "0.1.4",
+        "wheel": "zclick-0.1.1a2-cp310-abi3-macosx_11_0_arm64.whl",
+        "wheel_sha256": "98a235572c69015f3045fc8556a24c0e860fa30958974eed684a67caa6867e74"
+      },
+      {
+        "artifact_kind": "wheel",
+        "target": "aarch64-pc-windows-msvc",
+        "job": {
+          "id": 130633214209,
+          "name": "wheels (windows-11-arm, aarch64-pc-windows-msvc, auto, 3.12, arm64)",
+          "conclusion": "success",
+          "html_url": "https://github.com/LIghtJUNction/zclick/actions/runs/43052475382/job/130633214209",
+          "started_at": "2026-11-11T15:52:17Z",
+          "completed_at": "2026-11-11T15:53:34Z"
+        },
+        "archive_member": "evidence/built-artifacts/smoke-aarch64-pc-windows-msvc/wheel-smoke.json",
+        "passed": true,
+        "version": "0.1.1a2",
+        "python": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:31:18) [MSC v.1943 64 bit (ARM64)]",
+        "platform": "Windows-11-10.0.26200-SP0",
+        "native": "C:\\hostedtoolcache\\windows\\Python\\3.12.10\\arm64\\Lib\\site-packages\\zclick\\_native.pyd",
+        "zclap": "0.1.4",
+        "wheel": "zclick-0.1.1a2-cp310-abi3-win_arm64.whl",
+        "wheel_sha256": "fef6ce2b2a8affb342519f42e5bae1348b906fe6c0c9bd75f7f18d970e66159b"
+      },
+      {
+        "artifact_kind": "wheel",
+        "target": "aarch64-unknown-linux-gnu",
+        "job": {
+          "id": 130633214239,
+          "name": "wheels (ubuntu-24.04-arm, aarch64-unknown-linux-gnu, auto)",
+          "conclusion": "success",
+          "html_url": "https://github.com/LIghtJUNction/zclick/actions/runs/43052475382/job/130633214239",
+          "started_at": "2026-11-11T15:51:52Z",
+          "completed_at": "2026-11-11T15:53:10Z"
+        },
+        "archive_member": "evidence/built-artifacts/smoke-aarch64-unknown-linux-gnu/wheel-smoke.json",
+        "passed": true,
+        "version": "0.1.1a2",
+        "python": "3.10.22 (main, Oct  1 2026, 14:34:04) [GCC 13.3.0]",
+        "platform": "Linux-7.0.0-1017-azure-aarch64-with-glibc2.39",
+        "native": "/opt/hostedtoolcache/Python/3.10.22/arm64/lib/python3.10/site-packages/zclick/_native.abi3.so",
+        "zclap": "0.1.4",
+        "wheel": "zclick-0.1.1a2-cp310-abi3-manylinux2014_aarch64.manylinux_2_17_aarch64.whl",
+        "wheel_sha256": "860b5b4299cd6d640c081ffa0e6e9803aa1a3cd323fcc6d3e540d6931a311762"
+      },
+      {
+        "artifact_kind": "wheel",
+        "target": "aarch64-unknown-linux-musl",
+        "job": {
+          "id": 130633214287,
+          "name": "wheels (ubuntu-24.04-arm, aarch64-unknown-linux-musl, musllinux_1_2)",
+          "conclusion": "success",
+          "html_url": "https://github.com/LIghtJUNction/zclick/actions/runs/43052475382/job/130633214287",
+          "started_at": "2026-11-11T15:52:30Z",
+          "completed_at": "2026-11-11T15:53:49Z"
+        },
+        "archive_member": "evidence/built-artifacts/smoke-aarch64-unknown-linux-musl/wheel-smoke.json",
+        "passed": true,
+        "version": "0.1.1a2",
+        "python": "3.14.10 (main, Nov  5 2026, 19:23:03) [GCC 15.2.0]",
+        "platform": "Linux-7.0.0-1017-azure-aarch64-with-musl1",
+        "native": "/usr/local/lib/python3.14/site-packages/zclick/_native.abi3.so",
+        "zclap": "0.1.4",
+        "wheel": "zclick-0.1.1a2-cp310-abi3-musllinux_1_2_aarch64.whl",
+        "wheel_sha256": "bf32da47ee0e788d681af5cb07d8a7155a86757c0f82fad8d0c1c1dbce91f97f"
+      },
+      {
+        "artifact_kind": "wheel",
+        "target": "pypy-3.11-linux-x86_64",
+        "job": {
+          "id": 130633214133,
+          "name": "alternative-wheels (pypy-3.11)",
+          "conclusion": "success",
+          "html_url": "https://github.com/LIghtJUNction/zclick/actions/runs/43052475382/job/130633214133",
+          "started_at": "2026-11-11T15:51:38Z",
+          "completed_at": "2026-11-11T15:52:23Z"
+        },
+        "archive_member": "evidence/built-artifacts/smoke-pypy-3.11-linux-x86_64/wheel-smoke.json",
+        "passed": true,
+        "version": "0.1.1a2",
+        "python": "3.11.17 (ec82f20141cf, Oct 13 2026, 15:02:27)\n[PyPy 8.0.1 with GCC 14.2.1 20250110 (Red Hat 14.2.1-11)]",
+        "platform": "Linux-7.0.0-1019-azure-x86_64-with-glibc2.43",
+        "native": "/opt/hostedtoolcache/PyPy/3.11.17/x64/lib/pypy3.11/site-packages/zclick/_native.pypy311-pp80-x86_64-linux-gnu.so",
+        "zclap": "0.1.4",
+        "wheel": "zclick-0.1.1a2-pp311-pypy311_pp80-manylinux_2_34_x86_64.whl",
+        "wheel_sha256": "61e17f6b5c801f9bf46d56385716ab22df0369792aba083d3796238e6d9515ac"
+      },
+      {
+        "artifact_kind": "wheel",
+        "target": "pypy-3.12-linux-x86_64",
+        "job": {
+          "id": 130633214037,
+          "name": "alternative-wheels (pypy-3.12)",
+          "conclusion": "success",
+          "html_url": "https://github.com/LIghtJUNction/zclick/actions/runs/43052475382/job/130633214037",
+          "started_at": "2026-11-11T15:51:39Z",
+          "completed_at": "2026-11-11T15:52:25Z"
+        },
+        "archive_member": "evidence/built-artifacts/smoke-pypy-3.12-linux-x86_64/wheel-smoke.json",
+        "passed": true,
+        "version": "0.1.1a2",
+        "python": "3.12.15 (d90944c94ad6, Oct 13 2026, 18:01:21)\n[PyPy 8.0.1 with GCC 14.2.1 20250110 (Red Hat 14.2.1-11)]",
+        "platform": "Linux-7.0.0-1019-azure-x86_64-with-glibc2.43",
+        "native": "/opt/hostedtoolcache/PyPy/3.12.15/x64/lib/pypy3.12/site-packages/zclick/_native.pypy312-pp80-x86_64-linux-gnu.so",
+        "zclap": "0.1.4",
+        "wheel": "zclick-0.1.1a2-pp312-pypy312_pp80-manylinux_2_34_x86_64.whl",
+        "wheel_sha256": "c73246215b4969c7dcf603969a9da18908fd75a6f1a50a1632559db1fe917fc8"
+      },
+      {
+        "artifact_kind": "source-distribution-build",
+        "target": "sdist",
+        "job": {
+          "id": 130633214079,
+          "name": "sdist",
+          "conclusion": "success",
+          "html_url": "https://github.com/LIghtJUNction/zclick/actions/runs/43052475382/job/130633214079",
+          "started_at": "2026-11-11T15:51:38Z",
+          "completed_at": "2026-11-11T15:52:14Z"
+        },
+        "archive_member": "evidence/built-artifacts/smoke-sdist/sdist-smoke.json",
+        "passed": true,
+        "version": "0.1.1a2",
+        "python": "3.12.16 (main, Oct 26 2026, 02:48:44) [GCC 15.2.0]",
+        "platform": "Linux-7.0.0-1019-azure-x86_64-with-glibc2.43",
+        "native": "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/zclick/_native.abi3.so",
+        "zclap": "0.1.4",
+        "wheel": "zclick-0.1.1a2-cp310-abi3-linux_x86_64.whl",
+        "wheel_sha256": "f4b76b6cc91e6c29364fe045fb4d93b1cfa712658b223567a8982f561ea8611d",
+        "source_distribution": {
+          "filename": "zclick-0.1.1a2.tar.gz",
+          "sha256": "ebeb4a952f188edcd2289f099f919d004fd2897add914cd7569b9732b27ae877"
+        }
+      },
+      {
+        "artifact_kind": "wheel",
+        "target": "x86_64-apple-darwin",
+        "job": {
+          "id": 130633214358,
+          "name": "wheels (macos-15-intel, x86_64-apple-darwin, auto)",
+          "conclusion": "success",
+          "html_url": "https://github.com/LIghtJUNction/zclick/actions/runs/43052475382/job/130633214358",
+          "started_at": "2026-11-11T15:52:37Z",
+          "completed_at": "2026-11-11T15:53:36Z"
+        },
+        "archive_member": "evidence/built-artifacts/smoke-x86_64-apple-darwin/wheel-smoke.json",
+        "passed": true,
+        "version": "0.1.1a2",
+        "python": "3.10.21 (main, Aug 13 2026, 02:42:10) [Clang 17.0.0 (clang-1700.0.13.5)]",
+        "platform": "macOS-15.7.9-x86_64-i386-64bit",
+        "native": "/Users/runner/hostedtoolcache/Python/3.10.21/x64/lib/python3.10/site-packages/zclick/_native.abi3.so",
+        "zclap": "0.1.4",
+        "wheel": "zclick-0.1.1a2-cp310-abi3-macosx_10_12_x86_64.whl",
+        "wheel_sha256": "7a38540778c040f9d4121c91d2faa2d5fa86841a9c3f8b96cb07694b5c9146c3"
+      },
+      {
+        "artifact_kind": "wheel",
+        "target": "x86_64-pc-windows-msvc",
+        "job": {
+          "id": 130633214257,
+          "name": "wheels (windows-latest, x86_64-pc-windows-msvc, auto)",
+          "conclusion": "success",
+          "html_url": "https://github.com/LIghtJUNction/zclick/actions/runs/43052475382/job/130633214257",
+          "started_at": "2026-11-11T15:52:15Z",
+          "completed_at": "2026-11-11T15:54:10Z"
+        },
+        "archive_member": "evidence/built-artifacts/smoke-x86_64-pc-windows-msvc/wheel-smoke.json",
+        "passed": true,
+        "version": "0.1.1a2",
+        "python": "3.10.11 (tags/v3.10.11:7d4cc5a, Apr  5 2023, 00:38:17) [MSC v.1929 64 bit (AMD64)]",
+        "platform": "Windows-10-10.0.26100-SP0",
+        "native": "C:\\hostedtoolcache\\windows\\Python\\3.10.11\\x64\\lib\\site-packages\\zclick\\_native.pyd",
+        "zclap": "0.1.4",
+        "wheel": "zclick-0.1.1a2-cp310-abi3-win_amd64.whl",
+        "wheel_sha256": "17727a9519392ae69187fcda7de57ff54fbd695359b9af235fc3eb981565945b"
+      },
+      {
+        "artifact_kind": "wheel",
+        "target": "x86_64-unknown-linux-gnu",
+        "job": {
+          "id": 130633214138,
+          "name": "wheels (ubuntu-latest, x86_64-unknown-linux-gnu, auto)",
+          "conclusion": "success",
+          "html_url": "https://github.com/LIghtJUNction/zclick/actions/runs/43052475382/job/130633214138",
+          "started_at": "2026-11-11T15:51:39Z",
+          "completed_at": "2026-11-11T15:53:06Z"
+        },
+        "archive_member": "evidence/built-artifacts/smoke-x86_64-unknown-linux-gnu/wheel-smoke.json",
+        "passed": true,
+        "version": "0.1.1a2",
+        "python": "3.10.22 (main, Oct  1 2026, 14:32:29) [GCC 15.2.0]",
+        "platform": "Linux-7.0.0-1019-azure-x86_64-with-glibc2.43",
+        "native": "/opt/hostedtoolcache/Python/3.10.22/x64/lib/python3.10/site-packages/zclick/_native.abi3.so",
+        "zclap": "0.1.4",
+        "wheel": "zclick-0.1.1a2-cp310-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.whl",
+        "wheel_sha256": "dd69bc1b014559a0c77319f52334811951e49fb134f916a3e76f5b7abd493a0c"
+      },
+      {
+        "artifact_kind": "wheel",
+        "target": "x86_64-unknown-linux-musl",
+        "job": {
+          "id": 130633214111,
+          "name": "wheels (ubuntu-latest, x86_64-unknown-linux-musl, musllinux_1_2)",
+          "conclusion": "success",
+          "html_url": "https://github.com/LIghtJUNction/zclick/actions/runs/43052475382/job/130633214111",
+          "started_at": "2026-11-11T15:51:39Z",
+          "completed_at": "2026-11-11T15:53:13Z"
+        },
+        "archive_member": "evidence/built-artifacts/smoke-x86_64-unknown-linux-musl/wheel-smoke.json",
+        "passed": true,
+        "version": "0.1.1a2",
+        "python": "3.14.10 (main, Nov  5 2026, 19:26:37) [GCC 15.2.0]",
+        "platform": "Linux-7.0.0-1019-azure-x86_64-with-musl1",
+        "native": "/usr/local/lib/python3.14/site-packages/zclick/_native.abi3.so",
+        "zclap": "0.1.4",
+        "wheel": "zclick-0.1.1a2-cp310-abi3-musllinux_1_2_x86_64.whl",
+        "wheel_sha256": "d7d051fbae80ef35f8a0a8bf472ca8b7837a8f258b739e6a1c3dad77f5a78c79"
+      }
+    ]
+  },
+  "benchmark": {
+    "job": {
+      "id": 130633214669,
+      "name": "validate / Measured Python API performance",
+      "conclusion": "success",
+      "html_url": "https://github.com/LIghtJUNction/zclick/actions/runs/43052475382/job/130633214669",
+      "started_at": "2026-11-11T15:52:50Z",
+      "completed_at": "2026-11-11T15:55:47Z"
+    },
+    "raw_repository_path": "benchmarks/results/cpython314-linux-7e3d597.json",
+    "raw_release_url": "https://github.com/LIghtJUNction/zclick/releases/download/v0.1.1a2/benchmarks.json",
+    "raw_sha256": "4e6fcaddeae2e2c0c3d932b000d649e622408f64261b895d0b81c31a7505afbd",
+    "source_commit": "7e3d597873b737bbfc8c2df090773aad56d9bd73",
+    "schema": 2,
+    "rounds": 12,
+    "seed": 20261111,
+    "diagnostic": false,
+    "python": "3.14.10 (main, Oct 26 2026, 14:17:03) [GCC 15.2.0]",
+    "cpu_model": [
+      "AMD EPYC 7763 64-Core Processor"
+    ],
+    "affinity": [
+      0
+    ],
+    "warm_cases": 18,
+    "cold_command_cases": 8,
+    "report": "docs/performance-0.1.1a2.md",
+    "runtime_payload_comparison": {
+      "release_commit": "7e3d597873b737bbfc8c2df090773aad56d9bd73",
+      "artifact_id": 13871245159,
+      "artifact_zip_sha256": "cf9013047e920b17b5ea62404d25b80861670b3730b0a5b1e91a292c6537519e",
+      "filename": "zclick-0.1.1a2-cp310-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.whl",
+      "release_wheel_sha256": "dd69bc1b014559a0c77319f52334811951e49fb134f916a3e76f5b7abd493a0c",
+      "benchmark_wheel_sha256": "3d1834c08c5072faafa23e6e172404ce8fab90e0dbd0120eb1398aec14c539c4",
+      "runtime_files_compared": 18,
+      "all_runtime_files_equal": true,
+      "differences": {},
+      "evidence_repository_path": "compatibility/releases/0.1.1a2-benchmark-payload.json"
+    },
+    "runtime_source_files": {
+      "__init__.py": "23241db5bc533d5a6543a24c0bb17fdaa1011a93b1e387c5e4399b778a1e4f87",
+      "_compat.py": "8ab896833a156a021bcb97420d87faf3c4f4590f9c5d4cd43b96551513848826",
+      "_native.abi3.so": "c87443a4805193f89d243f87c21bdc92480a79cee796899c47591851c0131746",
+      "_termui_impl.py": "fb13ae06a7f31bbe805d245ce735942de127d82d9f27b5d3a0e9208797e6b178",
+      "_textwrap.py": "166cdf2726727cc239e9585acdb455d9c2bdca70dc4e0f8d76b56996354fdbb2",
+      "_utils.py": "be4324b5add057feca8c95b168dafc4e0a87bcbfecffd2a89003e2df45fa02f1",
+      "_winconsole.py": "f67af6ae35759d794c9b1cd977db7199ed054c9c9e41512df8cf20fe2612fac1",
+      "core.py": "5d2a6c15c266310b0f963acecdbe21040852f825e345e7cf74a18bb89475b9b5",
+      "decorators.py": "773a87d077eeac7c012c06294fd85352b85ca21136129cb5816479165ea54778",
+      "exceptions.py": "a471b77fd47edcffd8713ae8ff17b13a351d68ff67d8cb0adb03bbf8f1d5370a",
+      "formatting.py": "ffb9cf24f55feac404bc6e88e11dc12aedead975c37062b5ee88d9dc07ef5bbd",
+      "globals.py": "b2f69255910a3f617c6ff926d3275223140490f32ed63afc1fa68bc9bb0ecfbd",
+      "parser.py": "cdff1de5976530b0ddf7fa3f2692f94f87897e79d511821c05dec28606dc2e89",
+      "shell_completion.py": "7b9fd170741a59bdb2fc42e87cdcfff5e59e6909c6285f584ef27f7243edd853",
+      "termui.py": "2827cdc4a424786d7d8d2a3ac7fa671c5fc330bff67ca551908ad8998c1a68c2",
+      "testing.py": "6368f2bb183812ad3888b558cd7d953360f3ff3c7cb63ec7cea668b035e3aeb9",
+      "types.py": "ed104a02f7cc624bdf4555670d78de96dade123ad6c465d1b98fba446c9f6e01",
+      "utils.py": "28a77b9a3387389d555d7bf279876492f5918e05f248c468d2c4a16a9ec1856e"
+    },
+    "limits": "Benchmark and release wheel ZIP containers have different SHA256 hashes; their 18 Python/native runtime files are byte-identical. Memory samples do not isolate native allocations, and not every workload outperforms Click."
+  },
+  "release_gate": {
+    "job": {
+      "id": 130639248124,
+      "name": "validate / release-evidence",
+      "conclusion": "success",
+      "html_url": "https://github.com/LIghtJUNction/zclick/actions/runs/43052475382/job/130639248124",
+      "started_at": "2026-11-11T16:01:59Z",
+      "completed_at": "2026-11-11T16:02:09Z"
+    },
+    "log_excerpts": [
+      "2026-11-11T16:02:07.4108251Z Release gate passed: 33459 upstream cases and all public API contracts",
+      "2026-11-11T16:02:07.4109517Z Prerelease only; unfinished compatibility: subinterpreters"
+    ],
+    "prerelease_only_with_disclosed_gap": true
+  },
+  "publication": {
+    "github": {
+      "id": 441909181,
+      "url": "https://github.com/LIghtJUNction/zclick/releases/tag/v0.1.1a2",
+      "published_at": "2026-11-11T16:02:29Z",
+      "prerelease": true,
+      "asset_count": 16,
+      "all_public_assets_downloaded_and_sha256_verified": true,
+      "verification_time": "2026-11-11T16:06:24.368503+00:00",
+      "job": {
+        "id": 130639368136,
+        "name": "github-release",
+        "conclusion": "success",
+        "html_url": "https://github.com/LIghtJUNction/zclick/actions/runs/43052475382/job/130639368136",
+        "started_at": "2026-11-11T16:02:12Z",
+        "completed_at": "2026-11-11T16:02:31Z"
+      }
+    },
+    "pypi": {
+      "url": "https://pypi.org/project/zclick/0.1.1a2/",
+      "artifact_count": 13,
+      "all_hashes_match_downloaded_github_assets": true,
+      "evidence_repository_path": "compatibility/releases/0.1.1a2-pypi.json",
+      "job": {
+        "id": 130639366379,
+        "name": "publish-pypi",
+        "conclusion": "success",
+        "html_url": "https://github.com/LIghtJUNction/zclick/actions/runs/43052475382/job/130639366379",
+        "started_at": "2026-11-11T16:02:12Z",
+        "completed_at": "2026-11-11T16:03:19Z"
+      }
+    }
+  }
+}
