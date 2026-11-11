@@ -1,13 +1,12 @@
 """Dynamic Python command objects backed by the native Rust parsing engine.
 
-Python retains ownership of user objects and virtual calls. A fresh native plan
-is made for each invocation; mutation, recursion and nested calls do not share
-mutable parser state.
+Python retains ownership of user objects and virtual calls. Immutable native
+schemas can be reused after checking the current definitions; mutation,
+recursion and nested calls never share mutable invocation state.
 """
 from __future__ import annotations
 
 import abc
-import inspect
 import os
 import sys
 from collections import Counter
@@ -17,11 +16,12 @@ from enum import Enum, IntEnum
 from functools import update_wrapper
 from gettext import gettext as _
 from itertools import islice
+from types import FunctionType
 from typing import Any, TypeVar
 
 from . import types
 from ._utils import UNSET, FLAG_NEEDS_VALUE
-from ._native import (invoke_group as _invoke_group, processing_order as _processing_order,
+from ._native import (invoke_group as _invoke_group, order_parameters as _order_parameters,
                       select_parameter_value as _select_parameter_value)
 from .exceptions import (Abort, BadParameter, ClickException, Exit, MissingParameter,
                          NoArgsIsHelpError, NoSuchCommand, UsageError)
@@ -32,6 +32,16 @@ from .utils import echo
 
 V = TypeVar("V")
 F = TypeVar("F", bound=Callable[..., Any])
+
+
+def _clean_help(text: str) -> str:
+    # The common one-line case has no indentation margin to discover. Avoid
+    # importing inspect (and its source-inspection dependencies) on CLI startup.
+    # Subclasses retain the stdlib method calls and their observable overrides.
+    if type(text) is str and "\n" not in text:
+        return text.expandtabs().lstrip()
+    import inspect
+    return inspect.cleandoc(text)
 
 
 def batch(iterable: Iterable[V], batch_size: int) -> list[tuple[V, ...]]:
@@ -56,9 +66,7 @@ def augment_usage_errors(ctx: Context, param: Parameter | None = None):
 
 
 def iter_params_for_processing(invocation_order: Sequence[Parameter], declaration_order: Sequence[Parameter]) -> list[Parameter]:
-    indices = {id(p): n for n, p in enumerate(declaration_order)}
-    order = [indices[id(p)] for p in invocation_order if id(p) in indices]
-    return [declaration_order[i] for i in _processing_order([p.is_eager for p in declaration_order], order)]
+    return _order_parameters(invocation_order, declaration_order)
 
 
 def _format_deprecated_label(value: bool | str) -> str:
@@ -288,6 +296,7 @@ class Command:
         self.options_metavar, self.add_help_option = options_metavar, add_help_option
         self.no_args_is_help, self.hidden, self.deprecated = no_args_is_help, hidden, deprecated
         self._help_option: Option | None = None
+        self._native_plan = None
 
     def __repr__(self) -> str:
         return f"<{type(self).__name__} {self.name}>"
@@ -379,7 +388,10 @@ class Command:
         self.format_epilog(ctx, formatter)
 
     def format_help_text(self, ctx: Context, formatter: HelpFormatter) -> None:
-        text = inspect.cleandoc(self.help).partition("\f")[0] if self.help else ""
+        if self.help:
+            text = _clean_help(self.help).partition("\f")[0]
+        else:
+            text = ""
         label = _format_deprecated_label(self.deprecated)
         if label:
             text = f"{text} {label}".strip()
@@ -404,7 +416,7 @@ class Command:
         if self.epilog:
             formatter.write_paragraph()
             with formatter.indentation():
-                formatter.write_text(inspect.cleandoc(self.epilog))
+                formatter.write_text(_clean_help(self.epilog))
 
     def make_context(self, info_name: str | None, args: list[str], parent: Context | None = None, **extra: Any) -> Context:
         for key, value in self.context_settings.items():
@@ -418,7 +430,11 @@ class Command:
         if not args and self.no_args_is_help and not ctx.resilient_parsing:
             raise NoArgsIsHelpError(ctx)
         parser = self.make_parser(ctx)
+        if type(parser) is _OptionParser:
+            parser._plan = self._native_plan
         opts, remaining, order = parser.parse_args(args=args)
+        if type(parser) is _OptionParser:
+            self._native_plan = parser._plan
         for param in iter_params_for_processing(order, self.get_params(ctx)):
             _, remaining = param.handle_parse_result(ctx, opts, remaining)
         ctx.params = {key: Parameter._hide_unset(value) for key, value in ctx.params.items()}
@@ -712,7 +728,9 @@ class Parameter(abc.ABC):
         self.is_eager, self.metavar, self.envvar = is_eager, metavar, envvar
         self._custom_shell_complete = shell_complete
         self.deprecated = deprecated
-        self.help = inspect.cleandoc(help) if help is not None else None
+        if help is not None:
+            help = _clean_help(help)
+        self.help = help
         if deprecated:
             self.help = " ".join(filter(None, (self.help, _format_deprecated_label(deprecated))))
         if self.type.is_composite and self.nargs != self.type.arity:
@@ -1039,7 +1057,7 @@ class Option(Parameter):
         if isinstance(show, str):
             extra["default"] = f"({show})"
         elif show and value is not UNSET and value is not None:
-            if inspect.isfunction(value):
+            if isinstance(value, FunctionType):
                 text = "(dynamic)"
             elif self.is_bool_flag and self.secondary_opts:
                 selected = self.opts if value else self.secondary_opts
@@ -1065,7 +1083,7 @@ class Option(Parameter):
     def get_help_record(self, ctx: Context) -> tuple[str, str] | None:
         if self.hidden:
             return None
-        text = inspect.cleandoc(self.help).partition("\f")[0] if self.help else ""
+        text = _clean_help(self.help).partition("\f")[0] if self.help else ""
         extras = self.get_help_extra(ctx)
         notes = []
         if "envvars" in extras:

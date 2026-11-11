@@ -89,7 +89,7 @@ class ParamType(t.Generic[V, I], abc.ABC):
         return None if value is None else self.convert(value, param, ctx)
 
     def convert(self, value: I, param: t.Any, ctx: t.Any) -> V:
-        return t.cast(V, value)
+        return value  # type: ignore[return-value]
 
     def to_info_dict(self) -> dict[str, t.Any]:
         kind = self.__class__.__name__.removesuffix("ParamType").removesuffix("ParameterType")
@@ -123,8 +123,8 @@ class CompositeParamType(ParamType[V, I]):
 
 class FuncParamType(ParamType[V, I]):
     def __init__(self, func: t.Callable[[I], V]) -> None:
+        self.name = func.__name__
         self.func = func
-        self.name = getattr(func, "__name__", type(func).__name__)
 
     def to_info_dict(self) -> dict[str, t.Any]:
         return {**super().to_info_dict(), "func": self.func}
@@ -147,6 +147,10 @@ class StringParamType(ParamType[str, t.Any]):
     name = "text"
 
     def convert(self, value: t.Any, param: t.Any, ctx: t.Any) -> str:
+        # Exact strings already have the conversion result. A subclass must
+        # still pass through str(), since it can override __str__.
+        if type(value) is str:
+            return value
         if isinstance(value, bytes):
             for encoding in (sys.getfilesystemencoding(), "utf-8"):
                 try:
@@ -463,13 +467,23 @@ def convert_type(ty: t.Any = None, default: t.Any = None) -> ParamType[t.Any]:
                 return Tuple([type(v) for v in default[0]])
             default = default[0] if default else None
         ty = type(default)
+    # Read the public singletons on every call, so replacing types.INT (or
+    # another singleton) remains observable. Identity dispatch also accepts
+    # callable instances that intentionally do not implement __hash__.
+    if ty is str:
+        return STRING
+    if ty is int:
+        return INT
+    if ty is float:
+        return FLOAT
+    if ty is bool:
+        return BOOL
+    if ty is type(None):
+        return STRING
     if isinstance(ty, ParamType):
         return ty
     if isinstance(ty, tuple):
         return Tuple(ty)
-    known = {str: STRING, int: INT, float: FLOAT, bool: BOOL, type(None): STRING}
-    if ty in known:
-        return known[ty]
     if inferred:
         return STRING
     if isinstance(ty, type) and issubclass(ty, ParamType):

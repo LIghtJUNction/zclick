@@ -5,6 +5,7 @@ import contextlib
 import typing as t
 
 from ._compat import term_len
+from . import _native
 
 FORCED_WIDTH: int | None = None
 
@@ -15,7 +16,9 @@ def measure_table(rows: t.Iterable[tuple[str, str]]) -> tuple[int, ...]:
         for index, value in enumerate(row):
             if len(widths) <= index:
                 widths.append(0)
-            widths[index] = max(widths[index], term_len(value))
+            width = term_len(value)
+            if width > widths[index]:
+                widths[index] = width
     return tuple(widths)
 
 
@@ -25,20 +28,23 @@ def iter_rows(rows: t.Iterable[tuple[str, str]], col_count: int) -> t.Iterator[t
 
 
 def wrap_text(text: str, width: int = 78, initial_indent: str = "", subsequent_indent: str = "", preserve_paragraphs: bool = False) -> str:
-    from ._native import wrap_text as native
-    return native(text, width, initial_indent, subsequent_indent, bool(preserve_paragraphs))
+    return _native.wrap_text(text, width, initial_indent, subsequent_indent, bool(preserve_paragraphs))
 
 
 def join_options(options: t.Iterable[str]) -> tuple[str, bool]:
-    from ._native import join_options as native
-    return native(list(options))
+    return _native.join_options(list(options))
 
 
 class HelpFormatter:
     def __init__(self, indent_increment: int = 2, width: int | None = None, max_width: int | None = None) -> None:
-        import shutil
         self.indent_increment = indent_increment
-        self.width = width if width is not None else FORCED_WIDTH if FORCED_WIDTH is not None else max(50, min(shutil.get_terminal_size().columns, max_width or 80) - 2)
+        if width is not None:
+            self.width = width
+        elif FORCED_WIDTH is not None:
+            self.width = FORCED_WIDTH
+        else:
+            import shutil
+            self.width = max(50, min(shutil.get_terminal_size().columns, max_width or 80) - 2)
         self.current_indent = 0
         self.buffer: list[str] = []
 

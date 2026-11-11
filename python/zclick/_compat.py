@@ -8,19 +8,27 @@ import re
 import sys
 import typing as t
 
+from . import _native
+
 WIN = sys.platform.startswith("win")
 CYGWIN = sys.platform.startswith("cygwin")
 _ansi_re = re.compile(r"\x1b\[[\x30-\x3f]*[\x20-\x2f]*[\x40-\x7e]")
+_native_strip_ansi = _native.strip_ansi
+_native_text_width = _native.text_width
 
 
 def strip_ansi(value: str) -> str:
-    from ._native import strip_ansi as native
+    native = _native.strip_ansi
+    if native is _native_strip_ansi and type(value) is str and "\x1b" not in value:
+        return value
     return native(value)
 
 
 def term_len(value: str) -> int:
-    from ._native import text_width
-    return text_width(value)
+    native = _native.text_width
+    if native is _native_text_width and type(value) is str and "\x1b" not in value:
+        return len(value)
+    return native(value)
 
 
 def isatty(stream: t.Any) -> bool:

@@ -1,7 +1,6 @@
 """Decorators attach Python callbacks to native-backed command definitions."""
 from __future__ import annotations
 
-import inspect
 from functools import update_wrapper, wraps
 from typing import Any, Callable, Concatenate, ParamSpec, TypeVar, overload
 
@@ -142,6 +141,7 @@ def version_option(version: str | None = None, *param_decls: str,
                    package_name: str | None = None, prog_name: str | None = None,
                    message: str | None = None, **kwargs: Any) -> Callable[[FC], FC]:
     if package_name is None:
+        import inspect
         frame = inspect.currentframe()
         try:
             caller = frame.f_back

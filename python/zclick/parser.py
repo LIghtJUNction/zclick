@@ -1,7 +1,8 @@
 """Legacy parser adapter over the Rust/zclap token engine.
 
-Definitions are rebuilt on every call so mutation and Python subclass hooks stay
-observable. No Click implementation is loaded by this module.
+Every call validates the live definitions before reusing an immutable native
+schema. Invocation state and Python actions are never cached. No Click
+implementation is loaded by this module.
 """
 from __future__ import annotations
 
@@ -99,6 +100,7 @@ class _OptionParser:
         self._long_opt: dict[str, _Option] = {}
         self._args: list[_Argument] = []
         self._options: list[_Option] = []
+        self._plan: _native.ParserPlan | None = None
 
     def add_option(self, obj: Any, opts: list[str], dest: str | None,
                    action: str | None = None, nargs: int = 1, const: Any = None) -> None:
@@ -117,16 +119,14 @@ class _OptionParser:
     def parse_args(self, args: list[str]) -> tuple[dict[str, Any], list[str], list[Any]]:
         from ._utils import UNSET
         definitions: list[Any] = self._options + self._args
-        specs = [(i, p.opts if isinstance(p, _Option) else [], p.nargs,
-                  isinstance(p, _Option) and not p.takes_value,
-                  bool(getattr(p.obj, "_flag_needs_value", False)))
-                 for i, p in enumerate(definitions)]
+        plan = _native.ParserPlan.from_definitions(definitions, _Option, self._plan)
+        self._plan = plan
         normalize = None
         if self.ctx is not None and self.ctx.token_normalize_func is not None:
             normalize = lambda spelling: _normalize_opt(spelling, self.ctx)
         state = _ParsingState([])
-        leftovers, error = _native.parse_into(
-            specs, args, definitions, state, UNSET, _flag_needs_value,
+        leftovers, error = plan.parse_into(
+            args, definitions, state, UNSET, _flag_needs_value,
             bool(self.allow_interspersed_args), bool(self.ignore_unknown_options),
             normalizer=normalize, original_args=args)
         if error and not (self.ctx is not None and self.ctx.resilient_parsing):

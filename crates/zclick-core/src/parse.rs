@@ -7,6 +7,79 @@ use alloc::{
 };
 use zclap::{Arg, Command, Event};
 
+/// A parsed value retains its argument index, so bindings can preserve object
+/// identity without copying bytes or maintaining a pointer-address map.
+#[derive(Clone, Debug)]
+pub enum ParsedValue<'a> {
+    Original { index: usize, bytes: &'a [u8] },
+    Slice(&'a [u8]),
+    Owned(Vec<u8>),
+}
+impl ParsedValue<'_> {
+    pub fn original_index(&self) -> Option<usize> {
+        match self {
+            Self::Original { index, .. } => Some(*index),
+            _ => None,
+        }
+    }
+}
+impl AsRef<[u8]> for ParsedValue<'_> {
+    fn as_ref(&self) -> &[u8] {
+        match self {
+            Self::Original { bytes, .. } | Self::Slice(bytes) => bytes,
+            Self::Owned(bytes) => bytes,
+        }
+    }
+}
+impl core::ops::Deref for ParsedValue<'_> {
+    type Target = [u8];
+    fn deref(&self) -> &[u8] {
+        self.as_ref()
+    }
+}
+
+/// The common flag and single-value cases do not allocate an occurrence vector.
+#[derive(Debug)]
+pub enum OccurrenceValues<'a> {
+    Empty,
+    One(ParsedValue<'a>),
+    Many(Vec<ParsedValue<'a>>),
+}
+impl<'a> AsRef<[ParsedValue<'a>]> for OccurrenceValues<'a> {
+    fn as_ref(&self) -> &[ParsedValue<'a>] {
+        match self {
+            Self::Empty => &[],
+            Self::One(value) => core::slice::from_ref(value),
+            Self::Many(values) => values,
+        }
+    }
+}
+impl<'a> OccurrenceValues<'a> {
+    fn into_vec(self) -> Vec<ParsedValue<'a>> {
+        match self {
+            Self::Empty => Vec::new(),
+            Self::One(value) => vec![value],
+            Self::Many(values) => values,
+        }
+    }
+}
+#[derive(Debug)]
+pub struct Occurrence<'a> {
+    pub id: i64,
+    pub index: usize,
+    pub values: OccurrenceValues<'a>,
+}
+
+/// Ordered events are the native execution interface. The map-shaped public
+/// result below is assembled only by callers that require that representation.
+#[derive(Debug, Default)]
+pub struct EventResult<'a> {
+    pub events: Vec<Occurrence<'a>>,
+    pub leftovers: Vec<ParsedValue<'a>>,
+    pub remaining_input: Vec<ParsedValue<'a>>,
+    pub error: Option<ParseError>,
+}
+
 /// An invocation-local parameter declaration. Option spellings retain surrogate-pass bytes.
 #[derive(Clone, Debug)]
 pub struct Spec {
@@ -32,12 +105,31 @@ pub struct ParseError {
 /// unknown short clusters require an owned byte string.
 #[derive(Debug, Default)]
 pub struct ParseResult<'a> {
-    pub values: BTreeMap<i64, Vec<Vec<Cow<'a, [u8]>>>>,
-    pub leftovers: Vec<Cow<'a, [u8]>>,
+    pub values: BTreeMap<i64, Vec<Vec<ParsedValue<'a>>>>,
+    pub leftovers: Vec<ParsedValue<'a>>,
     /// Remaining lexer input before positional assignment, for the legacy mutable-list API.
-    pub remaining_input: Vec<Cow<'a, [u8]>>,
+    pub remaining_input: Vec<ParsedValue<'a>>,
     pub order: Vec<i64>,
     pub error: Option<ParseError>,
+}
+impl<'a> From<EventResult<'a>> for ParseResult<'a> {
+    fn from(events: EventResult<'a>) -> Self {
+        let mut result = Self {
+            leftovers: events.leftovers,
+            remaining_input: events.remaining_input,
+            error: events.error,
+            ..Self::default()
+        };
+        for event in events.events {
+            result
+                .values
+                .entry(event.id)
+                .or_default()
+                .push(event.values.into_vec());
+            result.order.push(event.id);
+        }
+        result
+    }
 }
 
 fn codepoint_len(first: u8) -> usize {
@@ -99,33 +191,130 @@ fn spelling_hash(bytes: &[u8]) -> usize {
         (hash ^ u64::from(byte)).wrapping_mul(0x100000001b3)
     }) as usize
 }
-struct Kernel<'a> {
-    commands: Vec<Command<'a>>,
-    buckets: Vec<core::ops::Range<usize>>,
+struct Recognition {
+    names: Vec<String>,
     targets: Vec<usize>,
+    buckets: Vec<core::ops::Range<usize>>,
+    prefixes: Vec<Vec<u8>>,
+}
+impl Recognition {
+    fn new(specs: &[Spec]) -> Self {
+        let mut spellings = BTreeMap::new();
+        let mut prefixes = vec![b"-".to_vec(), b"--".to_vec()];
+        for (i, spec) in specs.iter().enumerate() {
+            for option in &spec.options {
+                let (n, _) = split_prefix(option);
+                if n != 0 && !prefixes.iter().any(|p| p == &option[..n]) {
+                    prefixes.push(option[..n].to_vec());
+                }
+                if let Some(&b) = option.first() {
+                    let first = codepoint_len(b).min(option.len());
+                    if !prefixes.iter().any(|p| p == &option[..first]) {
+                        prefixes.push(option[..first].to_vec());
+                    }
+                }
+                spellings.insert(encode_spelling(option, is_short(option)), i);
+            }
+        }
+        // An owned schema contains names and bucket ranges, never self-referential
+        // zclap Commands. A small borrowed candidate table is constructed only
+        // when a token visits that bucket. Hashing is not accepted as a match.
+        let bucket_count = (spellings.len().max(2) / 2).next_power_of_two();
+        let mut entries: Vec<_> = spellings
+            .into_iter()
+            .map(|(name, target)| {
+                let bucket = spelling_hash(name.as_bytes()) & (bucket_count - 1);
+                (bucket, name, target)
+            })
+            .collect();
+        entries.sort_unstable_by(|a, b| a.0.cmp(&b.0).then_with(|| a.1.cmp(&b.1)));
+        let mut counts = vec![0; bucket_count];
+        for &(bucket, _, _) in &entries {
+            counts[bucket] += 1;
+        }
+        let (names, targets) = entries
+            .into_iter()
+            .map(|(_, name, target)| (name, target))
+            .unzip();
+        let mut start = 0;
+        let buckets = counts
+            .into_iter()
+            .map(|count| {
+                let end = start + count;
+                let range = start..end;
+                start = end;
+                range
+            })
+            .collect();
+        Self {
+            names,
+            targets,
+            buckets,
+            prefixes,
+        }
+    }
+}
+
+/// Immutable owned parsing structure, independent of any Python objects or
+/// invocation environment. Every zclap borrow is scoped to an actual lookup.
+pub struct Schema {
+    specs: Vec<Spec>,
+    recognition: Recognition,
+}
+impl Schema {
+    pub fn new(specs: Vec<Spec>) -> Self {
+        let recognition = Recognition::new(&specs);
+        Self { specs, recognition }
+    }
+    pub fn specs(&self) -> &[Spec] {
+        &self.specs
+    }
+    pub fn parse<'a>(
+        &self,
+        argv: &[&'a [u8]],
+        interspersed: bool,
+        ignore_unknown: bool,
+        normalizer: Option<Normalizer<'_>>,
+    ) -> EventResult<'a> {
+        parse_prepared(
+            &self.specs,
+            &self.recognition,
+            argv,
+            interspersed,
+            ignore_unknown,
+            normalizer,
+        )
+    }
+}
+
+struct Kernel<'a> {
+    recognition: &'a Recognition,
+    token: String,
 }
 impl Kernel<'_> {
-    fn find(&self, spelling: &[u8], short: bool) -> Option<usize> {
-        let mut token = String::with_capacity(spelling.len() + 3);
-        token.push_str("--");
-        encode_into(&mut token, spelling, short);
-        let argv = [token.as_str()];
-        // Chunks keep the kernel's inline presence state bounded while allowing
-        // an arbitrary number of runtime definitions. Every successful lookup
-        // is a real zclap event, followed by mandatory final validation.
-        let bucket = if self.buckets.len() == 1 {
-            0
-        } else {
-            spelling_hash(&token.as_bytes()[2..]) & (self.buckets.len() - 1)
-        };
-        for command in &self.commands[self.buckets[bucket].clone()] {
+    fn find(&mut self, spelling: &[u8], short: bool) -> Option<usize> {
+        self.token.clear();
+        self.token.push_str("--");
+        encode_into(&mut self.token, spelling, short);
+        let argv = [self.token.as_str()];
+        let data = self.recognition;
+        let bucket = spelling_hash(&self.token.as_bytes()[2..]) & (data.buckets.len() - 1);
+        const IDS: [&str; 8] = ["0", "1", "2", "3", "4", "5", "6", "7"];
+        let range = data.buckets[bucket].clone();
+        for start in (range.start..range.end).step_by(IDS.len()) {
+            let count = (range.end - start).min(IDS.len());
+            let mut args = [Arg::flag("0"); 8];
+            for i in 0..count {
+                args[i] = Arg::flag(IDS[i]).long(&data.names[start + i]).repeat();
+            }
+            let command = Command::new("zclick").args(&args[..count]);
             let mut parser = command.parse(&argv);
             if let Ok(Some(Event::Flag { arg })) = parser.next()
                 && parser.next().ok().flatten().is_none()
                 && parser.finish().is_ok()
             {
-                let index: usize = arg.parse().ok()?;
-                return self.targets.get(index).copied();
+                let index = usize::from(arg.as_bytes()[0] - b'0');
+                return data.targets.get(start + index).copied();
             }
         }
         None
@@ -148,30 +337,56 @@ fn syntax(
     }
 }
 
-// One pending slice is sufficient: a zero-arity option can put its attached
-// suffix back at the front, and that slice is consumed before another appears.
-#[derive(Clone)]
-struct Tokens<'a> {
-    argv: &'a [Vec<u8>],
-    cursor: usize,
-    pending: Option<&'a [u8]>,
+// A token carries provenance independently of its address. In particular,
+// distinct empty Python strings may share one UTF-8 pointer.
+#[derive(Clone, Copy)]
+struct Token<'a> {
+    bytes: &'a [u8],
+    original: Option<usize>,
 }
-impl<'a> Tokens<'a> {
-    fn peek(&self) -> Option<&'a [u8]> {
-        self.pending
-            .or_else(|| self.argv.get(self.cursor).map(Vec::as_slice))
+impl<'a> From<Token<'a>> for ParsedValue<'a> {
+    fn from(token: Token<'a>) -> Self {
+        match token.original {
+            Some(index) => Self::Original {
+                index,
+                bytes: token.bytes,
+            },
+            None => Self::Slice(token.bytes),
+        }
+    }
+}
+// One pending slice is sufficient: an attached suffix is consumed before a
+// subsequent option can enqueue another suffix.
+#[derive(Clone)]
+struct Tokens<'v, 'a> {
+    argv: &'v [&'a [u8]],
+    cursor: usize,
+    pending: Option<Token<'a>>,
+}
+impl<'a> Tokens<'_, 'a> {
+    fn peek(&self) -> Option<Token<'a>> {
+        self.pending.or_else(|| {
+            self.argv.get(self.cursor).map(|&bytes| Token {
+                bytes,
+                original: Some(self.cursor),
+            })
+        })
     }
     fn remaining(&self) -> usize {
         self.argv.len() - self.cursor + usize::from(self.pending.is_some())
     }
 }
-impl<'a> Iterator for Tokens<'a> {
-    type Item = &'a [u8];
+impl<'a> Iterator for Tokens<'_, 'a> {
+    type Item = Token<'a>;
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(value) = self.pending.take() {
             return Some(value);
         }
-        let value = self.argv.get(self.cursor)?;
+        let &bytes = self.argv.get(self.cursor)?;
+        let value = Token {
+            bytes,
+            original: Some(self.cursor),
+        };
         self.cursor += 1;
         Some(value)
     }
@@ -210,91 +425,49 @@ pub fn parse_with_normalizer<'a>(
     argv: &'a [Vec<u8>],
     interspersed: bool,
     ignore_unknown: bool,
-    mut normalizer: Option<Normalizer<'_>>,
+    normalizer: Option<Normalizer<'_>>,
 ) -> ParseResult<'a> {
-    let mut spellings = BTreeMap::new();
-    let mut prefixes = vec![b"-".to_vec(), b"--".to_vec()];
-    for (i, spec) in specs.iter().enumerate() {
-        for option in &spec.options {
-            let (n, _) = split_prefix(option);
-            if n != 0 && !prefixes.iter().any(|p| p == &option[..n]) {
-                prefixes.push(option[..n].to_vec());
-            }
-            if let Some(&b) = option.first() {
-                let first = codepoint_len(b).min(option.len());
-                if !prefixes.iter().any(|p| p == &option[..first]) {
-                    prefixes.push(option[..first].to_vec());
-                }
-            }
-            spellings.insert(encode_spelling(option, is_short(option)), i);
-        }
-    }
-    // Hashing selects a small schema bucket; zclap alone decides whether a
-    // spelling actually matches. No hash result is accepted as recognition.
-    // Small commands stay in one bucket, avoiding hashing on their hot path.
-    let bucket_count = if spellings.len() < 64 {
-        1
-    } else {
-        (spellings.len() / 32).next_power_of_two()
+    let recognition = Recognition::new(specs);
+    let argv: Vec<_> = argv.iter().map(Vec::as_slice).collect();
+    parse_prepared(
+        specs,
+        &recognition,
+        &argv,
+        interspersed,
+        ignore_unknown,
+        normalizer,
+    )
+    .into()
+}
+
+fn parse_prepared<'a>(
+    specs: &[Spec],
+    recognition: &Recognition,
+    argv: &[&'a [u8]],
+    interspersed: bool,
+    ignore_unknown: bool,
+    mut normalizer: Option<Normalizer<'_>>,
+) -> EventResult<'a> {
+    let prefixes = &recognition.prefixes;
+    let mut kernel = Kernel {
+        recognition,
+        token: String::with_capacity(64),
     };
-    let mut entries: Vec<_> = spellings
-        .into_iter()
-        .map(|(name, target)| {
-            let bucket = if bucket_count == 1 {
-                0
-            } else {
-                spelling_hash(name.as_bytes()) & (bucket_count - 1)
-            };
-            (bucket, name, target)
-        })
-        .collect();
-    if bucket_count > 1 {
-        entries.sort_unstable_by(|a, b| a.0.cmp(&b.0).then_with(|| a.1.cmp(&b.1)));
-    }
-    let mut counts = vec![0; bucket_count];
-    for &(bucket, _, _) in &entries {
-        counts[bucket] += 1;
-    }
-    let (names, targets): (Vec<_>, Vec<_>) = entries
-        .into_iter()
-        .map(|(_, name, target)| (name, target))
-        .unzip();
-    let ids: Vec<_> = (0..names.len()).map(|i| i.to_string()).collect();
-    let args: Vec<_> = names
-        .iter()
-        .zip(&ids)
-        .map(|(name, id)| Arg::flag(id).long(name).repeat())
-        .collect();
-    let mut commands = Vec::with_capacity(bucket_count);
-    let mut buckets = Vec::with_capacity(bucket_count);
-    let mut start = 0;
-    for count in counts {
-        let first = commands.len();
-        // Even deliberately colliding schemas have no fixed argument limit.
-        commands.extend(
-            args[start..start + count]
-                .chunks(256)
-                .map(|chunk| Command::new("zclick").args(chunk)),
-        );
-        buckets.push(first..commands.len());
-        start += count;
-    }
-    let kernel = Kernel {
-        commands,
-        buckets,
-        targets,
+    let mut result = EventResult {
+        events: Vec::with_capacity(argv.len().max(specs.len())),
+        ..EventResult::default()
     };
-    let mut result = ParseResult::default();
-    let mut positional: Vec<Cow<'a, [u8]>> = Vec::new();
+    let mut positional = Vec::new();
     let mut tokens = Tokens {
         argv,
         cursor: 0,
         pending: None,
     };
-    while let Some(token) = tokens.next() {
+    while let Some(source) = tokens.next() {
+        let token = source.bytes;
         if token == b"--" {
-            result.remaining_input = tokens.clone().map(Cow::Borrowed).collect();
-            positional.extend(tokens.by_ref().map(Cow::Borrowed));
+            result.remaining_input = tokens.clone().map(ParsedValue::from).collect();
+            positional.extend(tokens.by_ref().map(ParsedValue::from));
             break;
         }
         let first_len = token
@@ -303,13 +476,13 @@ pub fn parse_with_normalizer<'a>(
         let option_like =
             token.len() > first_len && prefixes.iter().any(|p| p == &token[..first_len]);
         if !option_like {
-            positional.push(Cow::Borrowed(token));
+            positional.push(source.into());
             if !interspersed {
-                result.remaining_input.push(Cow::Borrowed(token));
+                result.remaining_input.push(source.into());
                 result
                     .remaining_input
-                    .extend(tokens.clone().map(Cow::Borrowed));
-                positional.extend(tokens.by_ref().map(Cow::Borrowed));
+                    .extend(tokens.clone().map(ParsedValue::from));
+                positional.extend(tokens.by_ref().map(ParsedValue::from));
                 break;
             }
             continue;
@@ -327,6 +500,7 @@ pub fn parse_with_normalizer<'a>(
             let spec = &specs[index];
             let attached = eq.map(|p| &token[p + 1..]);
             if let Err(error) = consume(
+                index,
                 spec,
                 &normalized_head,
                 attached,
@@ -342,7 +516,7 @@ pub fn parse_with_normalizer<'a>(
         let (prefix_len, repeated) = split_prefix(token);
         if repeated && prefixes.iter().any(|p| p == &token[..prefix_len]) {
             if ignore_unknown {
-                positional.push(Cow::Borrowed(token));
+                positional.push(source.into());
                 continue;
             }
             result.error = Some(syntax(
@@ -391,6 +565,7 @@ pub fn parse_with_normalizer<'a>(
                 None
             };
             if let Err(error) = consume(
+                index,
                 spec,
                 &normalized_short,
                 attached,
@@ -406,14 +581,14 @@ pub fn parse_with_normalizer<'a>(
             }
         }
         if result.error.is_none() && unknown.len() > prefix.len() {
-            positional.push(Cow::Owned(unknown));
+            positional.push(ParsedValue::Owned(unknown));
         }
         if result.error.is_some() {
             break;
         }
     }
     if result.error.is_some() {
-        result.remaining_input = tokens.map(Cow::Borrowed).collect();
+        result.remaining_input = tokens.map(ParsedValue::from).collect();
         result.leftovers = positional;
         return result;
     }
@@ -422,12 +597,13 @@ pub fn parse_with_normalizer<'a>(
 }
 
 fn consume<'a>(
+    index: usize,
     spec: &Spec,
     spelling: &[u8],
     attached: Option<&'a [u8]>,
-    tokens: &mut Tokens<'a>,
+    tokens: &mut Tokens<'_, 'a>,
     prefixes: &[Vec<u8>],
-    result: &mut ParseResult<'a>,
+    result: &mut EventResult<'a>,
 ) -> Result<(), ParseError> {
     if spec.is_flag {
         if attached.is_some() {
@@ -439,8 +615,11 @@ fn consume<'a>(
                 String::new(),
             ));
         }
-        result.values.entry(spec.id).or_default().push(Vec::new());
-        result.order.push(spec.id);
+        result.events.push(Occurrence {
+            id: spec.id,
+            index,
+            values: OccurrenceValues::Empty,
+        });
         return Ok(());
     }
     let count = usize::try_from(spec.nargs).map_err(|_| {
@@ -455,19 +634,28 @@ fn consume<'a>(
     // Click inserts an attached suffix into the remaining input before applying
     // optional-value rules. It can therefore become an option or positional.
     if let Some(value) = attached {
-        tokens.pending = Some(value);
+        tokens.pending = Some(Token {
+            bytes: value,
+            original: None,
+        });
     }
     let available = tokens.remaining();
     let omitted = spec.optional_value
         && (available < count
             || count == 1
                 && tokens.peek().is_some_and(|t| {
-                    let n = t.first().map_or(0, |b| codepoint_len(*b).min(t.len()));
-                    t.len() > n && prefixes.iter().any(|p| p == &t[..n])
+                    let bytes = t.bytes;
+                    let n = bytes
+                        .first()
+                        .map_or(0, |b| codepoint_len(*b).min(bytes.len()));
+                    bytes.len() > n && prefixes.iter().any(|p| p == &bytes[..n])
                 }));
     if omitted || count == 0 {
-        result.values.entry(spec.id).or_default().push(Vec::new());
-        result.order.push(spec.id);
+        result.events.push(Occurrence {
+            id: spec.id,
+            index,
+            values: OccurrenceValues::Empty,
+        });
         return Ok(());
     }
     if available < count {
@@ -481,25 +669,24 @@ fn consume<'a>(
     }
     if count == 1 {
         let value = tokens.next().expect("arity checked before consumption");
-        validate_raw_values(&[value])?;
-        result
-            .values
-            .entry(spec.id)
-            .or_default()
-            .push(vec![Cow::Borrowed(value)]);
-        result.order.push(spec.id);
+        validate_raw_values(&[value.bytes])?;
+        result.events.push(Occurrence {
+            id: spec.id,
+            index,
+            values: OccurrenceValues::One(value.into()),
+        });
         return Ok(());
     }
-    let values: Vec<_> = tokens.take(count).collect();
+    let values: Vec<_> = tokens.take(count).map(ParsedValue::from).collect();
     // Values go through zclap's byte input/event path. A terminator shields
     // Click's dash-leading values from zclap's native option-boundary policy.
-    validate_raw_values(&values)?;
-    result
-        .values
-        .entry(spec.id)
-        .or_default()
-        .push(values.into_iter().map(Cow::Borrowed).collect());
-    result.order.push(spec.id);
+    let references: Vec<_> = values.iter().map(AsRef::as_ref).collect();
+    validate_raw_values(&references)?;
+    result.events.push(Occurrence {
+        id: spec.id,
+        index,
+        values: OccurrenceValues::Many(values),
+    });
     Ok(())
 }
 
@@ -533,14 +720,18 @@ fn validate_raw_values(values: &[&[u8]]) -> Result<(), ParseError> {
 
 fn assign_positionals<'a>(
     specs: &[Spec],
-    mut input: Vec<Cow<'a, [u8]>>,
-    out: &mut ParseResult<'a>,
+    mut input: Vec<ParsedValue<'a>>,
+    out: &mut EventResult<'a>,
 ) {
-    let positional: Vec<_> = specs.iter().filter(|s| s.options.is_empty()).collect();
+    let positional: Vec<_> = specs
+        .iter()
+        .enumerate()
+        .filter(|(_, s)| s.options.is_empty())
+        .collect();
     let variadic: Vec<_> = positional
         .iter()
         .enumerate()
-        .filter(|(_, s)| s.nargs < 0)
+        .filter(|(_, (_, s))| s.nargs < 0)
         .collect();
     if variadic.len() > 1 {
         out.error = Some(syntax(
@@ -556,7 +747,7 @@ fn assign_positionals<'a>(
     let mut ranges = vec![(0, 0); positional.len()];
     let mut left = 0;
     let mut right = input.len();
-    for (i, spec) in positional
+    for (i, (_, spec)) in positional
         .iter()
         .enumerate()
         .take(pivot.unwrap_or(positional.len()))
@@ -568,7 +759,7 @@ fn assign_positionals<'a>(
     }
     if let Some(pivot) = pivot {
         for i in (pivot + 1..positional.len()).rev() {
-            let n = usize::try_from(positional[i].nargs).unwrap_or(0);
+            let n = usize::try_from(positional[i].1.nargs).unwrap_or(0);
             let begin = right.saturating_sub(n).max(left);
             ranges[i] = (begin, right);
             right = begin;
@@ -576,7 +767,7 @@ fn assign_positionals<'a>(
         ranges[pivot] = (left, right);
         left = right;
     }
-    for (i, spec) in positional.iter().enumerate() {
+    for (i, &(index, spec)) in positional.iter().enumerate() {
         let (begin, end) = ranges[i];
         if end > begin && spec.nargs >= 0 && end - begin != spec.nargs as usize {
             out.error = Some(syntax(
@@ -594,8 +785,18 @@ fn assign_positionals<'a>(
             out.error = Some(error);
             break;
         }
-        out.values.entry(spec.id).or_default().push(values);
-        out.order.push(spec.id);
+        let values = if values.is_empty() {
+            OccurrenceValues::Empty
+        } else if values.len() == 1 {
+            OccurrenceValues::One(values.into_iter().next().expect("one positional value"))
+        } else {
+            OccurrenceValues::Many(values)
+        };
+        out.events.push(Occurrence {
+            id: spec.id,
+            index,
+            values,
+        });
     }
     if pivot.is_none() {
         out.leftovers = input.split_off(left);

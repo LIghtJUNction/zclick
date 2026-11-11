@@ -11,6 +11,7 @@ import sys
 import typing as t
 
 from . import _compat
+from . import globals as _globals
 
 R = t.TypeVar("R")
 
@@ -40,10 +41,13 @@ def _make_default_short_help(help: str, max_length: int = 45) -> str:
     if len(sentence) <= max_length:
         return sentence
     words: list[str] = []
+    length = 0
     for word in sentence.split():
-        if len(" ".join([*words, word])) > max_length - 3:
+        next_length = length + len(word) + (1 if words else 0)
+        if next_length > max_length - 3:
             break
         words.append(word)
+        length = next_length
     return " ".join(words) + "..."
 
 
@@ -64,8 +68,7 @@ def echo(message: object = None, file: t.IO[t.Any] | None = None, nl: bool = Tru
     if nl:
         text += b"\n" if isinstance(text, bytes) else "\n"
     if isinstance(text, str):
-        from .globals import resolve_color_default
-        if _compat.should_strip_ansi(file, resolve_color_default(color)):
+        if _compat.should_strip_ansi(file, _globals.resolve_color_default(color)):
             text = _compat.strip_ansi(text)
     file.write(text)
     file.flush()

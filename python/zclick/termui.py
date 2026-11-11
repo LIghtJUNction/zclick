@@ -156,12 +156,26 @@ def _color(value: t.Any, background: bool) -> str:
 
 def style(text: t.Any, fg: t.Any = None, bg: t.Any = None, bold: bool | None = None, dim: bool | None = None, underline: bool | None = None, overline: bool | None = None, italic: bool | None = None, blink: bool | None = None, reverse: bool | None = None, strikethrough: bool | None = None, reset: bool = True) -> str:
     codes: list[str] = []
-    for value, is_background in ((fg, False), (bg, True)):
-        if value is not None:
-            codes.append(_color(value, is_background))
-    for value, on, off in ((bold, 1, 22), (dim, 2, 22), (underline, 4, 24), (overline, 53, 55), (italic, 3, 23), (blink, 5, 25), (reverse, 7, 27), (strikethrough, 9, 29)):
-        if value is not None:
-            codes.append(str(on if value else off))
+    if fg is not None:
+        codes.append(_color(fg, False))
+    if bg is not None:
+        codes.append(_color(bg, True))
+    if bold is not None:
+        codes.append("1" if bold else "22")
+    if dim is not None:
+        codes.append("2" if dim else "22")
+    if underline is not None:
+        codes.append("4" if underline else "24")
+    if overline is not None:
+        codes.append("53" if overline else "55")
+    if italic is not None:
+        codes.append("3" if italic else "23")
+    if blink is not None:
+        codes.append("5" if blink else "25")
+    if reverse is not None:
+        codes.append("7" if reverse else "27")
+    if strikethrough is not None:
+        codes.append("9" if strikethrough else "29")
     return "".join(f"\033[{code}m" for code in codes) + str(text) + ("\033[0m" if reset else "")
 
 
