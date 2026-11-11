@@ -83,9 +83,11 @@ python benchmarks/compare.py --iterations 1000 --repeats 9 --output reports/benc
 
 The driver checks each workload's result before timing. It records separate
 processes for the two packages, repeated wall and CPU measurements, import
-latency, Python allocation peaks and process peak RSS. The `invoke` workload
-includes Python binding and command setup costs; `parse` uses an already-created
-Python parser. These are different boundaries and must remain separately
+latency, Python allocation peaks and process peak RSS. The warm `invoke` workload
+reuses an already-defined command and includes context creation, parser-plan
+setup, conversion, callbacks and Python binding costs. `parse` uses an already-created
+Python parser. Fresh-process measurements additionally include import and
+`Command`/`Option` construction. These boundaries remain separately
 reported. Ratios greater than one mean that zclick was faster in that workload.
 Python `tracemalloc` does not measure all Rust allocations.
 

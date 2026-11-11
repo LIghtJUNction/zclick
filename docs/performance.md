@@ -1,63 +1,79 @@
 # Measured performance
 
-On the measured CPython 3.12/Linux snapshot, complete `Command.main` invocations were **1.08–1.75× faster** than Click 8.5.1, and the Unicode/ANSI text-wrapping workload was **7.02× faster**. The reused low-level parser was slower in every measured size, nested dispatch was slower, and help generation with 1,000 options was slightly slower. The results do not establish a universal speedup.
+For the final measured `0.1.1a1` snapshot, the 1,000-option `Command.main` workload was **1.706× faster** than Click 8.5.1 and the Unicode/ANSI wrapping workload was **7.344× faster**. Small warm invocations and reused-parser calls were slower. A fresh process that imported the package, constructed and invoked a 1,000-option command was **1.183× faster** in this run. These results are workload-specific and do not establish a universal speedup.
 
 ## Source and environment
 
 - Date: 2026-11-11.
-- zclick version: `0.1.0`; source commit [`8f782c5d83d75b1fe808b81b06bcce3fbed4ef54`](https://github.com/LIghtJUNction/zclick/commit/8f782c5d83d75b1fe808b81b06bcce3fbed4ef54).
-- Reference: Click `8.5.1`; its exact source, release and documentation are pinned in [target.json](../compatibility/target.json).
+- zclick: `0.1.1a1` at [`86bab2a8de3092155a912a4028382aba8188e6db`](https://github.com/LIghtJUNction/zclick/commit/86bab2a8de3092155a912a4028382aba8188e6db).
+- Reference: Click `8.5.1`; [target.json](../compatibility/target.json) pins its source, release and documentation.
 - Interpreter: `3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]`.
-- Platform: `Linux-6.18.57-x86_64-with-glibc2.41`; 9 logical CPUs reported to the process.
-- Build: release Rust extension, Rust 1.99.1 / Edition 2024, zclap 0.1.4 and PyO3 0.30.1.
-- Repetitions: 9 samples per workload; 1,000 base iterations, scaled to 100 for 100 parameters and 10 for 1,000 parameters. Help uses one fifth as many iterations, with a minimum of 5.
-- [Unmodified raw measurements](../benchmarks/results/cpython312-linux-8f782c5.json) include every wall/CPU sample, source-file and native-binary SHA-256 hashes, Cargo.lock hash, allocation samples and cold-start samples.
+- Host: `Linux-6.18.57-x86_64-with-glibc2.41`; 9 logical CPUs reported to the process.
+- Build: release extension, Rust 1.99.1 / Edition 2024, zclap 0.1.4 and PyO3 0.30.1.
+- Samples: 9 per workload. Warm measurements use 1,000 base iterations, scaled to 100 for 100 parameters and 10 for 1,000 parameters; help uses one fifth as many, with a minimum of 5. Cold measurements use 9 separate fresh interpreters for each package, size and action.
+- [Final raw measurements](../benchmarks/results/cpython312-linux-86bab2a.json) retain every sample, runtime/native-file hashes, Cargo.lock hash, Python allocation observations and process peak RSS.
+- [Earlier 0.1.0 development measurements](../benchmarks/results/cpython312-linux-8f782c5.json) are retained as history. They are not substituted for the final measurements when an earlier number was more favorable.
 
-## Timing results
+## Warm Python API measurements
 
-Values are median microseconds per call. **Ratio = Click time / zclick time**; a ratio above 1 indicates lower zclick latency. The CPU ratio uses process CPU time; wall time also includes scheduling delays.
+Values are median microseconds per call. **Ratio = Click time / zclick time**; above 1 means lower zclick latency. CPU ratios use process CPU time. Wall time also includes scheduling delays.
 
 | Workload | Click wall µs | zclick wall µs | Wall ratio | CPU ratio |
 | --- | ---: | ---: | ---: | ---: |
-| Construct command (1 option) | 4.206 | 4.097 | 1.027× | 1.027× |
-| Reuse parser (1 option) | 1.552 | 3.964 | 0.392× | 0.392× |
-| Command.main (1 option) | 31.571 | 29.268 | 1.079× | 1.079× |
-| Render help (1 option) | 77.045 | 34.757 | 2.217× | 2.216× |
-| Construct command (10 options) | 41.810 | 44.352 | 0.943× | 0.943× |
-| Reuse parser (10 options) | 7.772 | 17.816 | 0.436× | 0.436× |
-| Command.main (10 options) | 91.030 | 83.208 | 1.094× | 1.095× |
-| Render help (10 options) | 123.549 | 76.853 | 1.608× | 1.607× |
-| Construct command (100 options) | 467.610 | 361.951 | 1.292× | 1.292× |
-| Reuse parser (100 options) | 63.625 | 158.564 | 0.401× | 0.401× |
-| Command.main (100 options) | 814.457 | 610.502 | 1.334× | 1.308× |
-| Render help (100 options) | 679.712 | 456.915 | 1.488× | 1.486× |
-| Construct command (1000 options) | 5028.771 | 3692.478 | 1.362× | 1.357× |
-| Reuse parser (1000 options) | 860.615 | 1635.883 | 0.526× | 0.526× |
-| Command.main (1000 options) | 11816.259 | 6757.333 | 1.749× | 1.737× |
-| Render help (1000 options) | 4749.309 | 5026.953 | 0.945× | 0.943× |
-| Nested command | 52.668 | 60.586 | 0.869× | 0.868× |
-| Unicode/ANSI wrap | 485.670 | 69.162 | 7.022× | 7.022× |
+| Construct command (1 option) | 3.410 | 3.981 | 0.857× | 0.856× |
+| Reuse parser (1 option) | 1.558 | 3.867 | 0.403× | 0.403× |
+| Command.main (1 option) | 23.453 | 33.813 | 0.694× | 0.694× |
+| Render help (1 option) | 53.449 | 35.509 | 1.505× | 1.504× |
+| Construct command (10 options) | 29.481 | 38.888 | 0.758× | 0.758× |
+| Reuse parser (10 options) | 6.389 | 17.415 | 0.367× | 0.367× |
+| Command.main (10 options) | 70.954 | 86.287 | 0.822× | 0.822× |
+| Render help (10 options) | 103.318 | 74.396 | 1.389× | 1.389× |
+| Construct command (100 options) | 292.765 | 367.733 | 0.796× | 0.796× |
+| Reuse parser (100 options) | 60.797 | 167.109 | 0.364× | 0.364× |
+| Command.main (100 options) | 606.239 | 528.201 | 1.148× | 1.148× |
+| Render help (100 options) | 525.247 | 452.839 | 1.160× | 1.160× |
+| Construct command (1000 options) | 4781.334 | 3478.570 | 1.375× | 1.374× |
+| Reuse parser (1000 options) | 1000.769 | 1516.540 | 0.660× | 0.660× |
+| Command.main (1000 options) | 11176.295 | 6552.579 | 1.706× | 1.707× |
+| Render help (1000 options) | 4899.930 | 4896.697 | 1.001× | 1.001× |
+| Nested command | 51.620 | 53.222 | 0.970× | 0.969× |
+| Unicode/ANSI wrap | 471.700 | 64.231 | 7.344× | 7.272× |
 
-The 1,000-option invocation took 11.816 ms with Click and 6.757 ms with zclick: 1.749× throughput at this measured boundary, or about 42.8% less elapsed time per call. This workload includes argument-plan construction, option processing, integer conversion, callback execution and Python binding costs. It does not include process startup or terminal I/O.
+The 1,000-option warm invocation took 11.176 ms with Click and 6.553 ms with zclick, about 41.4% less elapsed time per call. It reuses an already-defined `Command`: the timed work includes a fresh invocation context, parser-plan setup, argument processing, integer conversion and the command callback. `Command` and `Option` construction, process startup and terminal I/O are outside this warm invocation measurement.
 
-The reused-parser result is a material limitation. Click's existing Python parser processes this narrow workload efficiently. Inspection of zclick's execution path shows that it reconstructs the native definition and crosses the Python/Rust boundary while preserving current mutable option objects and original argument identities. The timings do not isolate schema construction, zclap parsing, allocation and binding costs from each other. A future optimization must retain those mutation and identity guarantees.
+The reused-parser result is a material limitation. That workload constructs its parser before timing and measures `parse_args` plus a fresh argument-list copy. Inspection of zclick shows that it reconstructs the native definition while preserving mutable option objects and original argument identities. The timings do not separate schema construction, zclap work, allocations and binding overhead from each other. A future optimization must retain those mutation and identity guarantees.
 
-The small invocation improvements are modest and individual sample ranges overlap. For one option, wall samples ranged from 29.24–50.07 µs for Click and 27.55–44.69 µs for zclick. This run supports the reported medians, not a guarantee for every invocation or machine. The 1,000-option invocation and long text-wrapping improvements were larger than the observed sample variation.
+## Whole fresh-process commands
 
-## Startup
+Each sample creates a new interpreter, imports the selected package, constructs all `Option` and `Command` objects, then invokes the command or renders `--help`. The interval ends after process termination and includes output capture. These measurements answer a different question from repeated calls in an already-running Python process.
 
-Every import sample starts a fresh interpreter. The import interval begins after importing only `time`; the full-process interval additionally includes spawning the interpreter, startup and printing the measurement.
+| Fresh process action | Click median ms | zclick median ms | Ratio |
+| --- | ---: | ---: | ---: |
+| Invoke command (1 option) | 44.227 | 41.522 | 1.065× |
+| Render help (1 option) | 44.435 | 41.370 | 1.074× |
+| Invoke command (10 options) | 39.195 | 40.491 | 0.968× |
+| Render help (10 options) | 47.201 | 41.713 | 1.132× |
+| Invoke command (100 options) | 44.755 | 40.799 | 1.097× |
+| Render help (100 options) | 46.028 | 41.057 | 1.121× |
+| Invoke command (1000 options) | 62.046 | 52.450 | 1.183× |
+| Render help (1000 options) | 74.022 | 57.461 | 1.288× |
+
+The roughly 3–10% differences in small fresh-process cases should not be treated as significant or guaranteed improvements. Process scheduling, CPU frequency and filesystem caches can affect measurements of this size. Full sample ranges are preserved in the raw JSON. A CLI with expensive user callbacks or filesystem work can show a different ratio.
+
+## Import-only startup
+
+These samples start a fresh interpreter and import the package without constructing a command. Only `time` is imported before the inner import interval. The whole-process interval includes interpreter startup and printing the timing. Operating-system filesystem caches are not flushed.
 
 | Boundary | Click median ms | zclick median ms | Ratio |
 | --- | ---: | ---: | ---: |
-| Import package | 23.600 | 23.420 | 1.008× |
-| Fresh process + import | 41.523 | 41.104 | 1.010× |
+| Import package | 21.352 | 26.043 | 0.820× |
+| Fresh process + import | 40.251 | 46.862 | 0.859× |
 
-The startup difference is approximately 1%, within ordinary run-to-run variability. This measurement does not establish a meaningful startup advantage.
+Import-only timing does not establish the performance of an actual command. Use the fresh-process command results for that boundary.
 
 ## Memory observations
 
-`tracemalloc` records Python-managed allocations during one call, after a collection. Its peak includes temporary and returned Python objects. It does **not** measure every Rust allocation. Process RSS is a separate high-water mark across the worker's entire set of workloads, including the interpreter and benchmark driver.
+`tracemalloc` observes Python-managed allocations during one call after a collection; returned objects remain alive through the sample. It does **not** count every Rust allocation. RSS is a separate process high-water mark across the worker's complete workload set, including the interpreter and benchmark driver.
 
 | Workload | Click Python peak bytes | zclick Python peak bytes |
 | --- | ---: | ---: |
@@ -77,10 +93,10 @@ The startup difference is approximately 1%, within ordinary run-to-run variabili
 | Reuse parser (1000 options) | 54,560 | 163,850 |
 | Command.main (1000 options) | 780,943 | 919,413 |
 | Render help (1000 options) | 215,608 | 213,339 |
-| Nested command | 9,810 | 10,007 |
+| Nested command | 9,810 | 9,951 |
 | Unicode/ANSI wrap | 42,128 | 8,126 |
 
-Worker peak RSS was 22.46 MiB for Click and 23.64 MiB for zclick. The whole-process measurement is not an isolated count of native parser allocations. The text-wrapping workload uses fewer observed Python bytes; large option invocations use more. No zero-allocation claim is made.
+Worker peak RSS was 22.78 MiB for Click and 23.82 MiB for zclick. This is not an isolated measurement of native parser allocations. Text wrapping uses fewer observed Python bytes, while large option invocation uses more. The extension allocates Python and Rust objects; no zero-allocation claim is made.
 
 ## Reproduce and interpret
 
@@ -89,6 +105,6 @@ maturin develop --release --locked
 python benchmarks/compare.py --iterations 1000 --repeats 9 --output reports/benchmarks.json
 ```
 
-The benchmark driver verifies outputs before timing and runs the packages in separate processes. It leaves normal interpreter GC behavior enabled. Options are long integer-valued options, every option receives a value, and the callback sums the converted integers. Construction, a reused parser, complete invocation, help rendering, nested dispatch and text wrapping are measured separately. Dynamic defaults, prompts, filesystem work and user business logic are outside these workloads.
+The driver verifies outputs before warm timing and validates every fresh-process result. The two packages run in separate worker processes. Normal interpreter GC remains enabled. Command construction uses the public `Option` and `Command` constructors; each long option receives an integer value, and the callback sums the converted values. Dynamic defaults, prompts, user business logic and application filesystem work are outside these workloads.
 
-The execution order is Click followed by zclick, without CPU affinity or frequency locking. A quiet interval was used, but the host can still schedule other work. Nine repeated samples expose variability; they are not a statistical guarantee or an estimate for every Click application. Release CI repeats the same driver on the immutable release commit and attaches its raw JSON to the GitHub release.
+Packages run in a fixed order: Click, then zclick. The shared host is not isolated with CPU affinity or frequency locking, and package order is not randomized or interleaved. A quiet interval was used, but other host activity remains possible. Nine samples show variability; they are not a statistical guarantee. Small differences and differences between the earlier and final snapshot can reflect both code and measurement conditions. Release CI independently runs this driver on its immutable commit and publishes its raw JSON.

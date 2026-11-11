@@ -269,7 +269,8 @@ jobs:
           if [[ "$VERSION" =~ (a|b|rc)[0-9]+$ ]]; then
             PRERELEASE=(--prerelease)
           fi
-          gh release create "$TAG" dist/* release-reports/* --verify-tag --title "zclick $VERSION" --generate-notes "${PRERELEASE[@]}"
+          python scripts/release_notes.py --ref "$RELEASE_SHA" --benchmark release-reports/benchmarks.json --output release-reports/RELEASE_NOTES.md
+          gh release create "$TAG" dist/* release-reports/* --verify-tag --title "zclick $VERSION" --notes-file release-reports/RELEASE_NOTES.md "${PRERELEASE[@]}"
 
   publish-pypi:
     needs: [version, validate, wheels, alternative-wheels, sdist]
