@@ -28,6 +28,8 @@ def render(version: str, commit: str, repository: str, benchmark: dict | None = 
     base = f"https://github.com/{repository}"
     source = f"{base}/blob/{commit}"
     asset = f"{base}/releases/download/v{version}"
+    version_performance = Path("docs") / f"performance-{version}.md"
+    performance = version_performance.as_posix() if (ROOT / version_performance).is_file() else "docs/performance.md"
     lines = [f"# zclick {version}", ""]
     if unfinished:
         lines.extend(["**Prerelease. Full Click compatibility is not yet complete.**", "",
@@ -46,7 +48,7 @@ def render(version: str, commit: str, repository: str, benchmark: dict | None = 
         "These gates do not remove the unfinished item above.", "",
         f"- [Source for this release]({base}/tree/{commit})",
         f"- [API and behavior compatibility]({source}/COMPATIBILITY.md)",
-        f"- [Performance results and method]({source}/docs/performance.md)",
+        f"- [Performance results and method]({source}/{performance})",
         f"- [Build, platform and release details]({source}/docs/development.md)",
         f"- [Migration and third-party extension behavior]({source}/docs/extensions.md)", "",
         "## Evidence assets", "",

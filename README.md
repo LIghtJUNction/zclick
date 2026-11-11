@@ -18,19 +18,19 @@ caches that are not partitioned by interpreter. See the
 is blocked while an open compatibility gap remains.
 
 [Compatibility evidence](COMPATIBILITY.md) · [0.1.1a1 measurements](docs/performance.md) ·
-[0.1.1a2 mechanisms and measurement protocol](docs/performance-0.1.1a2.md) ·
+[0.1.1a2 measurements](docs/performance-0.1.1a2.md) ·
 [Architecture](docs/architecture.md) · [Build and release](docs/development.md) ·
 [中文交付记录](docs/DELIVERY.zh-CN.md)
 
 ## Installation and a first command
 
-The **0.1.1a1** preview is available on
-[PyPI](https://pypi.org/project/zclick/0.1.1a1/) and
-[GitHub Releases](https://github.com/LIghtJUNction/zclick/releases/tag/v0.1.1a1).
-Install this fixed preview version:
+This source tree prepares the **0.1.1a2** preview. The release locations are
+[PyPI](https://pypi.org/project/zclick/0.1.1a2/) and
+[GitHub Releases](https://github.com/LIghtJUNction/zclick/releases/tag/v0.1.1a2).
+The fixed-version installation command for this preview is:
 
 ```sh
-python -m pip install zclick==0.1.1a1
+python -m pip install zclick==0.1.1a2
 ```
 
 To select the latest available preview instead:
@@ -39,12 +39,8 @@ To select the latest available preview instead:
 pip install --pre zclick
 ```
 
-The first PyPI upload returned `invalid-publisher`. After the publisher was
-configured, [attempt 2 succeeded](https://github.com/LIghtJUNction/zclick/actions/runs/43031862640/job/130584511741)
-on 2026-11-11 at 14:28:58 UTC. All 12 wheels and the source archive on PyPI
-match the tested GitHub assets byte for byte, as recorded in the
-[publication verification](compatibility/releases/0.1.1a1-pypi.json).
-GitHub also retains the complete validation evidence and raw benchmarks.
+The previous 0.1.1a1 publication is recorded in its
+[distribution verification](compatibility/releases/0.1.1a1-pypi.json).
 
 Source installation requires Rust 1.99.1 and the platform build tools.
 
@@ -97,17 +93,34 @@ reported as passing until their jobs succeed. See
 [COMPATIBILITY.md](COMPATIBILITY.md) and the
 [CI runs](https://github.com/LIghtJUNction/zclick/actions/workflows/ci.yml).
 
-Rust removes interpreter work from parsing, scheduling, dispatch and text
-formatting. Python object creation and virtual method calls still have a cost.
-The [benchmark report](docs/performance.md) includes construction, repeated
-parser calls, full `Command.main` calls, nested commands, help, wrapping, imports
-and memory measurements. Some workloads are faster and some are slower; the
-report includes both. No universal speedup or zero-allocation claim is made.
+The [0.1.1a2 performance report](docs/performance-0.1.1a2.md) compares Click 8.5.1,
+the published zclick 0.1.1a1 wheel and the frozen candidate in twelve balanced
+rounds on one Linux CPython 3.12 host. Selected median wall-time ratios are
+shown below; a ratio above one means lower candidate latency.
 
-Those measurements describe 0.1.1a1. The
-[0.1.1a2 document](docs/performance-0.1.1a2.md) explains schema reuse, input
-ownership and the current three-way comparison method; its numerical results
-will be added after formal measurement of the frozen candidate.
+| Workload | Click / 0.1.1a2 | 0.1.1a1 / 0.1.1a2 |
+| --- | ---: | ---: |
+| Reused parser, 1,000 options | 1.236× | 2.535× |
+| Full warm invocation, 1,000 options | 1.771× | 1.042× |
+| Warm help, 1,000 options | 1.214× | 1.283× |
+| Unicode/ANSI wrapping | 7.404× | 1.113× |
+| Full warm invocation, 1 option | 0.973× | 1.012× |
+| Nested command | 0.886× | 1.096× |
+
+Reused parsing with 1, 10 and 100 options also remains slower than Click.
+The 1.042× full-invocation change over a1 is small and has overlapping samples;
+it is not a large new gain over that release. All eight fresh-process command
+and help medians were lower in this run, but the retained outliers prevent a
+claim that every startup is faster. The report includes all eighteen warm
+workloads, eight cold workloads, import timing, variability and memory.
+
+The published baseline and candidate used different wheel build environments
+(`manylinux_2_17` and host-built `manylinux_2_34`), so the entire difference cannot
+be attributed to source changes alone. Candidate worker peak RSS was also
+higher: 25.492 MiB versus Click's 24.059 MiB and a1's 25.107 MiB. Results are
+specific to these workloads and distributions; no universal speedup or
+zero-allocation claim is made. The [historical a1 report](docs/performance.md)
+remains available with its original data and method.
 
 ## Examples
 

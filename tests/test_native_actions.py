@@ -1,6 +1,9 @@
 """Native parsing plans must preserve every Python action customization boundary."""
 from __future__ import annotations
 
+import json
+import subprocess
+import sys
 from types import MethodType, SimpleNamespace
 
 import pytest
@@ -145,6 +148,67 @@ def test_non_string_attribute_key_preserves_comparison_side_effects():
 
     del option.__dict__["dest"]
     option.__dict__[Key()] = "out"
+    # CPython 3.14 can compare against a deleted shared-dict key during
+    # insertion. Start measuring the parser after that fixture side effect.
+    option.action = "store"
+    calls.clear()
     result = run([option], ["--value", "value"])
     assert result.opts == {"out": "value"}
     assert calls == ["dest"]
+
+
+@pytest.mark.parametrize("reset_after_insertion", [False, True])
+def test_public_parser_dictionary_key_trace_matches_click(reset_after_insertion):
+    # Use fresh interpreters for the same class/dict and bytecode warm-up state
+    # on both sides. Record initialization separately from parser callbacks.
+    script = r'''
+import importlib
+import json
+import sys
+from types import SimpleNamespace
+
+parser_module = importlib.import_module(sys.argv[1] + ".parser")
+parser = parser_module._OptionParser()
+parser.add_option(SimpleNamespace(_flag_needs_value=False), ["--value"], "out")
+option = parser._long_opt["--value"]
+calls = []
+
+class Key:
+    def __hash__(self):
+        return hash("dest")
+
+    def __eq__(self, other):
+        if other == "dest":
+            calls.append("dest")
+            option.action = "count"
+            return True
+        return False
+
+del option.__dict__["dest"]
+option.__dict__[Key()] = "out"
+setup = {"action": option.action, "calls": calls.copy()}
+if sys.argv[2] == "reset":
+    option.action = "store"
+    calls.clear()
+opts, rest, order = parser.parse_args(["--value", "value"])
+print(json.dumps({"setup": setup, "opts": opts, "rest": rest, "calls": calls,
+                  "action": option.action, "order_length": len(order)}))
+'''
+
+    def observe(package):
+        process = subprocess.run(
+            [sys.executable, "-c", script, package,
+             "reset" if reset_after_insertion else "unchanged"],
+            capture_output=True, text=True, check=True,
+        )
+        return json.loads(process.stdout)
+
+    expected = observe("click")
+    actual = observe("zclick")
+    assert actual == expected
+    assert actual["action"] == "count"
+    assert actual["order_length"] == 1
+    if reset_after_insertion:
+        assert actual["opts"] == {"out": "value"}
+        assert actual["rest"] == []
+        assert actual["calls"]

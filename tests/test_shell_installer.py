@@ -33,11 +33,12 @@ def test_download_rejects_wrong_archive_before_extracting(monkeypatch):
 
 def test_transient_archive_failure_retries_then_still_checks_checksum(monkeypatch):
     calls = []
+    failed_response = io.BytesIO(b"temporary server error")
 
     def fetch(url, **kwargs):
         calls.append(url)
         if len(calls) == 1:
-            raise urllib.error.HTTPError(url, 503, "Temporary unavailable", {}, None)
+            raise urllib.error.HTTPError(url, 503, "Temporary unavailable", {}, failed_response)
         return io.BytesIO(b"verified")
 
     monkeypatch.setattr(installer.urllib.request, "urlopen", fetch)
@@ -45,6 +46,22 @@ def test_transient_archive_failure_retries_then_still_checks_checksum(monkeypatc
     value = installer.download({"name": "zsh", "source": "https://example.invalid/zsh",
                                 "sha256": hashlib.sha256(b"verified").hexdigest()})
     assert value == b"verified" and len(calls) == 2
+    assert failed_response.closed
+
+
+def test_permanent_http_failure_closes_response_without_retry(monkeypatch):
+    response = io.BytesIO(b"not found")
+    calls = []
+
+    def fetch(url, **kwargs):
+        calls.append(url)
+        raise urllib.error.HTTPError(url, 404, "Not found", {}, response)
+
+    monkeypatch.setattr(installer.urllib.request, "urlopen", fetch)
+    with pytest.raises(urllib.error.HTTPError) as failure:
+        installer.download({"name": "zsh", "source": "https://example.invalid/zsh"})
+    assert failure.value.code == 404 and len(calls) == 1
+    assert response.closed
 
 
 def test_source_build_failure_removes_temporary_source_tree(tmp_path, monkeypatch):

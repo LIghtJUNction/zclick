@@ -137,3 +137,17 @@ def test_three_way_notes_reject_evidence_for_another_release(three_way_report, m
         three_way_report["target"]["commit"] = "b" * 40
     with pytest.raises(ValueError, match="does not match this release and target"):
         release_notes.render("0.1.1a2", "a" * 40, "LIghtJUNction/zclick", three_way_report)
+
+
+def test_release_notes_select_version_performance_without_rewriting_history(tmp_path, monkeypatch):
+    compatibility = tmp_path / "compatibility"
+    compatibility.mkdir()
+    for name in ("target.json", "known-gaps.json", "test-manifest.json"):
+        (compatibility / name).write_bytes((ROOT / "compatibility" / name).read_bytes())
+    (tmp_path / "docs").mkdir()
+    (tmp_path / "docs/performance-0.1.1a2.md").write_text("Version-specific evidence", encoding="utf-8")
+    monkeypatch.setattr(release_notes, "ROOT", tmp_path)
+    current = release_notes.render("0.1.1a2", "a" * 40, "LIghtJUNction/zclick")
+    historical = release_notes.render("0.1.1a1", "b" * 40, "LIghtJUNction/zclick")
+    assert "/blob/" + "a" * 40 + "/docs/performance-0.1.1a2.md" in current
+    assert "/blob/" + "b" * 40 + "/docs/performance.md" in historical

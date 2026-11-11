@@ -28,12 +28,17 @@ def download(runtime: dict) -> bytes:
                 data = response.read()
             break
         except urllib.error.HTTPError as error:
-            if error.code not in (502, 503, 504) or attempt == 2:
-                raise
-            retry_after = error.headers.get("Retry-After", "") if error.headers else ""
-            if retry_after and (not retry_after.isdigit() or int(retry_after) > 60):
-                raise
-            delay = max(2 ** attempt, int(retry_after or "0"))
+            try:
+                if error.code not in (502, 503, 504) or attempt == 2:
+                    raise
+                retry_after = error.headers.get("Retry-After", "") if error.headers else ""
+                if retry_after and (not retry_after.isdigit() or int(retry_after) > 60):
+                    raise
+                delay = max(2 ** attempt, int(retry_after or "0"))
+            finally:
+                # HTTPError owns a response stream, including on retry. Relying
+                # on destruction raises ResourceWarning on newer interpreters.
+                error.close()
             print(f"Temporary HTTP {error.code} for {runtime['name']}; retrying in {delay}s", flush=True)
             time.sleep(delay)
     if hashlib.sha256(data).hexdigest() != runtime["sha256"]:
