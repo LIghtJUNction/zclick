@@ -4,7 +4,7 @@ use std::sync::Arc;
 
 #[pyclass(frozen, module = "zclick._native")]
 pub(super) struct ParserPlan {
-    schema: Arc<core::Schema>,
+    pub(super) schema: Arc<core::Schema>,
 }
 
 fn same_text(value: &Bound<'_, PyAny>, expected: &[u8]) -> PyResult<bool> {
@@ -146,7 +146,7 @@ impl ParserPlan {
 
     #[staticmethod]
     #[pyo3(signature=(definitions, option_type, previous=None))]
-    fn from_definitions<'py>(
+    pub(super) fn from_definitions<'py>(
         py: Python<'py>,
         definitions: &Bound<'py, PyAny>,
         option_type: &Bound<'py, PyAny>,

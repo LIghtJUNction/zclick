@@ -60,6 +60,15 @@ Every attribute lookup and method call still executes against the current
 Python object. The main-interpreter restriction below applies before these
 Python string caches are initialized.
 
+The Python parser uses one native entry point for validation and execution.
+It publishes the new plan before constructing the current Python parsing-state
+object or evaluating flags, so a constructor or getter can reenter the parser.
+Factories and sentinels are read from the interpreter's live module namespace;
+temporary factories and context values are released at their original Python
+evaluation boundaries. The low-level plan methods remain available for direct
+use and for the separate-path comparison tests in
+[`test_native_parse_live.py`](../tests/test_native_parse_live.py).
+
 The Rust core recognizes tokens, consumes values using Click's rules, allocates
 positional arguments and records encounter order. The binding invokes the
 current Python parser action for each event, including overridden actions.

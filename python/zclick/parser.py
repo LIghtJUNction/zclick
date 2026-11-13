@@ -33,6 +33,10 @@ def _normalize_opt(opt: str, ctx: Context | None) -> str:
     return f"{prefix}{ctx.token_normalize_func(name)}"
 
 
+def _make_parser_normalizer(parser):
+    return lambda spelling: _normalize_opt(spelling, parser.ctx)
+
+
 class _ParsingState:
     def __init__(self, rargs: list[str]) -> None:
         self.opts: dict[str, Any] = {}
@@ -119,16 +123,7 @@ class _OptionParser:
 
     def parse_args(self, args: list[str]) -> tuple[dict[str, Any], list[str], list[Any]]:
         definitions: list[Any] = self._options + self._args
-        plan = _native.ParserPlan.from_definitions(definitions, _Option, self._plan)
-        self._plan = plan
-        normalize = None
-        if self.ctx is not None and self.ctx.token_normalize_func is not None:
-            normalize = lambda spelling: _normalize_opt(spelling, self.ctx)
-        state = _ParsingState([])
-        leftovers, error = plan.parse_into(
-            args, definitions, state, UNSET, _flag_needs_value,
-            bool(self.allow_interspersed_args), bool(self.ignore_unknown_options),
-            normalizer=normalize, original_args=args)
+        state, leftovers, error = _native.parse_live(self, args, definitions, _parser_namespace)
         if error and not (self.ctx is not None and self.ctx.resilient_parsing):
             kind, spelling = error["kind"], error.get("option", "")
             if kind == "unknown_option":
@@ -157,3 +152,9 @@ def __getattr__(name: str) -> Any:
         raise AttributeError(name)
     warnings.warn(f"'{name}' is deprecated and will be removed in Click 9.0.", DeprecationWarning, stacklevel=2)
     return value
+
+
+# The binding reads values from this interpreter's actual module namespace at
+# their original evaluation points. It never caches factories or callbacks.
+_parser_builtins = _OptionParser.parse_args.__builtins__
+_parser_namespace = globals()

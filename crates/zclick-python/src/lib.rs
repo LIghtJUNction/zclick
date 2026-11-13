@@ -1,6 +1,6 @@
 //! CPython object adaptation. Pure parsing/formatting lives in zclick-core.
 use pyo3::{
-    exceptions::{PyAttributeError, PyTypeError, PyValueError},
+    exceptions::{PyAttributeError, PyKeyError, PyNameError, PyTypeError, PyValueError},
     prelude::*,
     types::{PyBytes, PyDict, PyList, PyString, PyTuple},
 };
@@ -307,6 +307,36 @@ fn parse_into_with_schema<'py>(
     normalizer: Option<&Bound<'py, PyAny>>,
     original_args: Option<&Bound<'py, PyAny>>,
 ) -> PyResult<Bound<'py, PyTuple>> {
+    let (leftovers, error) = parse_into_parts(
+        py,
+        schema,
+        argv,
+        definitions,
+        state,
+        unset,
+        flag_needs_value,
+        allow_interspersed_args,
+        ignore_unknown_options,
+        normalizer,
+        original_args,
+    )?;
+    PyTuple::new(py, [leftovers.into_any(), error])
+}
+
+#[allow(clippy::too_many_arguments)]
+fn parse_into_parts<'py>(
+    py: Python<'py>,
+    schema: &core::Schema,
+    argv: &Bound<'py, PyAny>,
+    definitions: &Bound<'py, PyAny>,
+    state: &Bound<'py, PyAny>,
+    unset: &Bound<'py, PyAny>,
+    flag_needs_value: &Bound<'py, PyAny>,
+    allow_interspersed_args: bool,
+    ignore_unknown_options: bool,
+    normalizer: Option<&Bound<'py, PyAny>>,
+    original_args: Option<&Bound<'py, PyAny>>,
+) -> PyResult<(Bound<'py, PyList>, Bound<'py, PyAny>)> {
     let specs = schema.specs();
     if specs.iter().enumerate().any(|(i, s)| s.id != i as i64) {
         return Err(PyValueError::new_err(
@@ -373,7 +403,107 @@ fn parse_into_with_schema<'py>(
     for value in parsed.leftovers {
         leftovers.append(input.restore(py, &value)?)?;
     }
-    PyTuple::new(py, [leftovers.into_any(), native_error(py, parsed.error)?])
+    Ok((leftovers, native_error(py, parsed.error)?))
+}
+
+fn namespace_value<'py>(
+    namespace: &Bound<'py, PyDict>,
+    name: &Bound<'py, PyString>,
+) -> PyResult<Bound<'py, PyAny>> {
+    if let Some(value) = namespace.get_item(name)? {
+        return Ok(value);
+    }
+    // LOAD_GLOBAL falls back to the function's definition-time builtins, not
+    // a later replacement of module.__builtins__. This lookup is exceptional
+    // for these normally present protocol globals and adds no hot-path work.
+    if let Some(builtins) = namespace.get_item(pyo3::intern!(namespace.py(), "_parser_builtins"))? {
+        match builtins.get_item(name) {
+            Ok(value) => return Ok(value),
+            Err(error) if error.is_instance_of::<PyKeyError>(namespace.py()) => {}
+            Err(error) => return Err(error),
+        }
+    }
+    let error = PyNameError::new_err(format!("name '{}' is not defined", name.to_str()?));
+    error
+        .value(namespace.py())
+        .setattr(pyo3::intern!(namespace.py(), "name"), name)?;
+    Err(error)
+}
+
+/// Combine schema validation and execution without a second Python/native
+/// boundary. The module namespace is read live, never kept in native globals.
+#[pyfunction]
+fn parse_live<'py>(
+    py: Python<'py>,
+    parser: &Bound<'py, PyAny>,
+    argv: &Bound<'py, PyAny>,
+    definitions: &Bound<'py, PyAny>,
+    namespace: &Bound<'py, PyDict>,
+) -> PyResult<Bound<'py, PyTuple>> {
+    let plan = {
+        let option_type = namespace_value(namespace, pyo3::intern!(py, "_Option"))?;
+        let previous = parser.getattr(pyo3::intern!(py, "_plan"))?;
+        let previous = if previous.is_none() {
+            None
+        } else {
+            Some(previous.cast::<plan::ParserPlan>()?)
+        };
+        plan::ParserPlan::from_definitions(py, definitions, &option_type, previous)?
+    };
+    // Publish the immutable plan before any later getter or constructor can
+    // reenter this parser. Only an owned Rust Arc crosses those callbacks.
+    parser.setattr(pyo3::intern!(py, "_plan"), plan.bind(py))?;
+    let schema = std::sync::Arc::clone(&plan.bind(py).get().schema);
+
+    let ctx_name = pyo3::intern!(py, "ctx");
+    let has_context = {
+        let context = parser.getattr(ctx_name)?;
+        !context.is_none()
+    };
+    let needs_normalizer = if has_context {
+        let context = parser.getattr(ctx_name)?;
+        let normalizer_value = context.getattr(pyo3::intern!(py, "token_normalize_func"))?;
+        drop(context);
+        !normalizer_value.is_none()
+    } else {
+        false
+    };
+    let normalizer = if needs_normalizer {
+        Some(
+            namespace_value(namespace, pyo3::intern!(py, "_make_parser_normalizer"))?
+                .call1((parser,))?,
+        )
+    } else {
+        None
+    };
+    let state = {
+        let state_type = namespace_value(namespace, pyo3::intern!(py, "_ParsingState"))?;
+        state_type.call1((PyList::empty(py),))?
+    };
+    let unset = namespace_value(namespace, pyo3::intern!(py, "UNSET"))?;
+    let flag_needs_value = namespace_value(namespace, pyo3::intern!(py, "_flag_needs_value"))?;
+    // Keep these two evaluations after state construction and in Python's
+    // left-to-right order: either __bool__ can mutate the other flag or reenter.
+    let interspersed = parser
+        .getattr(pyo3::intern!(py, "allow_interspersed_args"))?
+        .is_truthy()?;
+    let ignore_unknown = parser
+        .getattr(pyo3::intern!(py, "ignore_unknown_options"))?
+        .is_truthy()?;
+    let (leftovers, error) = parse_into_parts(
+        py,
+        &schema,
+        argv,
+        definitions,
+        &state,
+        &unset,
+        &flag_needs_value,
+        interspersed,
+        ignore_unknown,
+        normalizer.as_ref(),
+        Some(argv),
+    )?;
+    PyTuple::new(py, [state, leftovers.into_any(), error])
 }
 
 #[pyfunction]
@@ -473,6 +603,7 @@ fn _native(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(dispatch::invoke_group, m)?)?;
     m.add_function(wrap_pyfunction!(parse, m)?)?;
     m.add_function(wrap_pyfunction!(parse_into, m)?)?;
+    m.add_function(wrap_pyfunction!(parse_live, m)?)?;
     m.add_function(wrap_pyfunction!(processing_order, m)?)?;
     m.add_function(wrap_pyfunction!(ordering::order_parameters, m)?)?;
     m.add_function(wrap_pyfunction!(select_parameter_value, m)?)?;

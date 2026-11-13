@@ -1,5 +1,33 @@
 # Changelog
 
+## 0.1.1a3 — 2026-11-13
+
+- Combine live schema validation and parsing in one native call. Preserve plan
+  publication, normalizer lookup, state construction, flag evaluation and
+  temporary-object release order, including callbacks that reenter parsing.
+- Reuse fixed internal protocol strings, walk exact definition lists with a
+  live cursor, and use single-argument zclap presence storage for each kernel
+  recognition command. Dynamic names and invocation values remain owned.
+- Reduce group dispatch and context-stack overhead, and load error-only helpers
+  when their branch is taken.
+- Match Click's parser action comparison order, help-option cache, parameter
+  container identity, constructor truthiness and duplicate-parameter warnings.
+- Compare the candidate with the immutable published 0.1.1a2 distribution and
+  fixed Click 8.5.1. Preserve the older a1 lock for historical reproduction.
+
+The pinned dependency and interpreter boundaries remain in force. This is an
+alpha release with subinterpreter compatibility still unfinished. Performance
+results report complete workload boundaries and include cases that remain
+slower than Click.
+
+## 0.1.1a2 — 2026-11-11
+
+Reuse owned native schemas after validating live definitions, borrow ordinary
+argument buffers, and reduce parser-event and formatting allocations. Published
+results and exact release validation are retained in the
+[a2 performance report](docs/performance-0.1.1a2.md) and
+[release record](compatibility/releases/0.1.1a2.json).
+
 ## 0.1.1a1 — 2026-11-11
 
 This is the first preview distribution. The fixed compatibility target is

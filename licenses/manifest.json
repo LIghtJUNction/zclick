@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "cargo_lock_sha256": "c66755cfefd6884f91d9bd522a54bb5175fee57ce4808329753a3cc2e2bb3a7e",
+  "cargo_lock_sha256": "e1388e66bad5c93c59bfcfd9deecc1255c201fa18a30bc170d95c1459d5a969b",
   "scope": "All registry crates resolved by locked workspace metadata, including build-only dependencies; complete Rust standard-library notices for the pinned release.",
   "packages": [
     {
