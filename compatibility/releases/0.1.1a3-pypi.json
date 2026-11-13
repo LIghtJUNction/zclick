@@ -1,0 +1,321 @@
+{
+  "url": "https://pypi.org/pypi/zclick/0.1.1a3/json",
+  "version": "0.1.1a3",
+  "source_commit": "9afcc7537212563f66a5d99c9f08f99bfa692731",
+  "project_url": "https://pypi.org/project/zclick/0.1.1a3/",
+  "artifact_count": 13,
+  "all_match_github_release": true,
+  "verified_at": "2026-11-13T06:30:38.451087+00:00",
+  "workflow_run": 43377480224,
+  "workflow_attempt": 1,
+  "publish_job": 131730999403,
+  "publish_job_url": "https://github.com/LIghtJUNction/zclick/actions/runs/43377480224/job/131730999403",
+  "completed_at": "2026-11-13T06:27:08Z",
+  "artifacts": [
+    {
+      "filename": "zclick-0.1.1a3-cp310-abi3-macosx_10_12_x86_64.whl",
+      "sha256": "8bd586c641f84232cdf9922e7147998e0775daf6b8273b1f1fef60886cc2218d",
+      "size": 636541,
+      "upload_time": "2026-11-13T06:26:45.998754Z",
+      "pypi_url": "https://files.pythonhosted.org/packages/b5/c2/537d6881900d77e4ffe12072be6728b489843b028cfe1fa5b40760aa5743/zclick-0.1.1a3-cp310-abi3-macosx_10_12_x86_64.whl",
+      "github_url": "https://github.com/LIghtJUNction/zclick/releases/download/v0.1.1a3/zclick-0.1.1a3-cp310-abi3-macosx_10_12_x86_64.whl"
+    },
+    {
+      "filename": "zclick-0.1.1a3-cp310-abi3-macosx_11_0_arm64.whl",
+      "sha256": "e5fd844e00ab3732cb5f13e86381f1f58d9e1b2c846c5780bf7a9be6d6504570",
+      "size": 629716,
+      "upload_time": "2026-11-13T06:26:47.606980Z",
+      "pypi_url": "https://files.pythonhosted.org/packages/e7/43/d559ac55b63fdf93376af1032c37c97bc8307f5f9f630fec8098ad7db0cc/zclick-0.1.1a3-cp310-abi3-macosx_11_0_arm64.whl",
+      "github_url": "https://github.com/LIghtJUNction/zclick/releases/download/v0.1.1a3/zclick-0.1.1a3-cp310-abi3-macosx_11_0_arm64.whl"
+    },
+    {
+      "filename": "zclick-0.1.1a3-cp310-abi3-manylinux2014_aarch64.manylinux_2_17_aarch64.whl",
+      "sha256": "9d4d417edaf50769eaa211777605cfc09d59c03b474c90268c23d63a48105d03",
+      "size": 657049,
+      "upload_time": "2026-11-13T06:26:49.463738Z",
+      "pypi_url": "https://files.pythonhosted.org/packages/9c/02/8c4021300060862639bf93d47f6e019bd45d69e6c537a31c69bc3c37dc35/zclick-0.1.1a3-cp310-abi3-manylinux2014_aarch64.manylinux_2_17_aarch64.whl",
+      "github_url": "https://github.com/LIghtJUNction/zclick/releases/download/v0.1.1a3/zclick-0.1.1a3-cp310-abi3-manylinux2014_aarch64.manylinux_2_17_aarch64.whl"
+    },
+    {
+      "filename": "zclick-0.1.1a3-cp310-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.whl",
+      "sha256": "9316d37ec25f53c18985b0e85e064c5468e36f693acd3d53201c930b89fa9773",
+      "size": 665372,
+      "upload_time": "2026-11-13T06:26:51.324938Z",
+      "pypi_url": "https://files.pythonhosted.org/packages/83/b6/53559ad85ba3f8d8168bab85f09509b5927d5e4410a5bacdcf3271d1e4e3/zclick-0.1.1a3-cp310-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.whl",
+      "github_url": "https://github.com/LIghtJUNction/zclick/releases/download/v0.1.1a3/zclick-0.1.1a3-cp310-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.whl"
+    },
+    {
+      "filename": "zclick-0.1.1a3-cp310-abi3-musllinux_1_2_aarch64.whl",
+      "sha256": "c2d39480a670c8011c4a8b0a8eb3f23c359e52c4fa729f9723617a8acab83d93",
+      "size": 834732,
+      "upload_time": "2026-11-13T06:26:53.158522Z",
+      "pypi_url": "https://files.pythonhosted.org/packages/25/2a/863f810c91ed1e7f035e3719c43c7a0360cabc0b8981dfd4be44b9e81b04/zclick-0.1.1a3-cp310-abi3-musllinux_1_2_aarch64.whl",
+      "github_url": "https://github.com/LIghtJUNction/zclick/releases/download/v0.1.1a3/zclick-0.1.1a3-cp310-abi3-musllinux_1_2_aarch64.whl"
+    },
+    {
+      "filename": "zclick-0.1.1a3-cp310-abi3-musllinux_1_2_x86_64.whl",
+      "sha256": "db074c80680e12607012713c0cee69c9484100617909d2446273eb52d1409467",
+      "size": 878776,
+      "upload_time": "2026-11-13T06:26:54.688933Z",
+      "pypi_url": "https://files.pythonhosted.org/packages/9d/f3/a4a1086423616c39b36f2ebdd29c2f22d78b70d290675ed7f82a59415ea1/zclick-0.1.1a3-cp310-abi3-musllinux_1_2_x86_64.whl",
+      "github_url": "https://github.com/LIghtJUNction/zclick/releases/download/v0.1.1a3/zclick-0.1.1a3-cp310-abi3-musllinux_1_2_x86_64.whl"
+    },
+    {
+      "filename": "zclick-0.1.1a3-cp310-abi3-win_amd64.whl",
+      "sha256": "0165f0d530674f6538f2ca5546181c99d967bd96d38e46115d61812694a60b99",
+      "size": 543226,
+      "upload_time": "2026-11-13T06:26:56.068480Z",
+      "pypi_url": "https://files.pythonhosted.org/packages/f2/89/2ed413e9c0adcd6f0a6b4ec053f10f02f0f5219a3266bfbd38ce80665b38/zclick-0.1.1a3-cp310-abi3-win_amd64.whl",
+      "github_url": "https://github.com/LIghtJUNction/zclick/releases/download/v0.1.1a3/zclick-0.1.1a3-cp310-abi3-win_amd64.whl"
+    },
+    {
+      "filename": "zclick-0.1.1a3-cp310-abi3-win_arm64.whl",
+      "sha256": "90ab3694dddedc8bc55b355d6f1504aebac3a7f61fc8445a67b919420c5bc605",
+      "size": 532932,
+      "upload_time": "2026-11-13T06:26:57.516702Z",
+      "pypi_url": "https://files.pythonhosted.org/packages/11/87/a4a4425344f0e346a7f52dad31c225d50835270eb62075ec24a091aa3ac6/zclick-0.1.1a3-cp310-abi3-win_arm64.whl",
+      "github_url": "https://github.com/LIghtJUNction/zclick/releases/download/v0.1.1a3/zclick-0.1.1a3-cp310-abi3-win_arm64.whl"
+    },
+    {
+      "filename": "zclick-0.1.1a3-cp314-cp314t-manylinux_2_34_x86_64.whl",
+      "sha256": "9f9c86101fce31d8ad2a5948f0e5f2bc3ce5d62788af3523a5fd5707c5e7db82",
+      "size": 658399,
+      "upload_time": "2026-11-13T06:26:59.333027Z",
+      "pypi_url": "https://files.pythonhosted.org/packages/5f/73/5273ab350581086425ff137266acdc5cff7c8fba20b74345b67a8391f1c6/zclick-0.1.1a3-cp314-cp314t-manylinux_2_34_x86_64.whl",
+      "github_url": "https://github.com/LIghtJUNction/zclick/releases/download/v0.1.1a3/zclick-0.1.1a3-cp314-cp314t-manylinux_2_34_x86_64.whl"
+    },
+    {
+      "filename": "zclick-0.1.1a3-cp315-cp315t-manylinux_2_34_x86_64.whl",
+      "sha256": "f13837ea40d2469d9a26aff0e96395b53a61e91f58642359a52e69844c535d8a",
+      "size": 658339,
+      "upload_time": "2026-11-13T06:27:00.756182Z",
+      "pypi_url": "https://files.pythonhosted.org/packages/e9/c5/7ddfeede6f7091acdd71f5a2b3782e166e60983d52555f00e8e9ee63431b/zclick-0.1.1a3-cp315-cp315t-manylinux_2_34_x86_64.whl",
+      "github_url": "https://github.com/LIghtJUNction/zclick/releases/download/v0.1.1a3/zclick-0.1.1a3-cp315-cp315t-manylinux_2_34_x86_64.whl"
+    },
+    {
+      "filename": "zclick-0.1.1a3-pp311-pypy311_pp80-manylinux_2_34_x86_64.whl",
+      "sha256": "cea00915c5c6e0813faa139978270905d330613725ddd67d49a1dc1b00055db3",
+      "size": 642593,
+      "upload_time": "2026-11-13T06:27:02.369818Z",
+      "pypi_url": "https://files.pythonhosted.org/packages/7c/8c/b0961d78ff5e915e225dc5bac8640192218a7f32d07d333e554d7d33eb8b/zclick-0.1.1a3-pp311-pypy311_pp80-manylinux_2_34_x86_64.whl",
+      "github_url": "https://github.com/LIghtJUNction/zclick/releases/download/v0.1.1a3/zclick-0.1.1a3-pp311-pypy311_pp80-manylinux_2_34_x86_64.whl"
+    },
+    {
+      "filename": "zclick-0.1.1a3-pp312-pypy312_pp80-manylinux_2_34_x86_64.whl",
+      "sha256": "4c6a362666b0ca0ca551d009873fc37a2f0de92c885e0cc44c28779adc19cbc1",
+      "size": 641169,
+      "upload_time": "2026-11-13T06:27:03.856091Z",
+      "pypi_url": "https://files.pythonhosted.org/packages/d4/2e/1c893d4ad341113bd6b0930346ca311120c68e444997e374d0138eb0a291/zclick-0.1.1a3-pp312-pypy312_pp80-manylinux_2_34_x86_64.whl",
+      "github_url": "https://github.com/LIghtJUNction/zclick/releases/download/v0.1.1a3/zclick-0.1.1a3-pp312-pypy312_pp80-manylinux_2_34_x86_64.whl"
+    },
+    {
+      "filename": "zclick-0.1.1a3.tar.gz",
+      "sha256": "7862b73c024f16f0f073c35c2c79020f8d735d7b62767c584cb606128ca54502",
+      "size": 229917,
+      "upload_time": "2026-11-13T06:27:05.484765Z",
+      "pypi_url": "https://files.pythonhosted.org/packages/63/1b/2f9260a89eeec7ce33365c41406110b74a3c5b87e47eaf8652e4635dc0ec/zclick-0.1.1a3.tar.gz",
+      "github_url": "https://github.com/LIghtJUNction/zclick/releases/download/v0.1.1a3/zclick-0.1.1a3.tar.gz"
+    }
+  ],
+  "trusted_publisher": {
+    "provenance_url": "https://pypi.org/integrity/zclick/0.1.1a3/zclick-0.1.1a3-cp310-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.whl/provenance",
+    "publisher": {
+      "environment": "pypi",
+      "kind": "GitHub",
+      "repository": "LIghtJUNction/zclick",
+      "workflow": "release.yml"
+    },
+    "response_sha256": "d5d071128204f4cdefc3869d6233ed4d512101471fd276e45ecea18ba164455a",
+    "subject_sha256": "9316d37ec25f53c18985b0e85e064c5468e36f693acd3d53201c930b89fa9773",
+    "scope": "Public PyPI provenance identity and subject digest checked; no independent Sigstore cryptographic verification"
+  },
+  "artifact_provenance": {
+    "zclick-0.1.1a3-cp310-abi3-macosx_10_12_x86_64.whl": {
+      "provenance_url": "https://pypi.org/integrity/zclick/0.1.1a3/zclick-0.1.1a3-cp310-abi3-macosx_10_12_x86_64.whl/provenance",
+      "publisher": {
+        "environment": "pypi",
+        "kind": "GitHub",
+        "repository": "LIghtJUNction/zclick",
+        "workflow": "release.yml"
+      },
+      "response_sha256": "b1bdb7f8acd063a79432c5c811f812a56e3fd1252015b4272b305405ba777a59",
+      "subject_sha256": "8bd586c641f84232cdf9922e7147998e0775daf6b8273b1f1fef60886cc2218d",
+      "scope": "Public PyPI provenance identity and subject digest checked; no independent Sigstore cryptographic verification"
+    },
+    "zclick-0.1.1a3-cp310-abi3-macosx_11_0_arm64.whl": {
+      "provenance_url": "https://pypi.org/integrity/zclick/0.1.1a3/zclick-0.1.1a3-cp310-abi3-macosx_11_0_arm64.whl/provenance",
+      "publisher": {
+        "environment": "pypi",
+        "kind": "GitHub",
+        "repository": "LIghtJUNction/zclick",
+        "workflow": "release.yml"
+      },
+      "response_sha256": "c3544998d184ed5f11ddebd0c35e4fbb4982fabad2f7523dd804f65e4d967796",
+      "subject_sha256": "e5fd844e00ab3732cb5f13e86381f1f58d9e1b2c846c5780bf7a9be6d6504570",
+      "scope": "Public PyPI provenance identity and subject digest checked; no independent Sigstore cryptographic verification"
+    },
+    "zclick-0.1.1a3-cp310-abi3-manylinux2014_aarch64.manylinux_2_17_aarch64.whl": {
+      "provenance_url": "https://pypi.org/integrity/zclick/0.1.1a3/zclick-0.1.1a3-cp310-abi3-manylinux2014_aarch64.manylinux_2_17_aarch64.whl/provenance",
+      "publisher": {
+        "environment": "pypi",
+        "kind": "GitHub",
+        "repository": "LIghtJUNction/zclick",
+        "workflow": "release.yml"
+      },
+      "response_sha256": "2939411a244991d4c98037b6850c1657e93d7f44348eaa24dfe0dc22ceec0c4e",
+      "subject_sha256": "9d4d417edaf50769eaa211777605cfc09d59c03b474c90268c23d63a48105d03",
+      "scope": "Public PyPI provenance identity and subject digest checked; no independent Sigstore cryptographic verification"
+    },
+    "zclick-0.1.1a3-cp310-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.whl": {
+      "provenance_url": "https://pypi.org/integrity/zclick/0.1.1a3/zclick-0.1.1a3-cp310-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.whl/provenance",
+      "publisher": {
+        "environment": "pypi",
+        "kind": "GitHub",
+        "repository": "LIghtJUNction/zclick",
+        "workflow": "release.yml"
+      },
+      "response_sha256": "d5d071128204f4cdefc3869d6233ed4d512101471fd276e45ecea18ba164455a",
+      "subject_sha256": "9316d37ec25f53c18985b0e85e064c5468e36f693acd3d53201c930b89fa9773",
+      "scope": "Public PyPI provenance identity and subject digest checked; no independent Sigstore cryptographic verification"
+    },
+    "zclick-0.1.1a3-cp310-abi3-musllinux_1_2_aarch64.whl": {
+      "provenance_url": "https://pypi.org/integrity/zclick/0.1.1a3/zclick-0.1.1a3-cp310-abi3-musllinux_1_2_aarch64.whl/provenance",
+      "publisher": {
+        "environment": "pypi",
+        "kind": "GitHub",
+        "repository": "LIghtJUNction/zclick",
+        "workflow": "release.yml"
+      },
+      "response_sha256": "af4ce5867e2d89b6a771692b06bb1360d2df68796bef5e3caf4050de649410d4",
+      "subject_sha256": "c2d39480a670c8011c4a8b0a8eb3f23c359e52c4fa729f9723617a8acab83d93",
+      "scope": "Public PyPI provenance identity and subject digest checked; no independent Sigstore cryptographic verification"
+    },
+    "zclick-0.1.1a3-cp310-abi3-musllinux_1_2_x86_64.whl": {
+      "provenance_url": "https://pypi.org/integrity/zclick/0.1.1a3/zclick-0.1.1a3-cp310-abi3-musllinux_1_2_x86_64.whl/provenance",
+      "publisher": {
+        "environment": "pypi",
+        "kind": "GitHub",
+        "repository": "LIghtJUNction/zclick",
+        "workflow": "release.yml"
+      },
+      "response_sha256": "7136619da7ac81660332dcb206cf126eacfa4313e761bae37a306f55afbfdd1f",
+      "subject_sha256": "db074c80680e12607012713c0cee69c9484100617909d2446273eb52d1409467",
+      "scope": "Public PyPI provenance identity and subject digest checked; no independent Sigstore cryptographic verification"
+    },
+    "zclick-0.1.1a3-cp310-abi3-win_amd64.whl": {
+      "provenance_url": "https://pypi.org/integrity/zclick/0.1.1a3/zclick-0.1.1a3-cp310-abi3-win_amd64.whl/provenance",
+      "publisher": {
+        "environment": "pypi",
+        "kind": "GitHub",
+        "repository": "LIghtJUNction/zclick",
+        "workflow": "release.yml"
+      },
+      "response_sha256": "c45c543815b78414a85e610d2cf87341cbb3d2825a09759a472b62ebcb7255be",
+      "subject_sha256": "0165f0d530674f6538f2ca5546181c99d967bd96d38e46115d61812694a60b99",
+      "scope": "Public PyPI provenance identity and subject digest checked; no independent Sigstore cryptographic verification"
+    },
+    "zclick-0.1.1a3-cp310-abi3-win_arm64.whl": {
+      "provenance_url": "https://pypi.org/integrity/zclick/0.1.1a3/zclick-0.1.1a3-cp310-abi3-win_arm64.whl/provenance",
+      "publisher": {
+        "environment": "pypi",
+        "kind": "GitHub",
+        "repository": "LIghtJUNction/zclick",
+        "workflow": "release.yml"
+      },
+      "response_sha256": "3effdd7a03c80c31cae8b918902987e903fde5f0e4ffcf709917943620d42747",
+      "subject_sha256": "90ab3694dddedc8bc55b355d6f1504aebac3a7f61fc8445a67b919420c5bc605",
+      "scope": "Public PyPI provenance identity and subject digest checked; no independent Sigstore cryptographic verification"
+    },
+    "zclick-0.1.1a3-cp314-cp314t-manylinux_2_34_x86_64.whl": {
+      "provenance_url": "https://pypi.org/integrity/zclick/0.1.1a3/zclick-0.1.1a3-cp314-cp314t-manylinux_2_34_x86_64.whl/provenance",
+      "publisher": {
+        "environment": "pypi",
+        "kind": "GitHub",
+        "repository": "LIghtJUNction/zclick",
+        "workflow": "release.yml"
+      },
+      "response_sha256": "322233a5bcdacc560ea185db4cb97de5388e3d9971fcd2be6bd9f555d69419a4",
+      "subject_sha256": "9f9c86101fce31d8ad2a5948f0e5f2bc3ce5d62788af3523a5fd5707c5e7db82",
+      "scope": "Public PyPI provenance identity and subject digest checked; no independent Sigstore cryptographic verification"
+    },
+    "zclick-0.1.1a3-cp315-cp315t-manylinux_2_34_x86_64.whl": {
+      "provenance_url": "https://pypi.org/integrity/zclick/0.1.1a3/zclick-0.1.1a3-cp315-cp315t-manylinux_2_34_x86_64.whl/provenance",
+      "publisher": {
+        "environment": "pypi",
+        "kind": "GitHub",
+        "repository": "LIghtJUNction/zclick",
+        "workflow": "release.yml"
+      },
+      "response_sha256": "4cf7c33b66a23179480337debbac5598d158cee5f4f1880b0615ac138425d2e8",
+      "subject_sha256": "f13837ea40d2469d9a26aff0e96395b53a61e91f58642359a52e69844c535d8a",
+      "scope": "Public PyPI provenance identity and subject digest checked; no independent Sigstore cryptographic verification"
+    },
+    "zclick-0.1.1a3-pp311-pypy311_pp80-manylinux_2_34_x86_64.whl": {
+      "provenance_url": "https://pypi.org/integrity/zclick/0.1.1a3/zclick-0.1.1a3-pp311-pypy311_pp80-manylinux_2_34_x86_64.whl/provenance",
+      "publisher": {
+        "environment": "pypi",
+        "kind": "GitHub",
+        "repository": "LIghtJUNction/zclick",
+        "workflow": "release.yml"
+      },
+      "response_sha256": "4ddafe981a20a12d43b59ede573982176a2d607d46b9508a3d7a584b9dac1a96",
+      "subject_sha256": "cea00915c5c6e0813faa139978270905d330613725ddd67d49a1dc1b00055db3",
+      "scope": "Public PyPI provenance identity and subject digest checked; no independent Sigstore cryptographic verification"
+    },
+    "zclick-0.1.1a3-pp312-pypy312_pp80-manylinux_2_34_x86_64.whl": {
+      "provenance_url": "https://pypi.org/integrity/zclick/0.1.1a3/zclick-0.1.1a3-pp312-pypy312_pp80-manylinux_2_34_x86_64.whl/provenance",
+      "publisher": {
+        "environment": "pypi",
+        "kind": "GitHub",
+        "repository": "LIghtJUNction/zclick",
+        "workflow": "release.yml"
+      },
+      "response_sha256": "bc31420edace2e0e5b420395099cfd90f60593512b63c5918ca71cbc315357e1",
+      "subject_sha256": "4c6a362666b0ca0ca551d009873fc37a2f0de92c885e0cc44c28779adc19cbc1",
+      "scope": "Public PyPI provenance identity and subject digest checked; no independent Sigstore cryptographic verification"
+    },
+    "zclick-0.1.1a3.tar.gz": {
+      "provenance_url": "https://pypi.org/integrity/zclick/0.1.1a3/zclick-0.1.1a3.tar.gz/provenance",
+      "publisher": {
+        "environment": "pypi",
+        "kind": "GitHub",
+        "repository": "LIghtJUNction/zclick",
+        "workflow": "release.yml"
+      },
+      "response_sha256": "26649bbeb8045b60e189c5fb39af42d343890dd01df8602069f9daaf28f42f9c",
+      "subject_sha256": "7862b73c024f16f0f073c35c2c79020f8d735d7b62767c584cb606128ca54502",
+      "scope": "Public PyPI provenance identity and subject digest checked; no independent Sigstore cryptographic verification"
+    }
+  },
+  "clean_pypi_installation": {
+    "version": "0.1.1a3",
+    "original_click_installed": false,
+    "module": "/workspace/scratch/9891e6e3b679/zclick-a3-pypi-smoke-attempt2/venv/lib/python3.12/site-packages/zclick/__init__.py",
+    "native": "/workspace/scratch/9891e6e3b679/zclick-a3-pypi-smoke-attempt2/venv/lib/python3.12/site-packages/zclick/_native.abi3.so",
+    "native_sha256": "32a51fda3373d6168b68c8ec4b790a264e1943466b4613f21af43b3efc21d07b",
+    "exit_code": 0,
+    "output": "Your name: Ada\nHello, Ada!\nHello, Ada!\n",
+    "isolated_mode": true,
+    "working_directory_outside_checkout": true,
+    "download": {
+      "url": "https://files.pythonhosted.org/packages/83/b6/53559ad85ba3f8d8168bab85f09509b5927d5e4410a5bacdcf3271d1e4e3/zclick-0.1.1a3-cp310-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.whl",
+      "archive_info": {
+        "hash": "sha256=9316d37ec25f53c18985b0e85e064c5468e36f693acd3d53201c930b89fa9773",
+        "hashes": {
+          "sha256": "9316d37ec25f53c18985b0e85e064c5468e36f693acd3d53201c930b89fa9773"
+        }
+      }
+    },
+    "verified_at": "2026-11-13T06:30:38.450598+00:00",
+    "pip_report_sha256": "a49ddd74116f19d25f41d1732d18f86f628633ac215329b5896fe83ec51ed612",
+    "pip_report_path": "/workspace/scratch/9891e6e3b679/zclick-a3-pypi-smoke-attempt2/pip-report.json",
+    "smoke_directory": "/workspace/scratch/9891e6e3b679/zclick-a3-pypi-smoke-attempt2"
+  },
+  "pypi_response_sha256": "edb21dd1ed80a62d36ac5e53f6def4f8d24e1715390603bb8c77f661ac672dbf",
+  "metadata_sha256": {
+    "release_workflow_metadata": "449f0296023ba8e25ef30af17da6d3029ed1eeaf0fb94d75880e4b2d36c822e3",
+    "release_metadata": "7398a5d4b12a11c4813838225ce20199e464fabc7fb1a2f88b91b766054d538b",
+    "publish_job_metadata": "deceb583bcb4ea1af7be10cd473a0f3549a559d2d2f74d7cf5ef16e6339ada69",
+    "release_tag_commit_metadata": "59d5cce7587cf19ef623f83a6bb2bffd87e6141242068160b966869a92b8f117"
+  }
+}

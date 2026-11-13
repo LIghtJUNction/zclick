@@ -19,19 +19,21 @@ is blocked while an open compatibility gap remains.
 
 [Compatibility evidence](COMPATIBILITY.md) · [0.1.1a1 measurements](docs/performance.md) ·
 [0.1.1a2 measurements](docs/performance-0.1.1a2.md) ·
+[0.1.1a3 measurements](docs/performance-0.1.1a3.md) ·
 [Architecture](docs/architecture.md) · [Build and release](docs/development.md) ·
-[中文交付记录](docs/DELIVERY-0.1.1a2.zh-CN.md) ·
+[中文交付记录](docs/DELIVERY-0.1.1a3.zh-CN.md) ·
+[0.1.1a2 中文记录](docs/DELIVERY-0.1.1a2.zh-CN.md) ·
 [0.1.1a1 中文记录](docs/DELIVERY.zh-CN.md)
 
 ## Installation and a first command
 
-The **0.1.1a2** preview is available on
-[PyPI](https://pypi.org/project/zclick/0.1.1a2/) and
-[GitHub Releases](https://github.com/LIghtJUNction/zclick/releases/tag/v0.1.1a2).
+The **0.1.1a3** preview is available on
+[PyPI](https://pypi.org/project/zclick/0.1.1a3/) and
+[GitHub Releases](https://github.com/LIghtJUNction/zclick/releases/tag/v0.1.1a3).
 Install the published version:
 
 ```sh
-python -m pip install zclick==0.1.1a2
+python -m pip install --upgrade zclick==0.1.1a3
 ```
 
 To select the latest available preview instead:
@@ -40,12 +42,12 @@ To select the latest available preview instead:
 pip install --pre zclick
 ```
 
-All 12 wheels and the source archive have matching hashes on PyPI and GitHub.
-The [publication verification](compatibility/releases/0.1.1a2-pypi.json) records
-the released files, the Trusted Publisher identity reported by PyPI, and an
-isolated installation that ran the greeting example without original Click.
-The previous
-0.1.1a1 [verification](compatibility/releases/0.1.1a1-pypi.json) remains available.
+The [publication verification](compatibility/releases/0.1.1a3-pypi.json)
+records all 12 wheels and the source archive, matching PyPI/GitHub hashes,
+the Trusted Publisher identity, and a new isolated PyPI installation that ran
+the prompting greeting example without original Click. Earlier
+[a2](compatibility/releases/0.1.1a2-pypi.json) and
+[a1](compatibility/releases/0.1.1a1-pypi.json) verification records remain available.
 
 Source installation requires Rust 1.99.1 and the platform build tools.
 
@@ -98,53 +100,61 @@ reported as passing until their jobs succeed. See
 [COMPATIBILITY.md](COMPATIBILITY.md) and the
 [CI runs](https://github.com/LIghtJUNction/zclick/actions/workflows/ci.yml).
 
-Version 0.1.1a2 completed the full release validation run at source
-`7e3d597873b737bbfc8c2df090773aad56d9bd73`. Its
-[validation record](compatibility/releases/0.1.1a2.json) preserves the actual
-platform results, including original skips, separately from wheel installation
-checks and the disclosed subinterpreter gap.
+Version 0.1.1a3 completed the full release validation at source
+[`9afcc753`](https://github.com/LIghtJUNction/zclick/commit/9afcc7537212563f66a5d99c9f08f99bfa692731).
+All 61 jobs in the [release run](https://github.com/LIghtJUNction/zclick/actions/runs/43377480224)
+succeeded. The [validation record](compatibility/releases/0.1.1a3.json)
+separates the 12 normal test environments, seven stress environments, API and
+Shell checks from the 12 actual wheel installations and source-archive rebuild.
+Original skips and the unresolved subinterpreter difference remain explicit.
+The [a2 validation record](compatibility/releases/0.1.1a2.json) is retained.
 
-The [0.1.1a2 performance report](docs/performance-0.1.1a2.md) compares Click 8.5.1,
-the published zclick 0.1.1a1 wheel and a2 in twelve balanced rounds on each of
-two Linux hosts. The local run used CPython 3.12.14 / AMD EPYC 9V74; release CI
-used CPython 3.14.10 / AMD EPYC 7763. The table compares a2 with Click on each
-host. Ratios divide Click's median wall time by a2's: **above one means lower
-a2 latency**.
+The [0.1.1a3 performance report](docs/performance-0.1.1a3.md) compares fixed
+Click 8.5.1, the published a2 wheel and a3 in twelve balanced rounds on each of
+two Linux hosts. Local CPython 3.12.14 and release-CI CPython 3.14.10 both ran
+on machines reporting AMD EPYC 9V74; their systems, available CPU counts and
+wheel build environments differ. Ratios divide the reference median wall time
+by a3's: **above one means lower a3 latency**. The last two columns isolate the
+comparison with the previous release from the project's advantage over Click.
 
-| Workload | Local Click / a2 | Release CI Click / a2 |
-| --- | ---: | ---: |
-| Reused parser, 1 option | 0.541× | 0.617× |
-| Reused parser, 10 options | 0.757× | 0.650× |
-| Reused parser, 100 options | 0.868× | 0.735× |
-| Reused parser, 1,000 options | 1.236× | 0.975× |
-| Full warm invocation, 1 option | 0.973× | 0.979× |
-| Full warm invocation, 1,000 options | 1.771× | 2.017× |
-| Warm help, 1,000 options | 1.214× | 1.320× |
-| Unicode/ANSI wrapping | 7.404× | 9.314× |
-| Nested command | 0.886× | 0.909× |
+| Workload | Local Click / a3 | CI Click / a3 | Local a2 / a3 | CI a2 / a3 |
+| --- | ---: | ---: | ---: | ---: |
+| Reused parser, 1 option | 0.890× | 1.023× | 1.615× | 1.674× |
+| Reused parser, 10 options | 0.944× | 0.853× | 1.370× | 1.318× |
+| Reused parser, 100 options | 1.057× | 0.872× | 1.170× | 1.208× |
+| Reused parser, 1,000 options | 1.446× | 1.154× | 1.179× | 1.166× |
+| Full warm invocation, 1 option | 1.083× | 1.141× | 1.079× | 1.097× |
+| Full warm invocation, 1,000 options | 1.776× | 2.128× | 1.042× | 1.033× |
+| Warm help, 1 option | 2.235× | 2.619× | 0.909× | 0.936× |
+| Warm help, 10 options | 1.727× | 1.886× | 1.006× | 0.971× |
+| Warm help, 1,000 options | 1.259× | 1.329× | 1.017× | 1.014× |
+| Nested command | 1.040× | 1.101× | 1.166× | 1.143× |
+| Unicode/ANSI wrapping | 7.507× | 9.055× | 0.978× | 0.988× |
 
-The local 1,000-option parser advantage over Click **did not reproduce in CI**.
-Smaller parser cases, the one-option warm invocation and nested commands
-remain slower than Click on both hosts. Relative to the published a1 wheel,
-the 1,000-option parser improved by **2.535× locally / 2.354× in CI**; the full
-invocation improved only **1.042× / 1.050×**. These comparisons distinguish the
-project's existing advantage over Click from this version's additional gain.
+One-option parsing improved relative to a2 by 1.615× locally and 1.674× in CI.
+Nested invocation improved by 1.166× and 1.143×. Full invocation at 1,000 options
+was 1.776× and 2.128× relative to Click, but its new improvement over a2 was only
+1.042× and 1.033×. The large wrapping advantage over Click also predates this
+release; wrapping regressed slightly relative to a2 in both runs.
 
-All eight fresh-process command and help medians were lower than both references
-on both hosts, but retained outliers prevent a claim that every startup is
-faster. The report includes all eighteen warm workloads, eight cold workloads,
-import timing, variability and memory. The local run used different wheel build
-targets for a1 and a2. CI used the release's manylinux build, and the benchmark
-and release GNU wheels contain the
-[same 18 Python/native runtime files](compatibility/releases/0.1.1a2-benchmark-payload.json),
-although their wheel archive hashes differ.
+Pure parsing still has slower cases: one and ten options locally, and ten and
+100 options in CI. The 100-option local advantage did not reproduce in CI.
+One-option help regressed relative to a2 on both hosts, and ten-option help
+regressed in CI; both CI help cases were slower than a2 in all twelve paired
+rounds. These results do not support a universal speedup.
 
-Whole-worker peak RSS remained higher than Click on both hosts: a2 measured
-25.492 versus 24.059 MiB locally and 33.324 versus 32.039 MiB in CI. These values
-include the full benchmark worker, not one parser call. Results remain specific
-to the recorded workloads, distributions, interpreters and hosts; no universal
-speedup or zero-allocation claim is made. The
-[historical a1 report](docs/performance.md) retains its original data and method.
+All eight fresh-process medians were lower than Click on both hosts, while
+four per host were higher than a2. Whole-worker peak RSS remained above Click:
+a3 / Click measured 25.193 / 24.062 MiB locally and 33.121 / 32.014 MiB in CI.
+Python allocation samples do not include every native allocation. All eighteen
+warm workloads, eight cold workloads, CPU times, variation, import and memory
+observations are retained in the report.
+
+The CI benchmark and published GNU wheel contain the
+[same 18 Python/native runtime files](compatibility/releases/0.1.1a3-benchmark-payload.json),
+although their wheel archive hashes differ. The earlier
+[a2](docs/performance-0.1.1a2.md) and [a1](docs/performance.md) reports remain
+unchanged historical measurements.
 
 ## Examples
 
