@@ -26,6 +26,10 @@ requires the parser's final `finish()` check. Schemas store full hashes to
 choose small candidate tables; the hash does not establish a match. Each
 candidate must still be accepted by zclap, including an explicit regression
 which forces a full hash collision between different spellings.
+Each candidate command contains one argument and uses zclap's
+`parse_with::<1, _>` presence storage. This reduces initialization for each
+recognition attempt; the enclosing schema may still contain any number of
+parameters, and both event exhaustion and final validation remain required.
 Consumed values also pass through zclap's byte-input parser, with a terminator
 that preserves Click's treatment of dash-leading values. These paths are
 implemented in [`parse.rs`](../crates/zclick-core/src/parse.rs). The Rust
@@ -48,6 +52,13 @@ parser. The binding validates or replaces the parser's owned, immutable Rust
 schema, while execution state remains local to the call. The schema owns names
 which zclap borrows during parsing. No argument name is leaked or permanently
 interned, and no borrowed value is given a fabricated `'static` lifetime.
+
+The binding reuses a finite set of source-code protocol names, such as `nargs`
+and `process`, through PyO3's `intern!` facility. These fixed names do not
+contain command names, option aliases, input values or application objects.
+Every attribute lookup and method call still executes against the current
+Python object. The main-interpreter restriction below applies before these
+Python string caches are initialized.
 
 The Rust core recognizes tokens, consumes values using Click's rules, allocates
 positional arguments and records encounter order. The binding invokes the
@@ -83,6 +94,13 @@ lookup table. The schema contains Rust data only. It holds no Python command,
 context, callback, default result or environment value. Its pickle protocol
 serializes only those structural fields, so a warmed command remains copyable
 and pickleable whenever its ordinary Python fields permit that operation.
+
+Definition validation walks exact Python lists with a live cursor, checking
+their current length at each step. A getter that inserts or removes a later
+definition therefore affects the same traversal. List subclasses retain their
+Python iterator protocol. This saves an iterator allocation without taking a
+fixed-length snapshot; the regression cases cover append, deletion, insertion
+and custom iteration.
 
 `make_parser`, parameter registration hooks, parser actions, conversions and
 callbacks still run through their current Python methods. Replacing a callback,

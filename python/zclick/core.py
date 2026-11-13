@@ -314,7 +314,7 @@ class Command:
                  options_metavar: str | None = "[OPTIONS]", add_help_option: bool = True,
                  no_args_is_help: bool = False, hidden: bool = False, deprecated: bool | str = False) -> None:
         self.name, self.context_settings, self.callback = name, context_settings or {}, callback
-        self.params = params if params is not None else []
+        self.params = params or []
         self.help, self.epilog, self.short_help = help, epilog, short_help
         self.options_metavar, self.add_help_option = options_metavar, add_help_option
         self.no_args_is_help, self.hidden, self.deprecated = no_args_is_help, hidden, deprecated
@@ -335,31 +335,33 @@ class Command:
         return formatter.getvalue().rstrip("\n")
 
     def get_params(self, ctx: Context) -> list[Parameter]:
-        params = self.params[:]
+        params = self.params
         help_option = self.get_help_option(ctx)
         if help_option is not None:
-            params.append(help_option)
-        counts = Counter(o for p in params for o in p.opts + p.secondary_opts)
-        for name, count in counts.items():
-            if count > 1:
-                import warnings
-                warnings.warn(f"The parameter {name} is used more than once. Remove its duplicate as parameters should be unique.", UserWarning, stacklevel=3)
-        argument_names = set()
-        options = []
-        for param in self.params:
-            if help_option is not None and param.name == "_click_default_help":
-                import warnings
-                warnings.warn("The name '_click_default_help' is reserved for the automatic help option.", UserWarning, stacklevel=3)
-            cls = type(param)
-            if cls is Option or isinstance(param, Option):
-                options.append(param)
-            elif cls is Argument or isinstance(param, Argument):
-                argument_names.add(param.name)
-        if argument_names:
+            params = [*params, help_option]
+        if __debug__:
             import warnings
-            for param in options:
-                if param.name in argument_names:
-                    warnings.warn(f"The name {param.name!r} is used by an argument and an option.", UserWarning, stacklevel=3)
+
+            # Collect primary spellings before hashing them. Name collisions
+            # are checked afterwards, including the automatic help parameter.
+            primary_names = [spelling for parameter in params for spelling in parameter.opts]
+            primary_counts = Counter(primary_names)
+            for spelling, occurrences in primary_counts.items():
+                if occurrences > 1:
+                    warnings.warn(f"The parameter {spelling} is used more than once. Remove its duplicate as parameters should be unique.", stacklevel=3)
+
+            name_counts = Counter(parameter.name for parameter in params)
+            for shared_name, occurrences in name_counts.items():
+                if occurrences < 2:
+                    continue
+                matching = [parameter for parameter in params if parameter.name == shared_name]
+                if help_option in matching:
+                    message = f"The name {shared_name!r} is reserved for the automatic help option. Give the parameter a different name."
+                elif any(isinstance(parameter, Argument) for parameter in matching):
+                    message = f"The name {shared_name!r} is used by an argument and another parameter. They will overwrite each other's value during parsing. Give each parameter a unique name."
+                else:
+                    continue
+                warnings.warn(message, stacklevel=3)
         return params
 
     def format_usage(self, ctx: Context, formatter: HelpFormatter) -> None:
@@ -372,18 +374,20 @@ class Command:
         return pieces
 
     def get_help_option_names(self, ctx: Context) -> list[str]:
-        claimed = {s for p in self.params for s in p.opts + p.secondary_opts}
-        return list(dict.fromkeys(s for s in ctx.help_option_names if s not in claimed))
+        available = dict.fromkeys(ctx.help_option_names)
+        for parameter in self.params:
+            for spelling in (*parameter.opts, *parameter.secondary_opts):
+                available.pop(spelling, None)
+        return list(available)
 
     def get_help_option(self, ctx: Context) -> Option | None:
         names = self.get_help_option_names(ctx)
-        if not self.add_help_option or not names:
+        if not names or not self.add_help_option:
             return None
-        if self._help_option is None or self._help_option.opts != names:
+        if self._help_option is None:
             from .decorators import help_option
-            holder = lambda: None
-            help_option(*names, "_click_default_help")(holder)
-            self._help_option = holder.__click_params__[0]
+            help_option(*names, "_click_default_help")(self)
+            self._help_option = self.params.pop()
         return self._help_option
 
     def make_parser(self, ctx: Context) -> _OptionParser:

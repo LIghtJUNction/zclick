@@ -60,6 +60,17 @@ Use `import zclick as click` and replace `from click.module` with `from zclick.m
 
 Command callbacks, parameter objects and type converters remain Python extension points. Invocation observes changes to `command.params`, registered commands, callbacks and option attributes. Per-invocation defaults, environment values and context state are not cached. The native parser validates the current definition before reusing its most recent immutable, owned Rust schema; it does not retain borrowed schema references or Python application objects. Warmed-command pickle/deepcopy, alias and arity mutation, method replacement, reentry and original argument identity have explicit regressions.
 
+The target's own help-option cache is preserved: after its first creation,
+later nonempty help-name settings reuse that object, while empty help names
+disable it for that context. Without an automatic help option, `get_params`
+returns the existing parameter container. Help-name hashing, parameter reads,
+duplicate-name comparisons and debug-only warnings follow the target's order.
+Paired Click/zclick cases in
+[`test_command_help_protocols.py`](tests/test_command_help_protocols.py) check
+these container, cache and warning behaviors. Parser action attribute reads
+and equality comparisons are paired in
+[`test_native_actions.py`](tests/test_native_actions.py).
+
 `CliRunner` temporarily changes interpreter-wide streams, environment and working directory, matching Click's isolation model. Concurrent runner invocations in the same process are not a supported thread-safe isolation boundary. Native parsing state is per call; this does not make the testing tools thread-safe.
 
 ## zclap adaptation
