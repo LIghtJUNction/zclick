@@ -1,13 +1,7 @@
 """Invocation-local context stack. Each thread owns its own stack."""
 from __future__ import annotations
 
-try:
-    # threading.local is this same built-in class on CPython and PyPy. Avoid
-    # importing the thread-management module just to allocate local storage.
-    from _thread import _local as local
-except ImportError:
-    # Preserve the interpreter's standard-library fallback where needed.
-    from threading import local
+from threading import local
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
