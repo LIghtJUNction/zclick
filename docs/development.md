@@ -89,13 +89,18 @@ maturin build --release --locked --out dist
 python benchmarks/compare.py --candidate-wheel dist/*.whl --iterations 1000 --repeats 12 --seed 20261111 --affinity auto --output reports/benchmarks.json
 ```
 
-The driver compares fixed Click 8.5.1, the published zclick 0.1.1a1 baseline and
+The driver compares fixed Click 8.5.1, the published zclick 0.1.1a2 baseline and
 the candidate wheel. Baseline wheel checksums are locked; both zclick versions
 are installed in separate minimal virtual environments using the same Python
 interpreter. Candidate source edits cannot alter the installed baseline. Each
 round uses fresh isolated worker processes; six rounds contain every ordering
 of the three implementations once, and the default twelve rounds repeat that
 balanced block. Cold scenarios have independently seeded balanced orders.
+
+To reproduce the older a1 comparison, pass
+`--baseline-lock benchmarks/baselines/0.1.1a1.json`. Historical snapshots require
+their matching lock when supplied through `--baseline-manifest`; selecting a
+different zclick baseline never changes the pinned Click target.
 
 The driver checks each workload's result before timing and compares full output
 checksums across all three implementations. It records every wall and CPU sample,

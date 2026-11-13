@@ -1,7 +1,13 @@
 """Invocation-local context stack. Each thread owns its own stack."""
 from __future__ import annotations
 
-from threading import local
+try:
+    # threading.local is this same built-in class on CPython and PyPy. Avoid
+    # importing the thread-management module just to allocate local storage.
+    from _thread import _local as local
+except ImportError:
+    # Preserve the interpreter's standard-library fallback where needed.
+    from threading import local
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -20,9 +26,11 @@ def get_current_context(silent: bool = False) -> Context | None:
 
 
 def push_context(ctx: Context) -> None:
-    if not hasattr(_local, "stack"):
-        _local.stack = []
-    _local.stack.append(ctx)
+    try:
+        stack = _local.stack
+    except AttributeError:
+        stack = _local.stack = []
+    stack.append(ctx)
 
 
 def pop_context() -> None:

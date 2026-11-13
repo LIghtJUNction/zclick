@@ -1,6 +1,6 @@
 # Measurement protocol
 
-The current driver measures fixed Click 8.5.1, the published zclick 0.1.1a1
+The current driver measures fixed Click 8.5.1, the published zclick 0.1.1a2
 wheel and a candidate wheel under the same Python interpreter. It retains slow
 results as well as improvements. The original schema-1, fixed-order results in
 `results/` remain historical measurements; this protocol produces schema 2.
@@ -12,6 +12,14 @@ commit. `prepare_baseline.py` installs the compatible baseline wheel and fixed
 Click wheel into a separate environment, marks runtime files read-only and
 records their contents. An existing baseline is verified before reuse. Source
 changes or rebuilding the candidate cannot change this environment.
+
+The previous 0.1.1a1 lock is preserved in `baselines/0.1.1a1.json`. Pass
+`--baseline-lock benchmarks/baselines/0.1.1a1.json` to `prepare_baseline.py` or
+`compare.py` to select that release explicitly. When reusing a historical
+snapshot with `--baseline-manifest`, also select its matching lock. Each new
+snapshot records the lock checksum; mismatched snapshots are rejected. Both
+release locks retain the same Click version, source commit and wheel checksum.
+Historical reports keep their original baseline and measurements.
 
 The candidate wheel is copied into its own content-addressed environment. Both
 environments contain the same Click wheel and use the same interpreter and

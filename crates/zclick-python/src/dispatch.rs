@@ -1,9 +1,12 @@
 //! Group dispatch keeps Python hooks dynamic while Rust owns the invocation plan.
 //! The supplied scope function executes Python's `with` statement so handled
 //! exceptions, context-manager suppression, and interpreter state stay exact.
+//! Fixed protocol names are interned once; application strings and call results
+//! remain owned by the current invocation and are never globally retained.
 use pyo3::{
     class::{PyTraverseError, PyVisit},
     exceptions::{PyAssertionError, PyRuntimeError},
+    intern,
     prelude::*,
     types::{PyDict, PyList, PyTuple},
 };
@@ -145,22 +148,26 @@ fn finish<'py>(
 ) -> PyResult<Bound<'py, PyAny>> {
     let group = state.group.bind(py);
     let ctx = state.root_ctx.bind(py);
-    let callback = group.getattr("_result_callback")?;
+    let callback = group.getattr(intern!(py, "_result_callback"))?;
     if callback.is_none() {
         return Ok(value);
     }
-    let params = ctx.getattr("params")?;
-    ctx.call_method("invoke", (callback, value), Some(params.cast::<PyDict>()?))
+    let params = ctx.getattr(intern!(py, "params"))?;
+    ctx.call_method(
+        intern!(py, "invoke"),
+        (callback, value),
+        Some(params.cast::<PyDict>()?),
+    )
 }
 fn resolve<'py>(
     py: Python<'py>,
     state: &FrameState,
     args: &Bound<'py, PyAny>,
 ) -> PyResult<(Bound<'py, PyAny>, Bound<'py, PyAny>, Bound<'py, PyAny>)> {
-    let result = state
-        .group
-        .bind(py)
-        .call_method1("resolve_command", (state.root_ctx.bind(py), args))?;
+    let result = state.group.bind(py).call_method1(
+        intern!(py, "resolve_command"),
+        (state.root_ctx.bind(py), args),
+    )?;
     let resolved: (Bound<'py, PyAny>, Bound<'py, PyAny>, Bound<'py, PyAny>) = result.extract()?;
     if resolved.1.is_none() {
         return Err(PyAssertionError::new_err(()));
@@ -176,12 +183,12 @@ fn make_context<'py>(
     chain: bool,
 ) -> PyResult<Bound<'py, PyAny>> {
     let kwargs = PyDict::new(py);
-    kwargs.set_item("parent", state.root_ctx.bind(py))?;
+    kwargs.set_item(intern!(py, "parent"), state.root_ctx.bind(py))?;
     if chain {
-        kwargs.set_item("allow_extra_args", true)?;
-        kwargs.set_item("allow_interspersed_args", false)?;
+        kwargs.set_item(intern!(py, "allow_extra_args"), true)?;
+        kwargs.set_item(intern!(py, "allow_interspersed_args"), false)?;
     }
-    command.call_method("make_context", (name, args), Some(&kwargs))
+    command.call_method(intern!(py, "make_context"), (name, args), Some(&kwargs))
 }
 fn run_phase<'py>(py: Python<'py>, state: &FrameState) -> PyResult<Flow<'py>> {
     let group = state.group.bind(py);
@@ -189,7 +196,7 @@ fn run_phase<'py>(py: Python<'py>, state: &FrameState) -> PyResult<Flow<'py>> {
     match state.phase {
         Phase::Empty => {
             let value = state.base.bind(py).call1((ctx,))?;
-            let value = if group.getattr("chain")?.is_truthy()? {
+            let value = if group.getattr(intern!(py, "chain"))?.is_truthy()? {
                 PyList::empty(py).into_any()
             } else {
                 value
@@ -198,7 +205,7 @@ fn run_phase<'py>(py: Python<'py>, state: &FrameState) -> PyResult<Flow<'py>> {
         }
         Phase::Single => {
             let (name, command, remaining) = resolve(py, state, state.args.bind(py))?;
-            ctx.setattr("invoked_subcommand", &name)?;
+            ctx.setattr(intern!(py, "invoked_subcommand"), &name)?;
             state.base.bind(py).call1((ctx,))?;
             let child = make_context(py, state, &command, name, remaining, false)?;
             scoped(py, state, Phase::LeafSingle, &child)
@@ -210,14 +217,14 @@ fn run_phase<'py>(py: Python<'py>, state: &FrameState) -> PyResult<Flow<'py>> {
             } else {
                 py.None().into_bound(py)
             };
-            ctx.setattr("invoked_subcommand", invoked)?;
+            ctx.setattr(intern!(py, "invoked_subcommand"), invoked)?;
             state.base.bind(py).call1((ctx,))?;
             let mut contexts = Vec::new();
             while args.is_truthy()? {
                 let (name, command, remaining) = resolve(py, state, &args)?;
                 let child = make_context(py, state, &command, name, remaining, true)?;
-                args = child.getattr("args")?;
-                child.setattr("args", PyList::empty(py))?;
+                args = child.getattr(intern!(py, "args"))?;
+                child.setattr(intern!(py, "args"), PyList::empty(py))?;
                 contexts.push(child);
             }
             let values = PyList::empty(py);
@@ -231,7 +238,9 @@ fn run_phase<'py>(py: Python<'py>, state: &FrameState) -> PyResult<Flow<'py>> {
         }
         Phase::LeafSingle | Phase::LeafChain => {
             let child = state.active_ctx.bind(py);
-            let value = child.getattr("command")?.call_method1("invoke", (child,))?;
+            let value = child
+                .getattr(intern!(py, "command"))?
+                .call_method1(intern!(py, "invoke"), (child,))?;
             let value = if matches!(state.phase, Phase::LeafSingle) {
                 finish(py, state, value)?
             } else {
@@ -259,26 +268,29 @@ pub fn invoke_group<'py>(
         args: py.None(),
         phase: Phase::Empty,
     };
-    if !ctx.getattr("_protected_args")?.is_truthy()? {
-        if group.getattr("invoke_without_command")?.is_truthy()? {
+    if !ctx.getattr(intern!(py, "_protected_args"))?.is_truthy()? {
+        if group
+            .getattr(intern!(py, "invoke_without_command"))?
+            .is_truthy()?
+        {
             let result = scoped(py, &state, Phase::Empty, ctx)?;
             if result.returned {
                 return Ok(result.value);
             }
         }
-        ctx.call_method1("fail", ("Missing command.",))?;
+        ctx.call_method1(intern!(py, "fail"), ("Missing command.",))?;
     }
     let args = PyList::empty(py);
-    for item in ctx.getattr("_protected_args")?.try_iter()? {
+    for item in ctx.getattr(intern!(py, "_protected_args"))?.try_iter()? {
         args.append(item?)?;
     }
-    for item in ctx.getattr("args")?.try_iter()? {
+    for item in ctx.getattr(intern!(py, "args"))?.try_iter()? {
         args.append(item?)?;
     }
-    ctx.setattr("args", PyList::empty(py))?;
-    ctx.setattr("_protected_args", PyList::empty(py))?;
+    ctx.setattr(intern!(py, "args"), PyList::empty(py))?;
+    ctx.setattr(intern!(py, "_protected_args"), PyList::empty(py))?;
     state.args = args.unbind().into_any();
-    if !group.getattr("chain")?.is_truthy()? {
+    if !group.getattr(intern!(py, "chain"))?.is_truthy()? {
         let result = scoped(py, &state, Phase::Single, ctx)?;
         if result.returned {
             return Ok(result.value);

@@ -500,7 +500,6 @@ class Command:
     def main(self, args: Sequence[str] | None = None, prog_name: str | None = None,
              complete_var: str | None = None, standalone_mode: bool = True,
              windows_expand_args: bool = True, **extra: Any) -> Any:
-        from .utils import _detect_program_name
         if args is None:
             args = sys.argv[1:]
             if os.name == "nt" and windows_expand_args:
@@ -508,6 +507,7 @@ class Command:
                 args = _expand_args(args)
         args = [os.fsdecode(a) if isinstance(a, bytes) else a for a in args]
         if prog_name is None:
+            from .utils import _detect_program_name
             prog_name = _detect_program_name()
         self._main_shell_completion(extra, prog_name, complete_var)
         exit_code = 0
@@ -680,13 +680,13 @@ class Group(Command):
         return _invoke_group(self, ctx, super().invoke, _invoke_context)
 
     def resolve_command(self, ctx: Context, args: list[str]) -> tuple[str | None, Command | None, list[str]]:
-        import difflib
         name = args[0]
         command = self.get_command(ctx, name)
         if command is None and ctx.token_normalize_func is not None:
             name = ctx.token_normalize_func(name)
             command = self.get_command(ctx, name)
         if command is None and not ctx.resilient_parsing:
+            import difflib
             if _split_opt(name)[0] in ctx._opt_prefixes:
                 self.parse_args(ctx, args)
             possible = [n for n in self.list_commands(ctx) if (c := self.get_command(ctx, n)) is not None and not c.hidden]
