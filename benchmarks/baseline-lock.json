@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "published_source_commit": "3281e18f215dec976c3ce0c4b5dd933ad4d62616",
+  "published_source_commit": "7e3d597873b737bbfc8c2df090773aad56d9bd73",
   "packages": {
     "click": {
       "version": "8.5.1",
@@ -10,21 +10,21 @@
       }
     },
     "zclick": {
-      "version": "0.1.1a1",
-      "source": "https://pypi.org/project/zclick/0.1.1a1/",
+      "version": "0.1.1a2",
+      "source": "https://pypi.org/project/zclick/0.1.1a2/",
       "wheels": {
-        "zclick-0.1.1a1-cp310-abi3-macosx_10_12_x86_64.whl": "34ec4c16a8d2670937e4c878776fe9f1fc7dbe9d862432fac956b72b8c144dab",
-        "zclick-0.1.1a1-cp310-abi3-macosx_11_0_arm64.whl": "5eb368ea6fe01b407ed255e692361384db31d20ee3c371454839dc80f3b53515",
-        "zclick-0.1.1a1-cp310-abi3-manylinux2014_aarch64.manylinux_2_17_aarch64.whl": "e86b07022018c15df6baa9e59a803b8ae5367651e37936d2c14f948e1ec83536",
-        "zclick-0.1.1a1-cp310-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.whl": "457e6d01343ccc39cc925ac86ab0e43b6c85e45a165af14e06f37c827ee13a98",
-        "zclick-0.1.1a1-cp310-abi3-musllinux_1_2_aarch64.whl": "daa463ecee2adc2b74e579f8c81a25773f437972c9dabdb93bea90d677532ccb",
-        "zclick-0.1.1a1-cp310-abi3-musllinux_1_2_x86_64.whl": "c308f9b241c0b8cc66940e202b86446039457b5e98d181d3d4ad089ab9229dfd",
-        "zclick-0.1.1a1-cp310-abi3-win_amd64.whl": "355779cc84e7fb4890f8e8579fc580a98a939bd210c13cf2477ab3806df63d62",
-        "zclick-0.1.1a1-cp310-abi3-win_arm64.whl": "b5ec2cd570ac97744459f373fffad48f43413c00525378ad682f85f5a3dcebce",
-        "zclick-0.1.1a1-cp314-cp314t-manylinux_2_34_x86_64.whl": "27e64507f1b46d37d50e636026cbcc1d0379f4ca25f8a85e14683efc7937891e",
-        "zclick-0.1.1a1-cp315-cp315t-manylinux_2_34_x86_64.whl": "b641b61129ec25a70d8272cd58e07c22479d4c1183742e6e712cee7e9909f015",
-        "zclick-0.1.1a1-pp311-pypy311_pp80-manylinux_2_34_x86_64.whl": "3fe5afe1e54e22ed9d5f568ecac29fde35a1e69f121eb0f368df2d46cdb68256",
-        "zclick-0.1.1a1-pp312-pypy312_pp80-manylinux_2_34_x86_64.whl": "3e6dc314b9b414a224598be9a90e3d7acb9c2a2344a5764d0407191d5acdd51b"
+        "zclick-0.1.1a2-cp310-abi3-macosx_10_12_x86_64.whl": "7a38540778c040f9d4121c91d2faa2d5fa86841a9c3f8b96cb07694b5c9146c3",
+        "zclick-0.1.1a2-cp310-abi3-macosx_11_0_arm64.whl": "98a235572c69015f3045fc8556a24c0e860fa30958974eed684a67caa6867e74",
+        "zclick-0.1.1a2-cp310-abi3-manylinux2014_aarch64.manylinux_2_17_aarch64.whl": "860b5b4299cd6d640c081ffa0e6e9803aa1a3cd323fcc6d3e540d6931a311762",
+        "zclick-0.1.1a2-cp310-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.whl": "dd69bc1b014559a0c77319f52334811951e49fb134f916a3e76f5b7abd493a0c",
+        "zclick-0.1.1a2-cp310-abi3-musllinux_1_2_aarch64.whl": "bf32da47ee0e788d681af5cb07d8a7155a86757c0f82fad8d0c1c1dbce91f97f",
+        "zclick-0.1.1a2-cp310-abi3-musllinux_1_2_x86_64.whl": "d7d051fbae80ef35f8a0a8bf472ca8b7837a8f258b739e6a1c3dad77f5a78c79",
+        "zclick-0.1.1a2-cp310-abi3-win_amd64.whl": "17727a9519392ae69187fcda7de57ff54fbd695359b9af235fc3eb981565945b",
+        "zclick-0.1.1a2-cp310-abi3-win_arm64.whl": "fef6ce2b2a8affb342519f42e5bae1348b906fe6c0c9bd75f7f18d970e66159b",
+        "zclick-0.1.1a2-cp314-cp314t-manylinux_2_34_x86_64.whl": "cc47dc715506323b67585d0d550bfce0bf85b0ccc845472377c363881eaff7e8",
+        "zclick-0.1.1a2-cp315-cp315t-manylinux_2_34_x86_64.whl": "a0ca120be8518181a9cd886b4c3f772f52f1be327f4eca911322ebbd343afc5a",
+        "zclick-0.1.1a2-pp311-pypy311_pp80-manylinux_2_34_x86_64.whl": "61e17f6b5c801f9bf46d56385716ab22df0369792aba083d3796238e6d9515ac",
+        "zclick-0.1.1a2-pp312-pypy312_pp80-manylinux_2_34_x86_64.whl": "c73246215b4969c7dcf603969a9da18908fd75a6f1a50a1632559db1fe917fc8"
       }
     }
   }

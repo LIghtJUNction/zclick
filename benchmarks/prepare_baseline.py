@@ -21,6 +21,21 @@ ROOT = Path(__file__).resolve().parents[1]
 PROBE = Path(__file__).with_name("environment.py")
 
 
+def published_lock(path: Path | None = None) -> tuple[dict, dict]:
+    """Read the selected release lock without changing the Click target."""
+    path = (path or ROOT / "benchmarks/baseline-lock.json").resolve()
+    raw = path.read_bytes()
+    lock = json.loads(raw)
+    target = json.loads((ROOT / "compatibility/target.json").read_text(encoding="utf-8"))
+    reference = lock["packages"]["click"]
+    if (reference["version"] != target["version"]
+            or reference["source_commit"] != target["commit"]
+            or reference["wheels"] != {
+                f"click-{target['version']}-py3-none-any.whl": target["wheel_sha256"]}):
+        raise RuntimeError("Baseline lock does not match the pinned Click version, source commit and wheel")
+    return lock, {"path": str(path), "sha256": hashlib.sha256(raw).hexdigest()}
+
+
 def python_in(environment: Path) -> Path:
     return environment / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
 
@@ -54,8 +69,11 @@ def verify_snapshot(manifest: dict) -> dict:
     return actual
 
 
-def verify_published_snapshot(manifest: dict) -> dict:
-    lock = json.loads((ROOT / "benchmarks/baseline-lock.json").read_text(encoding="utf-8"))
+def verify_published_snapshot(manifest: dict, lock_path: Path | None = None) -> dict:
+    lock, identity = published_lock(lock_path)
+    if ("baseline_lock" in manifest
+            and manifest["baseline_lock"]["sha256"] != identity["sha256"]):
+        raise RuntimeError("Baseline snapshot uses a different published wheel lock")
     if manifest.get("published_source_commit") != lock["published_source_commit"]:
         raise RuntimeError("Baseline snapshot uses a different published source commit")
     for package, expected in lock["packages"].items():
@@ -66,8 +84,9 @@ def verify_published_snapshot(manifest: dict) -> dict:
     return verify_snapshot(manifest)
 
 
-def prepare(cache: Path, wheel: Path | None = None, click_wheel: Path | None = None) -> dict:
-    lock = json.loads((ROOT / "benchmarks/baseline-lock.json").read_text(encoding="utf-8"))
+def prepare(cache: Path, wheel: Path | None = None, click_wheel: Path | None = None,
+            *, lock_path: Path | None = None) -> dict:
+    lock, lock_identity = published_lock(lock_path)
     cache = cache.resolve()
     downloads = cache / "artifacts"
     downloads.mkdir(parents=True, exist_ok=True)
@@ -99,13 +118,14 @@ def prepare(cache: Path, wheel: Path | None = None, click_wheel: Path | None = N
                               "version": fixed["version"]}
         if selection is not None:
             selection.cleanup()
-    identity = {"artifacts": artifacts, "python": sys.version, "executable": str(Path(sys.executable).resolve())}
+    identity = {"artifacts": artifacts, "python": sys.version, "executable": str(Path(sys.executable).resolve()),
+                "baseline_lock_sha256": lock_identity["sha256"]}
     suffix = hashlib.sha256(json.dumps(identity, sort_keys=True).encode()).hexdigest()[:16]
-    directory = cache / ("0.1.1a1-" + suffix)
+    directory = cache / (lock["packages"]["zclick"]["version"] + "-" + suffix)
     manifest_path = directory / "snapshot.json"
     if manifest_path.exists():
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        verify_snapshot(manifest)
+        verify_published_snapshot(manifest, lock_path)
         return manifest
     if directory.exists():
         raise RuntimeError(f"Incomplete baseline directory exists; inspect it before retrying: {directory}")
@@ -127,12 +147,13 @@ def prepare(cache: Path, wheel: Path | None = None, click_wheel: Path | None = N
             path.chmod(path.stat().st_mode & ~0o222)
     manifest = {"schema": 1, "purpose": "immutable-published-performance-baseline",
                 "published_source_commit": lock["published_source_commit"],
+                "baseline_lock": lock_identity,
                 "python": str(python), "snapshot_path": str(manifest_path),
                 "artifacts": artifacts, "runtime": measured["runtime"], "packages": measured["packages"],
                 "integrity": "Runtime files are read-only and content hashes are checked before and after measurement."}
     manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
     manifest_path.chmod(manifest_path.stat().st_mode & ~0o222)
-    verify_snapshot(manifest)
+    verify_published_snapshot(manifest, lock_path)
     return manifest
 
 
@@ -196,9 +217,11 @@ if __name__ == "__main__":
     parser.add_argument("--cache", type=Path, default=ROOT / ".cache/benchmark-baselines")
     parser.add_argument("--zclick-wheel", type=Path, help="Already downloaded published wheel")
     parser.add_argument("--click-wheel", type=Path, help="Already downloaded fixed Click wheel")
+    parser.add_argument("--baseline-lock", type=Path,
+                        help="Published release wheel lock; defaults to benchmarks/baseline-lock.json")
     parser.add_argument("--output", type=Path, default=ROOT / "reports/benchmark-baseline.json")
     args = parser.parse_args()
-    manifest = prepare(args.cache, args.zclick_wheel, args.click_wheel)
+    manifest = prepare(args.cache, args.zclick_wheel, args.click_wheel, lock_path=args.baseline_lock)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
     print("Verified immutable baseline:", manifest["snapshot_path"])

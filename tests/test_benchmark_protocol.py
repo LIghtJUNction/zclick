@@ -62,6 +62,48 @@ def test_snapshot_checks_manifest_files_against_the_actual_wheel(tmp_path, monke
         prepare_baseline.verify_snapshot(manifest)
 
 
+@pytest.mark.parametrize("field,value", [
+    ("version", "8.5.0"), ("source_commit", "b" * 40),
+    ("wheels", {"click-8.5.1-py3-none-any.whl": "b" * 64}),
+])
+def test_selecting_a_historical_baseline_cannot_change_the_click_target(tmp_path, field, value):
+    lock = json.loads((ROOT / "benchmarks/baseline-lock.json").read_text(encoding="utf-8"))
+    lock["packages"]["click"][field] = value
+    path = tmp_path / "wrong-target.json"
+    path.write_text(json.dumps(lock), encoding="utf-8")
+    with pytest.raises(RuntimeError, match="pinned Click version, source commit and wheel"):
+        prepare_baseline.published_lock(path)
+
+
+def test_historical_snapshot_requires_explicit_matching_release_lock(monkeypatch):
+    path = ROOT / "benchmarks/baselines/0.1.1a1.json"
+    lock, identity = prepare_baseline.published_lock(path)
+    manifest = {
+        "baseline_lock": identity,
+        "published_source_commit": lock["published_source_commit"],
+        "packages": {name: {"version": value["version"]} for name, value in lock["packages"].items()},
+        "artifacts": {name: {"filename": next(iter(value["wheels"])),
+                             "sha256": next(iter(value["wheels"].values()))}
+                      for name, value in lock["packages"].items()},
+    }
+    calls = []
+    monkeypatch.setattr(prepare_baseline, "verify_snapshot", lambda value: calls.append(value) or value)
+    with pytest.raises(RuntimeError, match="different published wheel lock"):
+        prepare_baseline.verify_published_snapshot(manifest)
+    assert calls == []
+    assert prepare_baseline.verify_published_snapshot(manifest, path) is manifest
+    assert calls == [manifest]
+
+
+def test_changed_lock_is_rejected_before_loading_baseline(monkeypatch):
+    lock, identity = prepare_baseline.published_lock()
+    manifest = {"baseline_lock": {**identity, "sha256": "0" * 64},
+                "published_source_commit": lock["published_source_commit"]}
+    monkeypatch.setattr(prepare_baseline, "verify_snapshot", lambda _: pytest.fail("Lock mismatch must fail before import"))
+    with pytest.raises(RuntimeError, match="different published wheel lock"):
+        prepare_baseline.verify_published_snapshot(manifest)
+
+
 def test_release_notes_refuse_diagnostic_measurements():
     with pytest.raises(ValueError, match="Diagnostic benchmark"):
         release_notes.render("0.1.2a1", "a" * 40, "LIghtJUNction/zclick", {"diagnostic": True})

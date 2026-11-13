@@ -221,6 +221,8 @@ def main() -> None:
     parser.add_argument("--seed", type=int, default=20261111)
     parser.add_argument("--candidate-wheel", type=Path)
     parser.add_argument("--baseline-manifest", type=Path)
+    parser.add_argument("--baseline-lock", type=Path,
+                        help="Published release wheel lock; defaults to benchmarks/baseline-lock.json")
     parser.add_argument("--cache", type=Path, default=ROOT / ".cache/benchmark-baselines")
     parser.add_argument("--affinity", help="auto or a comma-separated subset of currently allowed CPUs; inherited by workers")
     parser.add_argument("--diagnostic", action="store_true", help="Permit a short harness check; result cannot support release claims")
@@ -246,10 +248,10 @@ def main() -> None:
         os.sched_setaffinity(0, selected)
     if args.baseline_manifest:
         baseline = json.loads(args.baseline_manifest.read_text(encoding="utf-8"))
-        verify_published_snapshot(baseline)
+        verify_published_snapshot(baseline, args.baseline_lock)
     else:
-        baseline = prepare(args.cache)
-        verify_published_snapshot(baseline)
+        baseline = prepare(args.cache, lock_path=args.baseline_lock)
+        verify_published_snapshot(baseline, args.baseline_lock)
     if args.candidate_wheel is None:
         version = re.search(r'^version\s*=\s*"([^"]+)"', (ROOT / "pyproject.toml").read_text(encoding="utf-8"), re.M)[1]
         wheels = list((ROOT / "dist").glob("zclick-" + version + "-*.whl"))
@@ -316,7 +318,7 @@ def main() -> None:
             record["load_after"] = load_average()
             rounds.append(record)
             print(f"Completed round {index + 1}/{args.repeats}: {' / '.join(warm_orders[index])}", flush=True)
-    verify_published_snapshot(baseline)
+    verify_published_snapshot(baseline, args.baseline_lock)
     verify_snapshot(candidate)
     if benchmark_sources != {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in Path(__file__).parent.glob("*.py")}:
         raise RuntimeError("Benchmark driver changed during measurement")
