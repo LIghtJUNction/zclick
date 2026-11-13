@@ -156,5 +156,9 @@ def __getattr__(name: str) -> Any:
 
 # The binding reads values from this interpreter's actual module namespace at
 # their original evaluation points. It never caches factories or callbacks.
-_parser_builtins = _OptionParser.parse_args.__builtins__
+# PyPy does not expose function.__builtins__. At module initialization its
+# function globals use this same builtins binding, which may be a module.
+_parser_builtins = getattr(_OptionParser.parse_args, "__builtins__", __builtins__)
+if not isinstance(_parser_builtins, dict):
+    _parser_builtins = vars(_parser_builtins)
 _parser_namespace = globals()

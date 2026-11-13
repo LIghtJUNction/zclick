@@ -4,7 +4,7 @@ from __future__ import annotations
 import gc
 import importlib
 import builtins
-from types import SimpleNamespace
+from types import ModuleType, SimpleNamespace
 
 import pytest
 
@@ -211,3 +211,34 @@ def test_state_global_falls_back_to_definition_time_builtins(monkeypatch):
     expected = observe("click")
     assert expected == ({"out": "payload"}, [], ["builtins-state"])
     assert observe("zclick") == expected
+
+
+@pytest.mark.parametrize("binding_type", ["dict", "module"])
+def test_parser_import_captures_supported_builtins_bindings(binding_type):
+    # Execute the real module with both forms accepted by Python module
+    # loaders. On PyPy this exercises the path without function.__builtins__.
+    captured = vars(builtins).copy()
+    binding = captured
+    if binding_type == "module":
+        binding = ModuleType("parser_test_builtins")
+        vars(binding).update(captured)
+        captured = vars(binding)
+    namespace = {"__name__": "zclick._parser_builtins_probe",
+                 "__package__": "zclick", "__builtins__": binding}
+    with open(adapter.__file__, encoding="utf-8") as source:
+        exec(compile(source.read(), adapter.__file__, "exec"), namespace)
+    assert namespace["_parser_builtins"] is captured
+
+    state_type = namespace.pop("_ParsingState")
+    calls = []
+
+    def factory(args):
+        calls.append("captured-builtins")
+        return state_type(args)
+
+    captured["_ParsingState"] = factory
+    namespace["__builtins__"] = {}
+    parser = namespace["_OptionParser"]()
+    parser.add_option(SimpleNamespace(_flag_needs_value=False), ["--value"], "out")
+    opts, rest, _ = parser.parse_args(["--value", "payload"])
+    assert (opts, rest, calls) == ({"out": "payload"}, [], ["captured-builtins"])
