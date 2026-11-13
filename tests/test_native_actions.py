@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import importlib
 import subprocess
 import sys
 from types import MethodType, SimpleNamespace
@@ -11,6 +12,55 @@ import pytest
 from zclick import _native
 from zclick._utils import FLAG_NEEDS_VALUE, UNSET
 from zclick.parser import _Argument, _Option, _ParsingState
+
+
+@pytest.mark.parametrize("action", ["store", "store_const", "append", "append_const", "count", "invalid"])
+def test_action_attribute_reads_follow_click_branch_order(action):
+    def observe(package):
+        module = importlib.import_module(f"{package}.parser")
+        trace = []
+
+        class Watched(module._Option):
+            def __getattribute__(self, name):
+                if name in {"action", "dest", "const", "obj"}:
+                    trace.append(name)
+                return super().__getattribute__(name)
+
+        option = Watched("parameter", ["--value"], "out", action=action, const=7)
+        state = module._ParsingState([])
+        trace.clear()
+        try:
+            option.process(3, state)
+        except ValueError as error:
+            failure = str(error)
+        else:
+            failure = None
+        return state.opts, state.order, trace, failure
+
+    expected = observe("click")
+    assert observe("zclick") == expected
+    if action == "store":
+        assert expected == ({"out": 3}, ["parameter"], ["action", "dest", "obj"], None)
+
+
+def test_action_comparisons_are_not_grouped_or_cached():
+    def observe(package):
+        module = importlib.import_module(f"{package}.parser")
+        compared = []
+
+        class Action:
+            def __eq__(self, other):
+                compared.append(other)
+                return other == "store"
+
+        option = module._Option("parameter", ["--value"], "out", action=Action())
+        state = module._ParsingState([])
+        option.process("payload", state)
+        return state.opts, state.order, compared
+
+    expected = observe("click")
+    assert expected == ({"out": "payload"}, ["parameter"], ["store"])
+    assert observe("zclick") == expected
 
 
 def run(definitions, argv, *, state=None, plan=None, prepared=True):

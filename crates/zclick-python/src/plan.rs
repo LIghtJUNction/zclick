@@ -25,7 +25,7 @@ fn changed_options(
     let old = previous.unwrap_or(&[]);
     let mut changed = previous.is_none().then(Vec::new);
     let mut count = 0;
-    for value in options.try_iter()? {
+    for value in iteration::LiveIterator::new(options)? {
         let value = value?;
         if changed.is_none()
             && let Some(expected) = old.get(count)
@@ -52,19 +52,19 @@ fn changed_definitions(
     let old = previous.unwrap_or(&[]);
     let mut changed = previous.is_none().then(Vec::new);
     let py = definitions.py();
-    let opts_name = PyString::new(py, "opts");
-    let nargs_name = PyString::new(py, "nargs");
-    let takes_value_name = PyString::new(py, "takes_value");
-    let obj_name = PyString::new(py, "obj");
-    let flag_name = PyString::new(py, "_flag_needs_value");
+    let opts_name = pyo3::intern!(py, "opts");
+    let nargs_name = pyo3::intern!(py, "nargs");
+    let takes_value_name = pyo3::intern!(py, "takes_value");
+    let obj_name = pyo3::intern!(py, "obj");
+    let flag_name = pyo3::intern!(py, "_flag_needs_value");
     let mut count = 0;
-    for definition in definitions.try_iter()? {
+    for definition in iteration::LiveIterator::new(definitions)? {
         let definition = definition?;
         let expected = old.get(count);
         let option = definition.is_instance(option_type)?;
         let options = if option {
             changed_options(
-                &definition.getattr(&opts_name)?,
+                &definition.getattr(opts_name)?,
                 expected.map(|s| s.options.as_slice()),
             )?
         } else if expected.is_some_and(|s| s.options.is_empty()) {
@@ -72,9 +72,9 @@ fn changed_definitions(
         } else {
             Some(Vec::new())
         };
-        let nargs = definition.getattr(&nargs_name)?.extract()?;
-        let is_flag = option && !definition.getattr(&takes_value_name)?.is_truthy()?;
-        let optional_value = match definition.getattr(&obj_name)?.getattr(&flag_name) {
+        let nargs = definition.getattr(nargs_name)?.extract()?;
+        let is_flag = option && !definition.getattr(takes_value_name)?.is_truthy()?;
+        let optional_value = match definition.getattr(obj_name)?.getattr(flag_name) {
             Ok(value) => value.is_truthy()?,
             Err(error) if error.is_instance_of::<PyAttributeError>(py) => false,
             Err(error) => return Err(error),

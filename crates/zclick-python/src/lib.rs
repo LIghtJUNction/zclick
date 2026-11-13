@@ -7,6 +7,7 @@ use pyo3::{
 use zclick_core::{self as core, Spec};
 mod dispatch;
 mod interpreter;
+mod iteration;
 mod ordering;
 mod plan;
 
@@ -139,6 +140,9 @@ fn update_original<'py>(
 ) -> PyResult<()> {
     if let Some(original) = original {
         let list = original.cast::<PyList>()?;
+        if remaining.is_empty() {
+            return list.del_slice(0, list.len());
+        }
         let values = remaining
             .iter()
             .map(|value| input.restore(py, value))
@@ -320,9 +324,11 @@ fn parse_into_with_schema<'py>(
         normalizer,
     );
     update_original(py, &input, &parsed.remaining_input, original_args)?;
-    let nargs_name = PyString::new(py, "nargs");
-    let takes_value_name = PyString::new(py, "takes_value");
-    let process_name = PyString::new(py, "process");
+    // Only fixed protocol literals are interned. User-provided option names,
+    // input strings and values retain invocation-local owned/borrowed storage.
+    let nargs_name = pyo3::intern!(py, "nargs");
+    let takes_value_name = pyo3::intern!(py, "takes_value");
+    let process_name = pyo3::intern!(py, "process");
     let definitions_list = if definitions.is_exact_instance_of::<PyList>() {
         Some(definitions.cast::<PyList>()?)
     } else {
@@ -337,12 +343,12 @@ fn parse_into_with_schema<'py>(
         } else {
             definitions.get_item(index)?
         };
-        let count: i64 = definition.getattr(&nargs_name)?.extract()?;
+        let count: i64 = definition.getattr(nargs_name)?.extract()?;
         let option = !spec.options.is_empty();
         let value = if option
             && row.is_empty()
             && count != 0
-            && definition.getattr(&takes_value_name)?.is_truthy()?
+            && definition.getattr(takes_value_name)?.is_truthy()?
         {
             flag_needs_value.clone()
         } else if count == 1 && !row.is_empty() {
@@ -358,7 +364,7 @@ fn parse_into_with_schema<'py>(
         } else {
             unset.clone()
         };
-        definition.call_method1(&process_name, (value, state))?;
+        definition.call_method1(process_name, (value, state))?;
     }
     if let Some(error) = failure {
         return Err(error);

@@ -314,7 +314,9 @@ impl Kernel<'_> {
             }
             let args = [Arg::flag("matched").long(&data.names[index]).repeat()];
             let command = Command::new("zclick").args(&args);
-            let mut parser = command.parse(&argv);
+            // Each candidate command contains one argument, so one presence
+            // word is sufficient regardless of the overall schema size.
+            let mut parser = command.parse_with::<1, _>(&argv);
             if let Ok(Some(Event::Flag { .. })) = parser.next()
                 && parser.next().ok().flatten().is_none()
                 && parser.finish().is_ok()
@@ -706,7 +708,7 @@ fn validate_raw_values(values: &[&[u8]]) -> Result<(), ParseError> {
     const RAW: Command<'static> = Command::new("values").args(&[Arg::positional("raw").repeat()]);
     if values.len() == 1 {
         let tokens = [&b"--"[..], values[0]];
-        let mut parser = RAW.parse_bytes(&tokens);
+        let mut parser = RAW.parse_with::<1, _>(&tokens);
         while parser
             .next()
             .map_err(|e| syntax("kernel", b"", None, 0, e.to_string()))?
@@ -719,7 +721,7 @@ fn validate_raw_values(values: &[&[u8]]) -> Result<(), ParseError> {
     let mut tokens = Vec::with_capacity(values.len() + 1);
     tokens.push(&b"--"[..]);
     tokens.extend_from_slice(values);
-    let mut parser = RAW.parse_bytes(&tokens);
+    let mut parser = RAW.parse_with::<1, _>(&tokens);
     while parser
         .next()
         .map_err(|e| syntax("kernel", b"", None, 0, e.to_string()))?

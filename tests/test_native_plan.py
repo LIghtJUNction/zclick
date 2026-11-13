@@ -92,6 +92,67 @@ def test_refresh_reads_properties_once_even_on_a_changed_plan():
     assert seen == ["opts", "nargs", "takes_value", "obj"]
 
 
+@pytest.mark.parametrize("mutation, expected", [
+    ("append", ["--first", "--second", "--third", "--last"]),
+    ("delete_next", ["--first", "--third"]),
+    ("delete_current", ["--first", "--third"]),
+    ("insert_before", ["--first", "--first", "--second", "--third"]),
+])
+def test_refresh_exact_list_keeps_live_python_iteration(mutation, expected):
+    definitions = []
+
+    class Mutating(_Option):
+        armed = False
+
+        def __getattribute__(self, name):
+            if name == "nargs" and super().__getattribute__("armed"):
+                self.armed = False
+                if mutation == "append":
+                    definitions.append(_Option(None, ["--last"], "last"))
+                elif mutation == "delete_next":
+                    del definitions[1]
+                elif mutation == "delete_current":
+                    del definitions[0]
+                else:
+                    definitions.insert(0, _Option(None, ["--inserted"], "inserted"))
+            return super().__getattribute__(name)
+
+    first = Mutating(None, ["--first"], "first")
+    definitions.extend([first, _Option(None, ["--second"], "second"),
+                        _Option(None, ["--third"], "third")])
+    first.armed = True
+    plan = _native.ParserPlan.from_definitions(definitions, _Option)
+    specs = plan.__reduce__()[1][0]
+    assert [spec[1][0] for spec in specs] == expected
+    assert [spec[0] for spec in specs] == list(range(len(expected)))
+
+
+def test_refresh_list_subclasses_keep_their_iteration_hooks():
+    trace = []
+
+    class Names(list):
+        def __iter__(self):
+            trace.append("names")
+            return iter(["--visible"])
+
+    class Definitions(list):
+        def __iter__(self):
+            trace.append("definitions")
+            return reversed(self)
+
+    first, second = _Option(None, ["--first"], "first"), _Option(None, ["--second"], "second")
+    first.opts = Names(["--hidden"])
+    definitions = Definitions([first, second])
+    plan = _native.ParserPlan.from_definitions(definitions, _Option)
+    assert trace == ["definitions", "names"]
+    assert [spec[1] for spec in plan.__reduce__()[1][0]] == [["--second"], ["--visible"]]
+    assert plan.parse(["--visible=x"])[0] == {1: [("x",)]}
+    assert plan.parse(["--hidden=x"])[3]["kind"] == "unknown_option"
+    trace.clear()
+    assert _native.ParserPlan.from_definitions(definitions, _Option, plan) is plan
+    assert trace == ["definitions", "names"]
+
+
 def test_plan_normalizer_and_actions_can_reenter_the_same_plan():
     plan = _native.ParserPlan([(0, ["--value"], 1, False)])
     seen = []

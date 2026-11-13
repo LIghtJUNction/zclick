@@ -9,7 +9,7 @@ from __future__ import annotations
 from typing import Any, TYPE_CHECKING, TypeVar
 
 from .exceptions import BadArgumentUsage, BadOptionUsage, NoSuchOption
-from ._utils import FLAG_NEEDS_VALUE
+from ._utils import FLAG_NEEDS_VALUE, UNSET
 from . import _native
 
 if TYPE_CHECKING:
@@ -63,14 +63,16 @@ class _Option:
         return self.action in ("store", "append")
 
     def process(self, value: Any, state: _ParsingState) -> None:
-        if self.action in ("store_const", "append_const"):
-            value = self.const
-        if self.action in ("append", "append_const"):
+        if self.action == "store":
+            state.opts[self.dest] = value
+        elif self.action == "store_const":
+            state.opts[self.dest] = self.const
+        elif self.action == "append":
             state.opts.setdefault(self.dest, []).append(value)
+        elif self.action == "append_const":
+            state.opts.setdefault(self.dest, []).append(self.const)
         elif self.action == "count":
             state.opts[self.dest] = state.opts.get(self.dest, 0) + 1
-        elif self.action in ("store", "store_const"):
-            state.opts[self.dest] = value
         else:
             raise ValueError(f"unknown action '{self.action}'")
         state.order.append(self.obj)
@@ -81,7 +83,6 @@ class _Argument:
         self.obj, self.dest, self.nargs = obj, dest, nargs
 
     def process(self, value: Any, state: _ParsingState) -> None:
-        from ._utils import UNSET
         if self.nargs > 1 and value is not UNSET and value and any(v is UNSET for v in value):
             if not all(v is UNSET for v in value):
                 raise BadArgumentUsage(f"Argument {self.dest!r} takes {self.nargs} values.")
@@ -117,7 +118,6 @@ class _OptionParser:
         self._args.append(_Argument(obj, dest, nargs))
 
     def parse_args(self, args: list[str]) -> tuple[dict[str, Any], list[str], list[Any]]:
-        from ._utils import UNSET
         definitions: list[Any] = self._options + self._args
         plan = _native.ParserPlan.from_definitions(definitions, _Option, self._plan)
         self._plan = plan
