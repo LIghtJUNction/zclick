@@ -216,3 +216,7 @@ working directory. Use separate processes for concurrent runner tests.
 The project implementation is MIT licensed. Distribution notices for the
 generated Click API declarations, Rust dependencies and standard library are
 listed in [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md).
+
+## Rust crate
+
+The independent `zclick-core` library is distributed through crates.io. It provides the `no_std` + `alloc` argument and terminal-text kernel over `zclap`; Python command objects and interpreter bindings remain in the Python package. See [the Rust crate README](crates/zclick-core/README.md) for installation, API scope, and the locally validated `scripts/publish_core.py` publication command.

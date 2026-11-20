@@ -6,6 +6,10 @@ rust-version.workspace = true
 license.workspace = true
 repository.workspace = true
 description = "Borrowed Click-compatible argument semantics over zclap"
+readme = "README.md"
+keywords = ["cli", "parser", "click", "no-std"]
+categories = ["command-line-interface", "no-std"]
+include = ["src/**", "tests/**", "README.md", "LICENSE"]
 
 [dependencies]
 zclap = { version = "=0.1.4", default-features = false }
