@@ -127,8 +127,7 @@ checksum = "a2c754d6c33795a1c324727428e5a7dedb5b06195f9890bdbcba760d3e246563"
 [[package]]
 name = "zclap"
 version = "0.1.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5efb5b25a7eb925fe9943888238d1e261224fa629456f4abe203b1deb34ac102"
+source = "git+https://github.com/LIghtJUNction/zclap.git#4d87f3ae3743e81509d5ac5500909955667c860f"
 
 [[package]]
 name = "zclick-core"
