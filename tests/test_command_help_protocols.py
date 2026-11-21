@@ -194,3 +194,28 @@ print(json.dumps({"debug": __debug__, "warnings": len(caught), "params": len(par
     result = subprocess.run([sys.executable, "-O", "-c", script, package], check=True,
                             capture_output=True, text=True)
     assert json.loads(result.stdout) == {"debug": False, "warnings": 0, "params": 3}
+
+
+@pytest.mark.parametrize(
+    ("width", "usage"),
+    [
+        (80, "     Usage: cli [OPTIONS]"),
+        (40, "     Usage: cli \n                [OPTIONS]"),
+    ],
+    ids=["inline", "wrapped"],
+)
+def test_custom_help_usage_respects_formatter_indentation(cli, width, usage):
+    class Command(cli.Command):
+        def format_usage(self, ctx, formatter):
+            formatter.indent_increment = 12
+            with formatter.indentation():
+                super().format_usage(ctx, formatter)
+
+    @cli.command(cls=Command, context_settings={"terminal_width": width})
+    def example():
+        pass
+
+    runner = importlib.import_module(f"{cli.__name__}.testing").CliRunner()
+    result = runner.invoke(example, ["--help"], prog_name="cli")
+    assert result.exit_code == 0, result.output
+    assert result.output.split("\n\n", 1)[0] == usage
