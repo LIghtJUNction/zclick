@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "cargo_lock_sha256": "e1388e66bad5c93c59bfcfd9deecc1255c201fa18a30bc170d95c1459d5a969b",
-  "scope": "All registry crates resolved by locked workspace metadata, including build-only dependencies; complete Rust standard-library notices for the pinned release.",
+  "cargo_lock_sha256": "1c3b70684de92f334ec7d12c489218bb2de4881acf0c4f3cf328a9f879fe9698",
+  "scope": "All external crates resolved by locked workspace metadata, including build-only dependencies; complete Rust standard-library notices for the pinned release.",
   "packages": [
     {
       "name": "heck",
@@ -297,9 +297,8 @@
       "name": "zclap",
       "version": "0.1.4",
       "license": "MIT",
-      "source": "registry+https://github.com/rust-lang/crates.io-index",
-      "registry_archive_sha256": "5efb5b25a7eb925fe9943888238d1e261224fa629456f4abe203b1deb34ac102",
-      "url": "https://crates.io/crates/zclap/0.1.4",
+      "source": "git+https://github.com/LIghtJUNction/zclap.git#a4c7e6f3e0ff860de701573117248fe8538c71e5",
+      "url": "https://github.com/LIghtJUNction/zclap/tree/a4c7e6f3e0ff860de701573117248fe8538c71e5",
       "files": [
         {
           "source_path": "LICENSE",
