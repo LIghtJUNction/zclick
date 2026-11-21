@@ -59,17 +59,19 @@ class HelpFormatter:
 
     def write_usage(self, prog: str, args: str = "", prefix: str | None = None) -> None:
         prefix = "Usage: " if prefix is None else prefix
-        lead = prefix + prog
+        lead = prefix.rjust(self.current_indent) + prog
         if not args:
             self.write(lead + "\n")
             return
         lead += " "
-        if self.width - term_len(lead) >= 20:
-            self.write(wrap_text(args, self.width, lead, " " * term_len(lead)) + "\n")
+        text_width = self.width - self.current_indent
+        lead_width = term_len(lead)
+        if text_width - lead_width >= 20:
+            self.write(wrap_text(args, text_width, lead, " " * lead_width) + "\n")
         else:
             self.write(lead + "\n")
-            indent = " " * (term_len(prefix) + 4)
-            self.write(wrap_text(args, self.width, indent, indent) + "\n")
+            indent = " " * (max(self.current_indent, term_len(prefix)) + 4)
+            self.write(wrap_text(args, text_width, indent, indent) + "\n")
 
     def write_heading(self, heading: str) -> None:
         self.write(" " * self.current_indent + heading + ":\n")
