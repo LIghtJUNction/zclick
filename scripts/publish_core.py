@@ -5,11 +5,13 @@ from pathlib import Path
 import subprocess
 import tomllib
 
+from audit_dependencies import release_workspace
+
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def run(*args, capture=False):
-    result = subprocess.run(args, cwd=ROOT, check=True, text=True,
+def run(*args, capture=False, cwd=ROOT):
+    result = subprocess.run(args, cwd=cwd, check=True, text=True,
                             stdout=subprocess.PIPE if capture else None)
     return result.stdout.strip() if capture else None
 
@@ -42,9 +44,11 @@ def main():
         "--target", "wasm32-unknown-unknown")
     run("cargo", "clippy", "--locked", "-p", "zclick-core", "--all-targets",
         "--", "-D", "warnings")
-    run("cargo", "package", "--locked", "-p", "zclick-core")
+    with release_workspace(ROOT) as projection:
+        run("cargo", "package", "--locked", "-p", "zclick-core", cwd=projection)
+        if args.publish:
+            run("cargo", "publish", "--locked", "-p", "zclick-core", cwd=projection)
     if args.publish:
-        run("cargo", "publish", "--locked", "-p", "zclick-core")
         run("git", "tag", "-a", tag, candidate, "-m", "zclick-core " + version)
         run("git", "push", "origin", "refs/tags/" + tag)
         print("Published zclick-core " + version + " from " + candidate)
