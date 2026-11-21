@@ -12,4 +12,4 @@ categories = ["command-line-interface", "no-std"]
 include = ["src/**", "tests/**", "README.md", "LICENSE"]
 
 [dependencies]
-zclap = { version = "=0.1.4", default-features = false, git = "https://github.com/LIghtJUNction/zclap.git"}
+zclap = { default-features = false, git = "https://github.com/LIghtJUNction/zclap.git"}
