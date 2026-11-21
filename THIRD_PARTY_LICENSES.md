@@ -3,12 +3,12 @@
 zclick's own implementation is licensed under the MIT license in [LICENSE](LICENSE).
 The native extension is built from Rust crates whose unmodified license and
 copyright notices are included below. Both alternatives of dual-license notices
-are retained. SPDX expressions, exact registry versions, archive checksums, and
-copied-file checksums are recorded in [licenses/manifest.json](licenses/manifest.json).
+are retained. SPDX expressions, exact source revisions, registry archive checksums,
+and copied-file checksums are recorded in [licenses/manifest.json](licenses/manifest.json).
 
 ## Locked Rust crates
 
-This inventory covers every registry crate resolved by `cargo metadata --locked`,
+This inventory covers every external crate resolved by `cargo metadata --locked`,
 including host build dependencies and procedural macros. Inclusion of a notice
 does not imply that every listed crate contributes executable code to every wheel.
 The semantic core directly depends on zclap; the Python binding depends on PyO3.
@@ -30,7 +30,7 @@ These native/build dependencies are distinct from Python installation dependenci
 | [syn 3.0.10](https://crates.io/crates/syn/3.0.10) | `MIT OR Apache-2.0` | [LICENSE-APACHE](licenses/rust/syn-3.0.10/LICENSE-APACHE), [LICENSE-MIT](licenses/rust/syn-3.0.10/LICENSE-MIT) |
 | [target-lexicon 0.13.5](https://crates.io/crates/target-lexicon/0.13.5) | `Apache-2.0 WITH LLVM-exception` | [LICENSE](licenses/rust/target-lexicon-0.13.5/LICENSE) |
 | [unicode-ident 1.0.27](https://crates.io/crates/unicode-ident/1.0.27) | `(MIT OR Apache-2.0) AND Unicode-3.0` | [LICENSE-APACHE](licenses/rust/unicode-ident-1.0.27/LICENSE-APACHE), [LICENSE-MIT](licenses/rust/unicode-ident-1.0.27/LICENSE-MIT), [LICENSE-UNICODE](licenses/rust/unicode-ident-1.0.27/LICENSE-UNICODE) |
-| [zclap 0.1.4](https://crates.io/crates/zclap/0.1.4) | `MIT` | [LICENSE](licenses/rust/zclap-0.1.4/LICENSE) |
+| [zclap 0.1.4](https://github.com/LIghtJUNction/zclap/tree/a4c7e6f3e0ff860de701573117248fe8538c71e5) | `MIT` | [LICENSE](licenses/rust/zclap-0.1.4/LICENSE) |
 
 ## Rust standard library 1.99.1
 

@@ -8,6 +8,8 @@ from pathlib import Path
 import re
 import subprocess
 
+from audit_dependencies import is_zclap_git_source
+
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -42,15 +44,19 @@ def collect() -> dict[str, bytes]:
                 notices.append({"source_path": relative.as_posix(), "path": destination, "sha256": sha256(content)})
         if not notices:
             raise RuntimeError(f"No packaged license notice found for {package['name']} {package['version']}")
-        checksum = checksums[package["name"], package["version"]]
-        archive = source.parent.parent.parent / "cache" / source.parent.name / f"{package['name']}-{package['version']}.crate"
-        if not archive.exists() or sha256(archive.read_bytes()) != checksum:
-            raise RuntimeError(f"Registry archive checksum mismatch for {package['name']} {package['version']}")
+        provenance = {"url": f"https://crates.io/crates/{package['name']}/{package['version']}"}
+        if package["name"] == "zclap" and is_zclap_git_source(package["source"]):
+            repository, commit = package["source"].removeprefix("git+").split("#")
+            provenance = {"url": f"{repository.removesuffix('.git')}/tree/{commit}"}
+        else:
+            checksum = checksums[package["name"], package["version"]]
+            archive = source.parent.parent.parent / "cache" / source.parent.name / f"{package['name']}-{package['version']}.crate"
+            if not archive.exists() or sha256(archive.read_bytes()) != checksum:
+                raise RuntimeError(f"Registry archive checksum mismatch for {package['name']} {package['version']}")
+            provenance = {"registry_archive_sha256": checksum, **provenance}
         packages.append({
             "name": package["name"], "version": package["version"], "license": package["license"],
-            "source": package["source"], "registry_archive_sha256": checksum,
-            "url": f"https://crates.io/crates/{package['name']}/{package['version']}",
-            "files": notices,
+            "source": package["source"], **provenance, "files": notices,
         })
     toolchain = dict(line.split(": ", 1) for line in subprocess.check_output(["rustc", "-Vv"], cwd=ROOT, text=True).splitlines() if ": " in line)
     release = toolchain["release"]
@@ -69,7 +75,7 @@ def collect() -> dict[str, bytes]:
     inventory = {
         "schema": 1,
         "cargo_lock_sha256": sha256(lock_before),
-        "scope": "All registry crates resolved by locked workspace metadata, including build-only dependencies; complete Rust standard-library notices for the pinned release.",
+        "scope": "All external crates resolved by locked workspace metadata, including build-only dependencies; complete Rust standard-library notices for the pinned release.",
         "packages": packages,
         "rust_standard_library": {
             "version": release, "source_commit": toolchain["commit-hash"],
@@ -87,12 +93,12 @@ def collect() -> dict[str, bytes]:
 zclick's own implementation is licensed under the MIT license in [LICENSE](LICENSE).
 The native extension is built from Rust crates whose unmodified license and
 copyright notices are included below. Both alternatives of dual-license notices
-are retained. SPDX expressions, exact registry versions, archive checksums, and
-copied-file checksums are recorded in [licenses/manifest.json](licenses/manifest.json).
+are retained. SPDX expressions, exact source revisions, registry archive checksums,
+and copied-file checksums are recorded in [licenses/manifest.json](licenses/manifest.json).
 
 ## Locked Rust crates
 
-This inventory covers every registry crate resolved by `cargo metadata --locked`,
+This inventory covers every external crate resolved by `cargo metadata --locked`,
 including host build dependencies and procedural macros. Inclusion of a notice
 does not imply that every listed crate contributes executable code to every wheel.
 The semantic core directly depends on zclap; the Python binding depends on PyO3.
