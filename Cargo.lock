@@ -127,7 +127,7 @@ checksum = "a2c754d6c33795a1c324727428e5a7dedb5b06195f9890bdbcba760d3e246563"
 [[package]]
 name = "zclap"
 version = "0.1.4"
-source = "git+https://github.com/LIghtJUNction/zclap.git#a4c7e6f3e0ff860de701573117248fe8538c71e5"
+source = "git+https://github.com/LIghtJUNction/zclap.git#6bc825d3bbba8570462d2bdce8cb7945286b12c9"
 
 [[package]]
 name = "zclick-core"
